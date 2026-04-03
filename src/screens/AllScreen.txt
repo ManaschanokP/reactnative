@@ -1,0 +1,53 @@
+login
+main
+menu
+noti_list
+special
+tracking
+
+//home
+driver_home //04 Scan QR-Code, น้ำมัน, bgเขียว ตัวอักษรขาว
+Messenger_home //05 Scan QR-Code, น้ำมัน, bgสีส้ม ตัวอักษรขาว
+user_driver_home //03 bgสีเขียว ตัวอักษรสีขาว, ช่องพิม Tracking ท้ายช่องเป็นปุ่มค้นหาสีเขียว, บรรทัดที่ 2 เป็นปุ่ม Scan QR-Code สีฟ้า
+user_messenger_home //03 bgสีเขียว ตัวอักษรสีขาว, ช่องพิม Tracking ท้ายช่องเป็นปุ่มค้นหาเสียวเขียว, บรรทัดที่ 2 เป็นปุ่ม Scan QR-Code สีฟ้า
+
+//job
+Driver_job
+Messenger_job
+
+//notification
+driver_notification
+messenger_notification
+user_driver_notification
+user_messenger_notification
+
+//outsource
+driver_outsource
+messenger_outsource
+
+//detail_noti
+driver_detail_noti
+Messenger_detail_noti
+user_driver_detail_noti
+
+//update_status
+driver_update_status
+messenger_update_status
+
+//myjobs
+user_driver_myJobs
+user_messenger_myJobs
+
+//fuel
+driver_fuel // หน้าบันทึกการเติมน้ำมัน
+messenger_fuel // หน้าบันทึกการเติมน้ำมัน
+
+driver_signature // หน้าเขียนลายเซ็นิเร็กทรอนิค
+driver_evaluation //ให้คะแนนความพึงพอใจ
+full_screenimage
+view_detail
+dialog_loading
+
+
+
+

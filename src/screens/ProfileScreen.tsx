@@ -1,0 +1,149 @@
+// app/src/screens/ProfileScreen.tsx
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, TextInput, Button, Alert, StyleSheet, BackHandler } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigationTypes';
+import { updateUser } from '../services/apiService';
+import { AuthContext } from '../context/AuthProvider';
+import { ProfileForm } from '../types/authTypes';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
+
+const ProfileScreen: React.FC<Props> = ({ navigation }) => {
+
+  useEffect(() => {
+    // Not working
+    // navigation.setOptions({
+    //   headerLeft: () => null,
+    //   gestureEnabled: false,
+    // });
+
+    const backAction = () => {
+      Alert.alert('Hold on!', 'Are you sure you want to go back?', [
+        {
+          text: 'Cancel',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        { text: 'YES', onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
+  const { user } = useContext(AuthContext)!;
+  const [form, setForm] = useState<ProfileForm>({
+    id: user?.id ?? '',
+    name: user?.name ?? '',
+    department: user?.department ?? '',
+    tel: user?.tel ?? '',
+    phone: user?.phone ?? '',
+    company: user?.company ?? '',
+  });
+
+  const handleChange = (key: keyof ProfileForm, value: string) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSubmit = async () => {
+
+    const status = user.status ?? 'U03';
+
+    try {
+
+      const dataUpdateUser = {
+        username: form.id,
+        name: form.name,
+        department: form.department,
+        tel: form.tel,
+        phone: form.phone,
+        company: form.company,
+      };
+
+      const responseUpdateUser = await updateUser(dataUpdateUser);
+
+      if (!responseUpdateUser.error) {
+        if (status === 'U04' || status === 'Home') {
+          navigation.navigate('Home');
+        } else {
+          navigation.navigate('Menu');
+        }
+
+        Alert.alert('สำเร็จ', responseUpdateUser.message || 'อัปเดตข้อมูลสำเร็จ');
+
+      } else {
+
+        Alert.alert('ผิดพลาด', responseUpdateUser.message || 'ไม่สามารถอัปเดตข้อมูลได้');
+
+      }
+    } catch (error: any) {
+
+      Alert.alert('ผิดพลาด', error.message || 'ไม่สามารถอัปเดตข้อมูลได้');
+
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Field label="ชื่อ-นามสกุล" value={form.name} editable={false} />
+      <Field label="แผนก" value={form.department} editable={false} />
+      <Field
+        label="เบอร์ภายใน"
+        value={form.tel}
+        onChangeText={text => handleChange('tel', text)}
+      />
+      <Field
+        label="เบอร์มือถือ"
+        value={form.phone}
+        onChangeText={text => handleChange('phone', text)}
+      />
+      <Field label="บริษัท" value={form.company} editable={false} />
+      <Button title="บันทึก" onPress={handleSubmit} color="#1E8449" />
+    </View>
+  );
+};
+
+type FieldProps = {
+  label: string;
+  value: string;
+  editable?: boolean;
+  onChangeText?: (text: string) => void;
+};
+
+const Field: React.FC<FieldProps> = ({ label, value, editable = true, onChangeText }) => (
+  <View style={styles.row}>
+    <Text style={styles.label}>{label} :</Text>
+    <TextInput
+      style={[styles.input, !editable && styles.disabled]}
+      value={value}
+      onChangeText={onChangeText}
+      editable={editable}
+      placeholder={label}
+    />
+  </View>
+);
+
+const styles = StyleSheet.create({
+  container: { padding: 20, flex: 1, backgroundColor: '#fff' },
+  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  label: { fontWeight: 'bold', width: 110 },
+  input: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  disabled: {
+    backgroundColor: '#f0f0f0',
+  },
+});
+
+export default ProfileScreen;

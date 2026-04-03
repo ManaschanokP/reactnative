@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "975280228899",
+    "project_id": "i-smart-logistics",
+    "storage_bucket": "i-smart-logistics.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:975280228899:android:4b81aab4c3a3716ed4ff96",
+        "android_client_info": {
+          "package_name": "com.tgl.logistic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4RHN16U-wYepHu0qBCVBg9vH7F_eE99U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
