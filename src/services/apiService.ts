@@ -10,6 +10,9 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
 } from '../types/authTypes';
+import { JobRequest, JobResponse } from '../types/jobTypes';
+import { NotificationRequest, NotificationResponse  } from '../types/NotificationTypes';
+
 
 /* CALL API URL OLD Pattern
 const api = await axios.create({
@@ -163,6 +166,24 @@ export const updateUser = async (
   return apiService.postForm<UpdateUserResponse>(
     API_ENDPOINTS.UPDATE_PROFILE,
     dataUpdateUser,
+  );
+};
+
+export const getNotifications = async (
+  params: NotificationRequest,
+): Promise<NotificationResponse> => {
+  return apiService.postForm<NotificationResponse>(
+    API_ENDPOINTS.NOTIFICATION,
+    params,
+  );
+};
+
+export const getMyJobs = async (
+  params: JobRequest,
+): Promise<JobResponse> => {
+  return apiService.postForm<JobResponse>(
+    API_ENDPOINTS.GET_MY_JOBS,
+    params,
   );
 };
 

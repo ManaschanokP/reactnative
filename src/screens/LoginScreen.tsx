@@ -28,13 +28,16 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const handleLogin = async () => {
     try {
       const responseUserCompany = await loginUser(credentials);
+      console.log('responseUserCompany : ',responseUserCompany);
       const companyCode = responseUserCompany.User[0].company;
+      console.log('CompanyCode : ',companyCode);
+
       await AsyncStorage.setItem('companyCode', companyCode);
 
       if (!responseUserCompany.error) {
         const responseLogin = await checkLogin(credentials);
         const userData = responseLogin.User[0];
-             
+
         if (!responseLogin.error) {
           const fcmToken = await AsyncStorage.getItem('FCM_TOKEN');
           setUpdateToken({ ...updateToken, token: fcmToken ?? '', id: userData.id });

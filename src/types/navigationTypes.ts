@@ -9,4 +9,6 @@ export type RootStackParamList = {
   NotificationList: undefined;
   NotificationDetail: undefined;
   JobList: undefined;
+
+  Scan: undefined; //เพิ่มไปหน้าสแกน
 };

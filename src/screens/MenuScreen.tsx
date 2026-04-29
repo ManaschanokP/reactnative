@@ -1,15 +1,22 @@
 import React from 'react';
-import { Alert, View, Text, TouchableOpacity, Image, StyleSheet, Button } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigationTypes';
+import {
+  Alert,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Button,
+} from 'react-native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../types/navigationTypes';
 
 import LogoutButton from '../components/LogoutButton';
 import SatisfactionButton from '../components/SatisfactionButton';
 import GradientButton from '../components/GradientButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Menu'>;
-const MenuScreen: React.FC<Props> = ({ navigation }) => {
-
+const MenuScreen: React.FC<Props> = ({navigation}) => {
   const handlePress = () => {
     Alert.alert('คุณกดปุ่ม Driver แล้ว!');
   };
@@ -47,25 +54,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'red',
-    //gap: 60,
-    // },
-    // button: {
-    //   width: 300,
-    //   height: 150,
-    //   marginTop: 100,
-    //   alignItems: 'center',
-    //   justifyContent: 'center',
-    // },
-    // buttonImage: {
-    //   width: 100,
-    //   height: 100,
-    //   marginBottom: 10,
-    // },
-    // buttonText: {
-    //   fontSize: 30,
-    //   fontWeight: 'bold',
-    //   paddingTop: 10,
+    backgroundColor: 'white',
+    gap: 60,
+    },
+    button: {
+      width: 300,
+      height: 150,
+      marginTop: 100,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonImage: {
+      width: 100,
+      height: 100,
+      marginBottom: 10,
+    },
+    buttonText: {
+      fontSize: 30,
+      fontWeight: 'bold',
+      paddingTop: 10,
   },
 });
 

@@ -1,12 +1,12 @@
 // app/App.tsx
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Linking, StatusBar } from 'react-native';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import {Linking, StatusBar} from 'react-native';
 import {
   NavigationContainer,
   NavigationContainerRef,
   useNavigation,
 } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Toast from 'react-native-toast-message';
 import MenuScreen from './src/screens/MenuScreen';
 import LoginScreen from './src/screens/LoginScreen';
@@ -15,14 +15,15 @@ import FuelEntryScreen from './src/screens/FuelEntryScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import JobListScreen from './src/screens/JobListScreen';
 import RootTabs from './src/components/RootTabs';
-import { RootStackParamList } from './src/types/navigationTypes';
-import { AuthProvider, AuthContext } from './src/context/AuthProvider';
+import {RootStackParamList} from './src/types/navigationTypes';
+import {AuthProvider, AuthContext} from './src/context/AuthProvider';
 import messaging from '@react-native-firebase/messaging';
-import { PermissionsAndroid } from 'react-native';
+import {PermissionsAndroid} from 'react-native';
 import NotificationDetailScreen from './src/screens/NotificationDetailScreen';
 import NotificationListScreen from './src/screens/NotificationListScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ScanScreen from './src/screens/ScanScreen'; //เพิ่มหน้าสแกน
 
 const NAVIGATION_IDS = ['NotificationDetail'];
 
@@ -68,7 +69,7 @@ const linking = {
     }
   },
   subscribe(listener: (url: string) => void) {
-    const onReceiveURL = ({ url }: { url: string }) => listener(url);
+    const onReceiveURL = ({url}: {url: string}) => listener(url);
 
     const linkingSubscription = Linking.addEventListener('url', onReceiveURL);
 
@@ -107,7 +108,7 @@ function App(): React.JSX.Element {
 
 function NavigationHandler() {
   const navigationRef = useRef<NavigationContainerRef<any>>(null!);
-  const { user } = useContext(AuthContext)!;
+  const {user} = useContext(AuthContext)!;
   const [statusBarColor, setStatusBarColor] = useState<string | null>(null);
 
   // 🔹 Update StatusBar Color When User Changes
@@ -147,14 +148,22 @@ function NavigationHandler() {
     <>
       <StatusBar backgroundColor={statusBarColor} barStyle="light-content" />
       <NavigationContainer linking={linking} ref={navigationRef}>
-        <MainApp navigationRef={navigationRef as React.RefObject<NavigationContainerRef<any>>} />
+        <MainApp
+          navigationRef={
+            navigationRef as React.RefObject<NavigationContainerRef<any>>
+          }
+        />
       </NavigationContainer>
     </>
   );
 }
 
-function MainApp({ navigationRef }: { navigationRef?: React.RefObject<NavigationContainerRef<any>> }) {
-  const { user } = useContext(AuthContext)!;
+function MainApp({
+  navigationRef,
+}: {
+  navigationRef?: React.RefObject<NavigationContainerRef<any>>;
+}) {
+  const {user} = useContext(AuthContext)!;
   console.log('User in MainApp:', user);
   useEffect(() => {
     if (user && navigationRef?.current) {
@@ -182,33 +191,43 @@ function MainApp({ navigationRef }: { navigationRef?: React.RefObject<Navigation
           headerTitleStyle: {
             fontWeight: 'bold',
           },
-        }}
-      >
+        }}>
         {user ? (
           <>
             <Stack.Screen
               name="Home"
               component={HomeScreen}
-            // options={{
-            //   headerStyle: {
-            //     backgroundColor: '#3498db', // Set the top bar color
-            //   },
-            //   headerTintColor: '#fff', // Set text/icon color
-            //   headerTitleStyle: {
-            //     fontWeight: 'bold',
-            //   },
-            // }}
+              // options={{
+              //   headerStyle: {
+              //     backgroundColor: '#3498db', // Set the top bar color
+              //   },
+              //   headerTintColor: '#fff', // Set text/icon color
+              //   headerTitleStyle: {
+              //     fontWeight: 'bold',
+              //   },
+              // }}
             />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />
             <Stack.Screen name="FuelEntry" component={FuelEntryScreen} />
             <Stack.Screen name="JobList" component={JobListScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
-            <Stack.Screen name="NotificationList" component={NotificationListScreen} />
-            <Stack.Screen name="NotificationDetail" component={NotificationDetailScreen} />
+            <Stack.Screen
+              name="NotificationList"
+              component={NotificationListScreen}
+            />
+            <Stack.Screen
+              name="NotificationDetail"
+              component={NotificationDetailScreen}
+            />
+            <Stack.Screen name="Scan" component={ScanScreen} />
           </>
         ) : (
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{headerShown: false}}
+          />
         )}
       </Stack.Navigator>
       {user ? <RootTabs /> : null}

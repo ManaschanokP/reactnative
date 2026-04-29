@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+} from 'react-native';
+import {Picker} from '@react-native-picker/picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { Button } from 'react-native-elements';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import DatePicker, { DateType } from 'react-native-ui-datepicker';
-import { RootStackParamList } from '../types/navigationTypes';
- 
+import {Button} from 'react-native-elements';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import DatePicker, {DateType} from 'react-native-ui-datepicker';
+import {RootStackParamList} from '../types/navigationTypes';
+
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
-  
-const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
+
+const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
   const [license, setLicense] = useState('');
   const [date, setDate] = useState(new Date());
   const [mile, setMile] = useState('');
@@ -17,7 +24,7 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
   const [bath, setBath] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const handleDateChange = (params: { date: DateType }) => {
+  const handleDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
       setDate(params.date);
       setShowDatePicker(false);
@@ -34,29 +41,29 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
             value={date.toDateString()}
             editable={false}
           />
-          <MaterialIcons name="date-range" size={30} color="#a7cc43" style={styles.iconButton} />
+          <MaterialIcons
+            name="date-range"
+            size={30}
+            color="#a7cc43"
+            style={styles.iconButton}
+          />
         </View>
       </TouchableOpacity>
-      
+
       <Modal visible={showDatePicker} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <DatePicker
-                mode="single"
-                date={date}
-                onChange={handleDateChange} 
-            />
+            <DatePicker mode="single" date={date} onChange={handleDateChange} />
             <Button title="ปิด" onPress={() => setShowDatePicker(false)} />
           </View>
         </View>
       </Modal>
-      
+
       <Text style={styles.label}>ทะเบียน :</Text>
       <Picker
         selectedValue={license}
-        onValueChange={(itemValue) => setLicense(itemValue)}
-        style={styles.picker}
-      >
+        onValueChange={itemValue => setLicense(itemValue)}
+        style={styles.picker}>
         <Picker.Item label="เลือกทะเบียน" value="" />
         <Picker.Item label="ABC-1234" value="ABC-1234" />
         <Picker.Item label="XYZ-5678" value="XYZ-5678" />
@@ -86,7 +93,6 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
         onChangeText={setBath}
       />
     </View>
-    
   );
 };
 
