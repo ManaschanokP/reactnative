@@ -13,4 +13,7 @@ export type RootStackParamList = {
   JobList: undefined;
   ViewDetail: { item: JobItem };
   Scan: undefined; //เพิ่มไปหน้าสแกน
+  Tracking: { requestId: string };
+  Signature: { request_id: string; status_id: string };
+  Evaluation: { request_id: string; status_id: string };
 };

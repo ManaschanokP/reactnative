@@ -1,15 +1,24 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, TextInput, ActivityIndicator, Alert, Image,
+  useWindowDimensions,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { launchCamera } from 'react-native-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigationTypes';
 import { AuthContext } from '../context/AuthProvider';
-import { getListStatus, updateStatus, updatePicture } from '../services/apiService';
+import {
+  getListStatus,
+  updateStatus,
+  updatePicture,
+  submitSignature,
+  submitEvaluation,
+} from '../services/apiService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SignatureScreen, { SignatureViewRef } from 'react-native-signature-canvas';
+import { Rating } from 'react-native-ratings';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ViewDetail'>;
 
@@ -29,11 +38,12 @@ const STATUS_ID_MAP: Record<string, string> = {
   'ยกเลิก': 'SD10',
 };
 
-// สถานะที่ต้องถ่ายรูปก่อน update
-const REQUIRES_PHOTO = ['ขึ้นของ', 'เช็คอิน', 'การดำเนินการสำเร็จ'];
+const REQUIRES_PHOTO = ['ขึ้นของ', 'เช็คอิน', 'พบปัญหา', 'การจัดส่งสำเร็จ'];
+const REQUIRES_SIGNATURE_RATING = ['การจัดส่งสำเร็จ'];
 
 const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { item } = route.params;
   const { user } = useContext(AuthContext)!;
 
@@ -45,6 +55,10 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const [photo, setPhoto] = useState<{ uri: string; base64: string } | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [signature, setSignature] = useState<string | null>(null);
+  const [signatureKey, setSignatureKey] = useState(0);
+  const signatureRef = useRef<SignatureViewRef>(null);
 
   useEffect(() => {
     fetchStatusList();
@@ -58,8 +72,19 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         status_now: item.status_id,
         type_user: user.status,
       });
+
       if (!response.error && response.listStatus.length > 0) {
-        const names = response.listStatus.map(s => s.status_name);
+        let names = response.listStatus.map(s => s.status_name);
+
+        if (item.status_id === 'SD05') {
+          const allStatusNames = Object.keys(STATUS_ID_MAP);
+          names = allStatusNames.filter(name =>
+            !['รอดำเนินการ', 'ใช้บริการ Outsource', 'มอบหมายงานสำเร็จ',
+              'กำลังไปรับของ', 'ขึ้นของ', 'กำลังจัดส่ง', 'เช็คอิน',
+              'การจัดส่งสำเร็จ'].includes(name)
+          );
+        }
+
         setStatusList(names);
         setSelectedStatus(names[0]);
       }
@@ -83,76 +108,129 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     );
   };
 
+  const handleSignatureOK = (signatureBase64: string) => {
+    setSignature(signatureBase64);
+  };
+
+  const handleClearSignature = () => {
+    setSignature(null);
+    setSignatureKey(prev => prev + 1);
+  };
+
   const handleUpdate = async () => {
-  const status_id = STATUS_ID_MAP[selectedStatus] ?? '';
+    const status_id = STATUS_ID_MAP[selectedStatus] ?? '';
 
-  if (!status_id) {
-    Alert.alert('ข้อผิดพลาด', 'ไม่พบรหัสสถานะ');
-    return;
-  }
+    if (!status_id) {
+      Alert.alert('ข้อผิดพลาด', 'ไม่พบรหัสสถานะ');
+      return;
+    }
 
-  if (needsPhoto && !photo) {
-    Alert.alert('แจ้งเตือน', 'กรุณาถ่ายรูปก่อนอัปเดตสถานะนี้');
-    return;
-  }
+    if (needsPhoto && !photo) {
+      Alert.alert('แจ้งเตือน', 'กรุณาถ่ายรูปก่อนอัปเดตสถานะนี้');
+      return;
+    }
 
-  Alert.alert('ยืนยัน', `ต้องการอัปเดตสถานะเป็น "${selectedStatus}" ใช่ไหม?`, [
-    { text: 'ยกเลิก', style: 'cancel' },
-    {
-      text: 'ยืนยัน',
-      onPress: async () => {
-        try {
-          setUpdating(true);
+    if (needsSignatureRating && !signature) {
+      Alert.alert('แจ้งเตือน', 'กรุณาเซ็นชื่อยืนยันการจัดส่ง');
+      return;
+    }
 
-          const baseParams = {
-            request_id: item.request_id,
-            status_id,
-            detail,
-            box,
-            user_status: user.status,
-            mile,
-            driver: user.id,
-          };
+    Alert.alert('ยืนยัน', `ต้องการอัปเดตสถานะเป็น "${selectedStatus}" ใช่ไหม?`, [
+      { text: 'ยกเลิก', style: 'cancel' },
+      {
+        text: 'ยืนยัน',
+        onPress: async () => {
+          try {
+            setUpdating(true);
 
-          let response;
+            console.log('=== handleUpdate ===');
+            console.log('request_id      :', item.request_id);
+            console.log('status_id       :', status_id);
+            console.log('needsPhoto      :', needsPhoto);
+            console.log('needsSigRating  :', needsSignatureRating);
+            console.log('signature       :', signature ? `length=${signature.length}` : 'null');
+            console.log('rating          :', rating);
 
-          // ✅ เรียก UpdatePicture เฉพาะเมื่อ needsPhoto AND มีรูปจริงๆ
-          if (needsPhoto && photo) {
-            console.log('📸 calling UpdatePicture');
-            response = await updatePicture({ ...baseParams, picture: photo.base64 });
-          } else {
-            console.log('📝 calling UpdateStatus');
-            response = await updateStatus(baseParams);
+            // ── Step 1: updatePicture หรือ updateStatus ──
+            const baseParams = {
+              request_id: item.request_id,
+              status_id,
+              detail,
+              box,
+              user_status: user.status,
+              mile,
+              driver: user.id,
+            };
+
+            let response;
+            if (needsPhoto && photo) {
+              console.log('📡 calling updatePicture...');
+              response = await updatePicture({ ...baseParams, picture: photo.base64 });
+            } else {
+              console.log('📡 calling updateStatus...');
+              response = await updateStatus(baseParams);
+            }
+            console.log('updateStatus/Picture response:', response);
+
+            // ── Step 2: submitSignature (esig_cus) ──
+            if (needsSignatureRating && signature) {
+              console.log('📡 calling submitSignature...');
+
+              // ✅ ตัด prefix "data:image/png;base64," ออกก่อนส่ง
+              const cleanSignature = signature.replace(/^data:image\/\w+;base64,/, '');
+              console.log('signature length (clean):', cleanSignature.length);
+
+              const sigResponse = await submitSignature({
+                request_id: item.request_id,
+                status_id,
+                picture: cleanSignature,
+              });
+              console.log('submitSignature response:', sigResponse);
+            }
+
+            // ── Step 3: submitEvaluation (rating) ──
+            if (needsSignatureRating) {
+              console.log('📡 calling submitEvaluation, rating:', rating);
+              const evalResponse = await submitEvaluation({
+                request_id: item.request_id,
+                status_id,
+                eval: String(rating),
+              });
+              console.log('submitEvaluation response:', evalResponse);
+            }
+
+            Alert.alert('สำเร็จ', response.message, [
+              { text: 'ตกลง', onPress: () => navigation.goBack() },
+            ]);
+
+          } catch (err) {
+            Alert.alert('ข้อผิดพลาด', 'อัปเดตสถานะไม่สำเร็จ');
+            console.error('handleUpdate error:', err);
+          } finally {
+            setUpdating(false);
           }
-
-          console.log('📦 response:', JSON.stringify(response));
-          Alert.alert('สำเร็จ', response.message, [
-            { text: 'ตกลง', onPress: () => navigation.goBack() },
-          ]);
-        } catch (err) {
-          Alert.alert('ข้อผิดพลาด', 'อัปเดตสถานะไม่สำเร็จ');
-          console.error(err);
-        } finally {
-          setUpdating(false);
-        }
+        },
       },
-    },
-  ]);
-};
+    ]);
+  };
 
   const isBoxEnabled = selectedStatus === 'ขึ้นของ';
   const isMileEnabled = selectedStatus === 'กำลังจัดส่ง' || selectedStatus === 'การดำเนินการสำเร็จ';
   const needsPhoto = REQUIRES_PHOTO.includes(selectedStatus);
-  //const isUpdateEnabled = !['ขึ้นของ','การจัดส่งสำเร็จ', 'รับเอกสารกลับ'].includes(selectedStatus);
+  const needsSignatureRating = REQUIRES_SIGNATURE_RATING.includes(selectedStatus);
+  const isSubmitDisabled =
+    updating ||
+    (needsPhoto && !photo) ||
+    (needsSignatureRating && !signature);
 
-  const isUpdateEnabled = true;
+  const signatureHeight = Math.round(width * 0.4);
+
   return (
-    <ScrollView 
-      style={styles.container} 
-      contentContainerStyle={styles.content} 
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-
       {/* ข้อมูลงาน */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>ข้อมูลงาน</Text>
@@ -174,7 +252,8 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             selectedValue={selectedStatus}
             onValueChange={(val) => {
               setSelectedStatus(val);
-              setPhoto(null); // reset รูปเมื่อเปลี่ยนสถานะ
+              setPhoto(null);
+              handleClearSignature();
             }}
             style={styles.picker}
           >
@@ -184,7 +263,62 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           </Picker>
         )}
 
-        {/* ถ่ายรูป — แสดงเฉพาะสถานะที่ต้องรูป */}
+        {/* Rating & Signature */}
+        {needsSignatureRating && (
+          <View style={styles.specialSection}>
+            <Text style={styles.fieldLabel}>ประเมินความพึงพอใจ :</Text>
+            <Rating
+              startingValue={rating}
+              onFinishRating={setRating}
+              imageSize={Math.round(width * 0.07)}
+              style={{ paddingVertical: 10 }}
+            />
+
+            <Text style={styles.fieldLabel}>ลายเซ็นผู้รับสินค้า :</Text>
+            <View style={[styles.signatureBox, { height: signatureHeight }]}>
+              <SignatureScreen
+                key={signatureKey}
+                ref={signatureRef}
+                onOK={handleSignatureOK}
+                descriptionText="เซ็นชื่อลงในช่องว่าง"
+                clearText="ล้าง"
+                confirmText="บันทึกลายเซ็น"
+                penColor="#000000"        // ✅ บังคับให้เส้นลายเซ็นเป็นสีดำ
+                backgroundColor="#ffffff" // ✅ บังคับพื้นหลังเป็นสีขาว (เมื่อเซฟออกมาจะเป็นภาพพื้นหลังขาว)
+                imageType="image/png"     // ✅ บันทึกเป็น PNG ที่มีพื้นหลังทึบ
+                webStyle={`
+                  .m-signature-pad { box-shadow: none; border: none; }
+                  .m-signature-pad--body { background-color: #ffffff; } /* รองรับการแสดงผลหน้าเว็บให้เป็นสีขาว */
+                  .m-signature-pad--footer { display: none; }
+                  body { margin: 0; background-color: #ffffff; }
+                `}
+              />
+            </View>
+
+            <View style={styles.signatureActions}>
+              <TouchableOpacity
+                style={styles.signatureBtnClear}
+                onPress={handleClearSignature}
+              >
+                <Text style={styles.clearText}>🗑 ล้างลายเซ็น</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.signatureBtnSave}
+                onPress={() => signatureRef.current?.readSignature()}
+              >
+                <Text style={styles.saveText}>✔ บันทึกลายเซ็น</Text>
+              </TouchableOpacity>
+            </View>
+
+            {signature ? (
+              <Text style={styles.signatureSuccess}>✓ ได้รับลายเซ็นแล้ว</Text>
+            ) : (
+              <Text style={styles.signaturePending}>⚠ ยังไม่ได้บันทึกลายเซ็น</Text>
+            )}
+          </View>
+        )}
+
+        {/* ถ่ายรูป */}
         {needsPhoto && (
           <View style={styles.photoSection}>
             <TouchableOpacity style={styles.photoButton} onPress={handleTakePhoto}>
@@ -194,9 +328,6 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             </TouchableOpacity>
             {photo && (
               <Image source={{ uri: photo.uri }} style={styles.photoPreview} />
-            )}
-            {!photo && (
-              <Text style={styles.photoHint}>* สถานะนี้ต้องถ่ายรูปก่อนยืนยัน</Text>
             )}
           </View>
         )}
@@ -234,26 +365,27 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
       {/* ปุ่ม Confirm */}
       <TouchableOpacity
-        style={[
-          styles.confirmButton,
-          (!isUpdateEnabled || updating || (needsPhoto && !photo)) && styles.buttonDisabled,
-        ]}
+        style={[styles.confirmButton, isSubmitDisabled && styles.buttonDisabled]}
         onPress={handleUpdate}
-        disabled={!isUpdateEnabled || updating || (needsPhoto && !photo)}
+        disabled={isSubmitDisabled}
       >
         {updating ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.confirmText}>✓ ยืนยันอัปเดตสถานะ</Text>
+          <Text style={styles.confirmText}> ยืนยันอัปเดตสถานะ</Text>
         )}
       </TouchableOpacity>
-          {/* spacer แทน bottom nav */}
+
       <View style={{ height: insets.bottom + 120 }} />
     </ScrollView>
   );
 };
 
-const Row = ({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) => (
+const Row = ({
+  label, value, highlight,
+}: {
+  label: string; value: string; highlight?: boolean;
+}) => (
   <View style={styles.row}>
     <Text style={styles.rowLabel}>{label} :</Text>
     <Text style={[styles.rowValue, highlight && styles.highlightValue]}>{value}</Text>
@@ -270,7 +402,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     elevation: 2,
   },
-  
   cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -301,8 +432,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     resizeMode: 'cover',
   },
-  photoHint: { color: '#e74c3c', fontSize: 12, marginTop: 6 },
-  fieldLabel: { fontWeight: 'bold', fontSize: 14, color: '#555', marginTop: 8, marginBottom: 4 },
+  fieldLabel: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#555',
+    marginTop: 8,
+    marginBottom: 4,
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -323,6 +459,60 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: '#ccc' },
   confirmText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  specialSection: {
+    padding: 10,
+    backgroundColor: '#fff9f0',
+    borderRadius: 8,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ffeaa7',
+  },
+  signatureBox: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    marginTop: 5,
+    overflow: 'hidden',
+    borderRadius: 6,
+  },
+  signatureActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    gap: 8,
+  },
+  signatureBtnClear: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e74c3c',
+    alignItems: 'center',
+  },
+  signatureBtnSave: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#3498db',
+    alignItems: 'center',
+  },
+  clearText: { color: '#e74c3c', fontWeight: 'bold', fontSize: 14 },
+  saveText: { color: '#3498db', fontWeight: 'bold', fontSize: 14 },
+  signatureSuccess: {
+    color: '#27ae60',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  signaturePending: {
+    color: '#e67e22',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 5,
+  },
 });
 
 export default ViewDetailScreen;
+//```</SignatureScreen>

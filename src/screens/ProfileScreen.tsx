@@ -102,9 +102,15 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
         onChangeText={text => handleChange('phone', text)}
       />
       <Field label="บริษัท" value={form.company} editable={false} />
-      <Button title="บันทึก" onPress={handleSubmit} color="#1E8449" />
-      <Button title="logout" onPress={confirmLogout} color="#a10101" />
-
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <View style={{flex: 1, marginRight: 5}}>
+          <Button title="บันทึก" onPress={handleSubmit} color="#a7cc43" />
+        </View>
+ 
+        <View style={{flex: 1, marginLeft: 5}}>
+          <Button title="logout" onPress={confirmLogout} color="#c44141" />
+        </View>
+      </View>
       {/* <TouchableOpacity 
               style={styles.navButton}
               onPress={confirmLogout}>

@@ -23,11 +23,15 @@ import NotificationDetailScreen from './src/screens/NotificationDetailScreen';
 import NotificationListScreen from './src/screens/NotificationListScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ScanScreen from './src/screens/ScanScreen'; //เพิ่มหน้าสแกน
+import ScanScreen from './src/screens/ScanScreen';
 import ViewDetailScreen from './src/screens/ViewDetailScreen';
-
+import {SafeAreaProvider} from 'react-native-safe-area-context'; // ✅ import อยู่แล้ว
+import SignaturePadScreen from './src/screens/SignaturePadScreen';
+import EvaluationScreen from './src/screens/EvaluationScreen';
+import TrackingScreen from './src/screens/TrackingScreen';
+ 
 const NAVIGATION_IDS = ['NotificationDetail'];
-
+ 
 function buildDeepLinkFromNotificationData(data: any): string | null {
   const navigationId = data?.navigationId;
   if (!NAVIGATION_IDS.includes(navigationId)) {
@@ -37,24 +41,15 @@ function buildDeepLinkFromNotificationData(data: any): string | null {
   if (navigationId === 'NotificationDetail') {
     return 'myapp://NotificationDetail';
   }
-  // if (navigationId === 'JobList') {
-  //   return 'myapp://settings';
-  // }
-  // const postId = data?.postId;
-  // if (typeof postId === 'string') {
-  //   return `myapp://post/${postId}`
-  // }
   console.warn('Missing postId');
   return null;
 }
-
+ 
 const linking = {
   prefixes: ['myapp://'],
   config: {
     screens: {
       NotificationDetail: 'NotificationDetail',
-      //   Post: 'post/:id',
-      //   Settings: 'settings'
     },
   },
   async getInitialURL() {
@@ -62,7 +57,6 @@ const linking = {
     if (typeof url === 'string') {
       return url;
     }
-
     const message = await messaging().getInitialNotification();
     const deeplinkURL = buildDeepLinkFromNotificationData(message?.data);
     if (typeof deeplinkURL === 'string') {
@@ -71,24 +65,19 @@ const linking = {
   },
   subscribe(listener: (url: string) => void) {
     const onReceiveURL = ({url}: {url: string}) => listener(url);
-
     const linkingSubscription = Linking.addEventListener('url', onReceiveURL);
-
     messaging().setBackgroundMessageHandler(async remoteMessage => {
       console.log('Message handled in the background!', remoteMessage);
     });
-
     const foreground = messaging().onMessage(async remoteMessage => {
       console.log('A new FCM message arrived!', remoteMessage);
     });
-
     const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
       const url = buildDeepLinkFromNotificationData(remoteMessage.data);
       if (typeof url === 'string') {
         listener(url);
       }
     });
-
     return () => {
       linkingSubscription.remove();
       unsubscribe();
@@ -96,37 +85,37 @@ const linking = {
     };
   },
 };
-
+ 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
+ 
 function App(): React.JSX.Element {
   return (
-    <AuthProvider>
-      <NavigationHandler />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <NavigationHandler />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
-
+ 
 function NavigationHandler() {
   const navigationRef = useRef<NavigationContainerRef<any>>(null!);
   const {user} = useContext(AuthContext)!;
   const [statusBarColor, setStatusBarColor] = useState<string | null>(null);
-
-  // 🔹 Update StatusBar Color When User Changes
+ 
   useEffect(() => {
     console.log('User changed:', user);
     if (user) {
       if (user.status === 'U04') {
-        setStatusBarColor('#a7cc43'); // Color for U04 users
+        setStatusBarColor('#a7cc43');
       } else {
-        setStatusBarColor('#D7E9F7'); // Default for other users
+        setStatusBarColor('#D7E9F7');
       }
     } else {
-      setStatusBarColor(null); // Default color if user is null
+      setStatusBarColor(null);
     }
   }, [user]);
-
-  // 🔹 Request Notification Permission (One-Time)
+ 
   useEffect(() => {
     const requestUserPermission = async () => {
       PermissionsAndroid.request(
@@ -144,7 +133,7 @@ function NavigationHandler() {
     };
     requestUserPermission();
   }, []);
-
+ 
   return (
     <>
       <StatusBar backgroundColor={statusBarColor} barStyle="light-content" />
@@ -158,7 +147,7 @@ function NavigationHandler() {
     </>
   );
 }
-
+ 
 function MainApp({
   navigationRef,
 }: {
@@ -166,13 +155,12 @@ function MainApp({
 }) {
   const {user} = useContext(AuthContext)!;
   console.log('User in MainApp:', user);
+ 
   useEffect(() => {
     if (user && navigationRef?.current) {
       if (user.first_login === 'Y') {
         navigationRef.current.navigate('Profile');
       } else if (user.first_login === 'N') {
-        // Check user status and navigate accordingly
-        // U04 = Driver, U05 = Messenger, U03 = User, U01 = Admin Driver, U07 = Manager
         if (user.status === 'U04' || user.status === 'U05') {
           navigationRef.current.navigate('Home');
         } else {
@@ -181,48 +169,34 @@ function MainApp({
       }
     }
   }, [user, navigationRef]);
+ 
   return (
     <>
       <Stack.Navigator
         screenOptions={{
           headerStyle: {
-            backgroundColor: user?.status === '03' ? '#a7cc43' : '#f8ac59', // สีพื้นหลัง Top Bar
+            backgroundColor: user?.status === '03' ? '#a7cc43' : '#f8ac59',
           },
-          headerTintColor: '#fff', // สีตัวอักษร (เช่นชื่อหน้า, ปุ่ม back)
+          headerTintColor: '#fff',
           headerTitleStyle: {
             fontWeight: 'bold',
           },
         }}>
         {user ? (
           <>
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              // options={{
-              //   headerStyle: {
-              //     backgroundColor: '#3498db', // Set the top bar color
-              //   },
-              //   headerTintColor: '#fff', // Set text/icon color
-              //   headerTitleStyle: {
-              //     fontWeight: 'bold',
-              //   },
-              // }}
-            />
+            <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="ViewDetail" component={ViewDetailScreen} />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />
             <Stack.Screen name="FuelEntry" component={FuelEntryScreen} />
             <Stack.Screen name="JobList" component={JobListScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
-            <Stack.Screen
-              name="NotificationList"
-              component={NotificationListScreen}
-            />
-            <Stack.Screen
-              name="NotificationDetail"
-              component={NotificationDetailScreen}
-            />
+            <Stack.Screen name="NotificationList" component={NotificationListScreen} />
+            <Stack.Screen name="NotificationDetail" component={NotificationDetailScreen} />
             <Stack.Screen name="Scan" component={ScanScreen} />
+            <Stack.Screen name="Signature" component={SignaturePadScreen} />
+            <Stack.Screen name="Evaluation" component={EvaluationScreen} />
+            <Stack.Screen name="Tracking" component={TrackingScreen} />
           </>
         ) : (
           <Stack.Screen
@@ -237,5 +211,5 @@ function MainApp({
     </>
   );
 }
-
+ 
 export default App;

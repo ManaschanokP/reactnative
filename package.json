@@ -33,14 +33,16 @@
     "react-native-gesture-handler": "^2.24.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-ratings": "^8.1.0",
     "react-native-reanimated": "^3.19.5",
     "react-native-safe-area-context": "^5.7.0",
     "react-native-screens": "^3.31.1",
-    "react-native-signature-canvas": "^4.7.2",
+    "react-native-signature-canvas": "^4.7.4",
     "react-native-toast-message": "^2.2.1",
     "react-native-ui-datepicker": "^3.1.2",
     "react-native-vector-icons": "^10.2.0",
     "react-native-vision-camera": "^4.7.3",
+    "react-native-webview": "^13.16.1",
     "react-native-worklets-core": "^1.6.3"
   },
   "devDependencies": {
