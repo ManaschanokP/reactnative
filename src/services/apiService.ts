@@ -10,7 +10,14 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
 } from '../types/authTypes';
-import { JobRequest, JobResponse } from '../types/jobTypes';
+import { 
+  JobRequest, 
+  JobResponse ,
+  ListStatusRequest,
+  ListStatusResponse,
+  UpdateStatusRequest,
+  UpdateStatusResponse,
+} from '../types/jobTypes';
 import { NotificationRequest, NotificationResponse  } from '../types/NotificationTypes';
 
 
@@ -65,6 +72,11 @@ const apiService = {
           headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         },
       );
+
+      if (typeof response.data === 'string' && response.data.includes('Fatal error')) {
+      throw new Error('Server error: PHP Fatal error');
+    }
+
       return response.data;
     } catch (error) {
       console.error('API Error:', error);
@@ -92,27 +104,7 @@ const apiService = {
   },
 };
 
-const DUMMY_USER: LoginResponse = {
-  error: false,
-  User: [
-    {
-      id: 'dev-user',
-      name: 'John Doe',
-      department: 'Development',
-      tel: null,
-      phone: '1234567890',
-      company: 'DevCorp',
-      status: 'active',
-      first_login: '2025-01-01',
-    },
-  ],
-};
 
-const DUMMY_USER_FAIL: LoginResponse = {
-  error: true,
-  message: 'Username or password incorrect!',
-  User: [],
-};
 
 export const loginUser = async (
   credentials: LoginRequest,
@@ -183,6 +175,42 @@ export const getMyJobs = async (
 ): Promise<JobResponse> => {
   return apiService.postForm<JobResponse>(
     API_ENDPOINTS.GET_MY_JOBS,
+    params,
+  );
+};
+export const getListStatus = async (
+  params: ListStatusRequest,
+): Promise<ListStatusResponse> => {
+  return apiService.postForm<ListStatusResponse>(
+    API_ENDPOINTS.LIST_STATUS,
+    params,
+  );
+};
+
+export const updateStatus = async (
+  params: UpdateStatusRequest,
+): Promise<UpdateStatusResponse> => {
+  return apiService.postForm<UpdateStatusResponse>(
+    API_ENDPOINTS.UPDATE_STATUS,
+    params,
+  );
+};
+export type UpdatePictureRequest = {
+  request_id: string;
+  status_id: string;
+  detail: string;
+  picture: string; // base64
+  box: string;
+  user_status: string;
+  mile: string;
+  driver: string;
+};
+
+export const updatePicture = async (
+  params: UpdatePictureRequest,
+): Promise<UpdateStatusResponse> => {
+  return apiService.postForm<UpdateStatusResponse>(
+    API_ENDPOINTS.UPDATE_PICTURE,
     params,
   );
 };

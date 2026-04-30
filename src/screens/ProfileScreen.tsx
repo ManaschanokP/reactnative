@@ -11,20 +11,22 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 const ProfileScreen: React.FC<Props> = ({ navigation }) => {
 
-  useEffect(() => {
-    // Not working
-    // navigation.setOptions({
-    //   headerLeft: () => null,
-    //   gestureEnabled: false,
-    // });
+  // ✅ ย้าย useContext มาอยู่ข้างนอก useEffect
+  const { user, logout } = useContext(AuthContext)!;
 
+  const [form, setForm] = useState<ProfileForm>({
+    id: user?.id ?? '',
+    name: user?.name ?? '',
+    department: user?.department ?? '',
+    tel: user?.tel ?? '',
+    phone: user?.phone ?? '',
+    company: user?.company ?? '',
+  });
+
+  useEffect(() => {
     const backAction = () => {
       Alert.alert('Hold on!', 'Are you sure you want to go back?', [
-        {
-          text: 'Cancel',
-          onPress: () => null,
-          style: 'cancel',
-        },
+        { text: 'Cancel', onPress: () => null, style: 'cancel' },
         { text: 'YES', onPress: () => BackHandler.exitApp() },
       ]);
       return true;
@@ -38,26 +40,25 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     return () => backHandler.remove();
   }, []);
 
-  const { user } = useContext(AuthContext)!;
-  const [form, setForm] = useState<ProfileForm>({
-    id: user?.id ?? '',
-    name: user?.name ?? '',
-    department: user?.department ?? '',
-    tel: user?.tel ?? '',
-    phone: user?.phone ?? '',
-    company: user?.company ?? '',
-  });
-
   const handleChange = (key: keyof ProfileForm, value: string) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
+  const confirmLogout = () => {
+    Alert.alert(
+      'Confirm Logout',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', onPress: logout }, // ✅ เปลี่ยนจาก string 'logout' เป็น function
+      ],
+      { cancelable: true },
+    );
+  };
+
   const handleSubmit = async () => {
-
     const status = user.status ?? 'U03';
-
     try {
-
       const dataUpdateUser = {
         username: form.id,
         name: form.name,
@@ -70,25 +71,21 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
       const responseUpdateUser = await updateUser(dataUpdateUser);
 
       if (!responseUpdateUser.error) {
+        Alert.alert('สำเร็จ', responseUpdateUser.message || 'อัปเดตข้อมูลสำเร็จ');
         if (status === 'U04' || status === 'Home') {
           navigation.navigate('Home');
         } else {
           navigation.navigate('Menu');
         }
-
-        Alert.alert('สำเร็จ', responseUpdateUser.message || 'อัปเดตข้อมูลสำเร็จ');
-
       } else {
-
         Alert.alert('ผิดพลาด', responseUpdateUser.message || 'ไม่สามารถอัปเดตข้อมูลได้');
-
       }
     } catch (error: any) {
-
       Alert.alert('ผิดพลาด', error.message || 'ไม่สามารถอัปเดตข้อมูลได้');
-
     }
   };
+
+     
 
   return (
     <View style={styles.container}>
@@ -106,6 +103,13 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
       />
       <Field label="บริษัท" value={form.company} editable={false} />
       <Button title="บันทึก" onPress={handleSubmit} color="#1E8449" />
+      <Button title="logout" onPress={confirmLogout} color="#a10101" />
+
+      {/* <TouchableOpacity 
+              style={styles.navButton}
+              onPress={confirmLogout}>
+              <Text style={styles.navButtonText}>Profile</Text>
+      </TouchableOpacity> */}
     </View>
   );
 };

@@ -1,10 +1,12 @@
 import React, { useState, useContext } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  FlatList, ActivityIndicator, Modal,
+  FlatList, ActivityIndicator, Modal, TextInput,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker, { DateType } from 'react-native-ui-datepicker';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { Button } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigationTypes';
 import { AuthContext } from '../context/AuthProvider';
@@ -20,13 +22,6 @@ const toApiDate = (date: Date): string => {
   return `${y}-${m}-${d}`;
 };
 
-const toDisplayDate = (date: Date): string => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${d}/${m}/${y}`;
-};
-
 const STATUS_OPTIONS = [
   { label: 'ทั้งหมด', value: '01' },
   { label: 'กำลังดำเนินการ', value: '02' },
@@ -40,13 +35,27 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
 
   const [startDate, setStartDate] = useState<Date>(today);
   const [endDate, setEndDate] = useState<Date>(today);
-  const [tempDate, setTempDate] = useState<Date>(today);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [status, setStatus] = useState('01');
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleStartDateChange = (params: { date: DateType }) => {
+    if (params.date instanceof Date) {
+      setStartDate(params.date);
+      if (params.date > endDate) setEndDate(params.date);
+      setShowStartPicker(false);
+    }
+  };
+
+  const handleEndDateChange = (params: { date: DateType }) => {
+    if (params.date instanceof Date) {
+      setEndDate(params.date);
+      setShowEndPicker(false);
+    }
+  };
 
   const fetchJobs = async () => {
     try {
@@ -97,103 +106,52 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
 
       {/* Start Date Modal */}
-      <Modal transparent visible={showStartPicker} animationType="fade">
-        <View style={styles.modalOverlay}>
+      <Modal visible={showStartPicker} transparent animationType="slide">
+        <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>เลือกวันที่เริ่ม</Text>
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display="spinner"
-              onChange={(_, date) => {
-                if (date) setTempDate(date);
-              }}
+            <DatePicker
+              mode="single"
+              date={startDate}
+              onChange={handleStartDateChange}
             />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowStartPicker(false)}
-              >
-                <Text style={styles.cancelText}>ยกเลิก</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={() => {
-                  setStartDate(tempDate);
-                  if (tempDate > endDate) setEndDate(tempDate);
-                  setShowStartPicker(false);
-                }}
-              >
-                <Text style={styles.confirmText}>ตกลง</Text>
-              </TouchableOpacity>
-            </View>
+            <Button title="ปิด" onPress={() => setShowStartPicker(false)} />
           </View>
         </View>
       </Modal>
 
       {/* End Date Modal */}
-      <Modal transparent visible={showEndPicker} animationType="fade">
-        <View style={styles.modalOverlay}>
+      <Modal visible={showEndPicker} transparent animationType="slide">
+        <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>เลือกวันที่สิ้นสุด</Text>
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display="spinner"
-              minimumDate={startDate}
-              onChange={(_, date) => {
-                if (date) setTempDate(date);
-              }}
+            <DatePicker
+              mode="single"
+              date={endDate}
+              minDate={startDate}
+              onChange={handleEndDateChange}
             />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowEndPicker(false)}
-              >
-                <Text style={styles.cancelText}>ยกเลิก</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={() => {
-                  setEndDate(tempDate);
-                  setShowEndPicker(false);
-                }}
-              >
-                <Text style={styles.confirmText}>ตกลง</Text>
-              </TouchableOpacity>
-            </View>
+            <Button title="ปิด" onPress={() => setShowEndPicker(false)} />
           </View>
         </View>
       </Modal>
 
-      {/* Date Row */}
+      {/* Date Row - 1 แถว */}
       <View style={styles.dateRow}>
         <View style={styles.dateBlock}>
-          <Text style={styles.label}>วันที่เริ่ม</Text>
-          <TouchableOpacity
-            style={styles.dateInput}
-            onPress={() => {
-              setTempDate(startDate);
-              setShowStartPicker(true);
-            }}
-          >
-            <Text>{toDisplayDate(startDate)}</Text>
+          <Text style={styles.label}>เริ่ม :</Text>
+          <TouchableOpacity onPress={() => setShowStartPicker(true)} style={styles.dateInputRow}>
+            <Text style={styles.dateText}>{startDate.toLocaleDateString('th-TH')}</Text>
+            <MaterialIcons name="date-range" size={20} color="#a7cc43" />
           </TouchableOpacity>
         </View>
+
         <View style={styles.dateBlock}>
-          <Text style={styles.label}>วันที่สิ้นสุด</Text>
-          <TouchableOpacity
-            style={styles.dateInput}
-            onPress={() => {
-              setTempDate(endDate);
-              setShowEndPicker(true);
-            }}
-          >
-            <Text>{toDisplayDate(endDate)}</Text>
+          <Text style={styles.label}>สิ้นสุด :</Text>
+          <TouchableOpacity onPress={() => setShowEndPicker(true)} style={styles.dateInputRow}>
+            <Text style={styles.dateText}>{endDate.toLocaleDateString('th-TH')}</Text>
+            <MaterialIcons name="date-range" size={20} color="#a7cc43" />
           </TouchableOpacity>
         </View>
       </View>
-
       {/* Status Picker */}
       <View style={styles.filterRow}>
         <Text style={styles.label}>สถานะ :</Text>
@@ -238,27 +196,59 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  dateRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  dateBlock: { flex: 1 },
+  dateRow: { 
+    flexDirection: 'row',  // วางแนวตั้ง ทีละแถว
+    gap: 8,
+    marginBottom: 10, 
+  },
+  dateBlock: { 
+    flex: 1, 
+    marginBottom: 8, 
+    minHeight: 60, },
   label: { fontWeight: 'bold', fontSize: 14, marginBottom: 4 },
-  dateInput: {
+
+  dateInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 6,
-    padding: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    marginTop: 4,
+    backgroundColor: '#fafafa',
   },
-  filterRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+dateText: {
+  fontSize: 12,
+  color: '#333',
+},
+label: {
+  fontWeight: 'bold',
+  fontSize: 12,   // เล็กลงให้พอดี
+  marginBottom: 2,
+},
+filterRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 8,    // เพิ่มระยะห่างจาก date row
+  marginBottom: 8,
+},
+  
+searchButton: {
+  backgroundColor: '#a7cc43',
+  padding: 12,
+  borderRadius: 8,
+  alignItems: 'center',
+  marginTop: 8,    // เพิ่มระยะห่างจาก picker
+  marginBottom: 12,
+},
+
   picker: { flex: 1 },
-  searchButton: {
-    backgroundColor: '#a7cc43',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
+  
   searchText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   jobItem: {
-    padding: 14,
+    padding: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     gap: 4,
@@ -271,47 +261,18 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 },
   errorText: { color: '#e74c3c', fontSize: 15 },
   emptyText: { textAlign: 'center', color: '#aaa', marginTop: 40 },
-  modalOverlay: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    width: '85%',
+    padding: 20,
+    borderRadius: 10,
     alignItems: 'center',
   },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    alignItems: 'center',
-  },
-  cancelText: { color: '#666', fontSize: 15 },
-  confirmButton: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: '#a7cc43',
-    alignItems: 'center',
-  },
-  confirmText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 });
 
 export default JobListScreen;

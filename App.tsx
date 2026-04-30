@@ -24,6 +24,7 @@ import NotificationListScreen from './src/screens/NotificationListScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScanScreen from './src/screens/ScanScreen'; //เพิ่มหน้าสแกน
+import ViewDetailScreen from './src/screens/ViewDetailScreen';
 
 const NAVIGATION_IDS = ['NotificationDetail'];
 
@@ -207,6 +208,7 @@ function MainApp({
               //   },
               // }}
             />
+            <Stack.Screen name="ViewDetail" component={ViewDetailScreen} />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />
             <Stack.Screen name="FuelEntry" component={FuelEntryScreen} />

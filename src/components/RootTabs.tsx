@@ -42,8 +42,10 @@ const RootTabs: React.FC = () => {
         onPress={() => handleNavigation('JobList')}>
         <Text style={styles.navButtonText}>Jobs</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.navButton} onPress={confirmLogout}>
-        <Text style={styles.navButtonText}>Logout</Text>
+      <TouchableOpacity 
+        style={styles.navButton}
+        onPress={() => handleNavigation('Profile')}>
+        <Text style={styles.navButtonText}>Profile</Text>
       </TouchableOpacity>
     </View>
   );
