@@ -1,32 +1,28 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../types/navigationTypes';
-// import {AuthContext} from '../context/AuthContext';
-import { AuthContext } from '../context/AuthProvider';
-
+import React, {useContext} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {NavigationProp, useNavigation} from '@react-navigation/native';
+import {RootStackParamList} from '../types/navigationTypes';
+import {AuthContext} from '../context/AuthProvider';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+ 
 const RootTabs: React.FC = () => {
-  const { user } = useContext(AuthContext)!;
+  const {user} = useContext(AuthContext)!;
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { logout } = useContext(AuthContext)!;
+  const insets = useSafeAreaInsets(); // ดึงค่า insets
+ 
   const handleNavigation = async (screen: keyof RootStackParamList) => {
     navigation.navigate(screen);
   };
-
-  const confirmLogout = () => {
-    Alert.alert(
-      'Confirm Logout',
-      'Are you sure you want to log out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', onPress: logout },
-      ],
-      { cancelable: true },
-    );
-  };
-
+ 
   return (
-    <View style={[styles.bottomNav, { backgroundColor: user.status === '03' ? '#a7cc43' : '#f8ac59' }]}>
+    <View
+      style={[
+        styles.bottomNav,
+        {
+          backgroundColor: user.status === 'U03' ? '#a7cc43' : '#f8ac59',
+          paddingBottom: insets.bottom || 10, // ✅ เพิ่มตรงนี้
+        },
+      ]}>
       <TouchableOpacity
         style={styles.navButton}
         onPress={() => handleNavigation('Home')}>
@@ -42,7 +38,7 @@ const RootTabs: React.FC = () => {
         onPress={() => handleNavigation('JobList')}>
         <Text style={styles.navButtonText}>Jobs</Text>
       </TouchableOpacity>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.navButton}
         onPress={() => handleNavigation('Profile')}>
         <Text style={styles.navButtonText}>Profile</Text>
@@ -50,7 +46,7 @@ const RootTabs: React.FC = () => {
     </View>
   );
 };
-
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -73,7 +69,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    //backgroundColor: '#a7cc43',
     padding: 10,
     justifyContent: 'space-around',
   },
@@ -85,5 +80,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
+ 
 export default RootTabs;

@@ -17,7 +17,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         <TouchableOpacity
           style={[
             styles.button,
-            {backgroundColor: user?.status === '03' ? '#a7cc43' : '#f8ac59'},
+            {backgroundColor: user?.status === 'U03' ? '#a7cc43' : '#f8ac59'},
           ]}
           onPress={() => {
             console.log('Scan QR-Code Pressed');
@@ -29,7 +29,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         <TouchableOpacity
           style={[
             styles.button,
-            {backgroundColor: user?.status === '03' ? '#a7cc43' : '#f8ac59'},
+            {backgroundColor: user?.status === 'U03' ? '#a7cc43' : '#f8ac59'},
           ]}
           onPress={() => {
             console.log('น้ำมัน Pressed');

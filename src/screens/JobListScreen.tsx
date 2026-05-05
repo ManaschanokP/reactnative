@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, label,
+  View, Text, StyleSheet, TouchableOpacity, Label,
   FlatList, ActivityIndicator, Modal, TextInput,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
@@ -12,6 +12,7 @@ import { RootStackParamList } from '../types/navigationTypes';
 import { AuthContext } from '../context/AuthProvider';
 import { getMyJobs } from '../services/apiService';
 import { JobItem } from '../types/jobTypes';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobList'>;
 
@@ -41,6 +42,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
 
   const handleStartDateChange = (params: { date: DateType }) => {
     if (params.date instanceof Date) {
@@ -190,6 +192,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           }
         />
       )}
+       <View style={{ height: insets.bottom + 20 }} />
     </View>
   );
 };
@@ -223,7 +226,7 @@ dateText: {
   fontSize: 12,
   color: '#333',
 },
-label: {
+Label: {
   fontWeight: 'bold',
   fontSize: 12,   // เล็กลงให้พอดี
   marginBottom: 2,

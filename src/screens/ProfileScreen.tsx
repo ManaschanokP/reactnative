@@ -1,17 +1,15 @@
 // app/src/screens/ProfileScreen.tsx
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, BackHandler } from 'react-native';
+import { View, Text, TextInput, Button, Alert, StyleSheet, BackHandler, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigationTypes';
-import { updateUser } from '../services/apiService';
 import { AuthContext } from '../context/AuthProvider';
 import { ProfileForm } from '../types/authTypes';
+import { getBaseUrlByCompany, API_ENDPOINTS } from '../config/apiConfig'; // ✅ Import API Config
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 const ProfileScreen: React.FC<Props> = ({ navigation }) => {
-
-  // ✅ ย้าย useContext มาอยู่ข้างนอก useEffect
   const { user, logout } = useContext(AuthContext)!;
 
   const [form, setForm] = useState<ProfileForm>({
@@ -22,6 +20,8 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     phone: user?.phone ?? '',
     company: user?.company ?? '',
   });
+
+  const [loading, setLoading] = useState(false); // ✅ เพิ่มสถานะ Loading
 
   useEffect(() => {
     const backAction = () => {
@@ -50,42 +50,60 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
       'Are you sure you want to log out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', onPress: logout }, // ✅ เปลี่ยนจาก string 'logout' เป็น function
+        { text: 'Logout', onPress: logout },
       ],
       { cancelable: true },
     );
   };
 
   const handleSubmit = async () => {
-    const status = user.status ?? 'U03';
+    const status = user?.status ?? 'U03';
+    
     try {
-      const dataUpdateUser = {
-        username: form.id,
-        name: form.name,
-        department: form.department,
-        tel: form.tel,
-        phone: form.phone,
-        company: form.company,
-      };
+      setLoading(true);
+      
+      // ✅ ดึง Base URL และ Endpoint
+      const baseUrl = await getBaseUrlByCompany();
+      const url = `${baseUrl}${API_ENDPOINTS.UPDATE_PROFILE}`;
 
-      const responseUpdateUser = await updateUser(dataUpdateUser);
+      // ✅ เตรียมข้อมูล FormData เพื่อส่งไปให้ Backend
+      const formData = new FormData();
+      formData.append('username', form.id);
+      formData.append('name', form.name);
+      formData.append('department', form.department);
+      formData.append('tel', form.tel);
+      formData.append('phone', form.phone);
+      formData.append('company', form.company);
 
-      if (!responseUpdateUser.error) {
-        Alert.alert('สำเร็จ', responseUpdateUser.message || 'อัปเดตข้อมูลสำเร็จ');
+      console.log('🚀 [POST] ยิง API อัปเดตโปรไฟล์ไปที่:', url);
+      console.log('📦 [PAYLOAD]:', form);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const obj = await response.json();
+      console.log('✅ [RESPONSE]:', obj);
+
+      if (!obj.error) {
+        Alert.alert('สำเร็จ', obj.message || 'อัปเดตข้อมูลสำเร็จ');
+        
         if (status === 'U04' || status === 'Home') {
           navigation.navigate('Home');
         } else {
           navigation.navigate('Menu');
         }
       } else {
-        Alert.alert('ผิดพลาด', responseUpdateUser.message || 'ไม่สามารถอัปเดตข้อมูลได้');
+        Alert.alert('ผิดพลาด', obj.message || 'ไม่สามารถอัปเดตข้อมูลได้');
       }
     } catch (error: any) {
-      Alert.alert('ผิดพลาด', error.message || 'ไม่สามารถอัปเดตข้อมูลได้');
+      console.error('❌ [ERROR]:', error);
+      Alert.alert('ผิดพลาด', error.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+    } finally {
+      setLoading(false);
     }
   };
-
-     
 
   return (
     <View style={styles.container}>
@@ -102,20 +120,29 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
         onChangeText={text => handleChange('phone', text)}
       />
       <Field label="บริษัท" value={form.company} editable={false} />
-      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-        <View style={{flex: 1, marginRight: 5}}>
-          <Button title="บันทึก" onPress={handleSubmit} color="#a7cc43" />
+      
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+        <View style={{ flex: 1, marginRight: 5 }}>
+          {/* ✅ ใส่ Loading ตอนกดอัปเดต */}
+          <TouchableOpacity 
+            style={[styles.saveButton, loading && styles.disabledButton]} 
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>บันทึก</Text>
+            )}
+          </TouchableOpacity>
         </View>
- 
-        <View style={{flex: 1, marginLeft: 5}}>
-          <Button title="logout" onPress={confirmLogout} color="#c44141" />
+
+        <View style={{ flex: 1, marginLeft: 5 }}>
+          <TouchableOpacity style={styles.logoutButton} onPress={confirmLogout}>
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </TouchableOpacity>
         </View>
       </View>
-      {/* <TouchableOpacity 
-              style={styles.navButton}
-              onPress={confirmLogout}>
-              <Text style={styles.navButtonText}>Profile</Text>
-      </TouchableOpacity> */}
     </View>
   );
 };
@@ -143,16 +170,45 @@ const Field: React.FC<FieldProps> = ({ label, value, editable = true, onChangeTe
 const styles = StyleSheet.create({
   container: { padding: 20, flex: 1, backgroundColor: '#fff' },
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  label: { fontWeight: 'bold', width: 110 },
+  label: { fontWeight: 'bold', width: 110, color: '#333' },
   input: {
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
     flex: 1,
     paddingVertical: 6,
     paddingHorizontal: 8,
+    color: '#000',
   },
   disabled: {
     backgroundColor: '#f0f0f0',
+    color: '#777',
+  },
+  saveButton: {
+    backgroundColor: '#a7cc43',
+    padding: 10,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#c44141',
+    padding: 10,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
   },
 });
 

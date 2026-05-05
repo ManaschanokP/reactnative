@@ -29,6 +29,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context'; // âœ… import à
 import SignaturePadScreen from './src/screens/SignaturePadScreen';
 import EvaluationScreen from './src/screens/EvaluationScreen';
 import TrackingScreen from './src/screens/TrackingScreen';
+import { startSyncListener } from './src/services/syncService';
  
 const NAVIGATION_IDS = ['NotificationDetail'];
  
@@ -103,6 +104,11 @@ function NavigationHandler() {
   const {user} = useContext(AuthContext)!;
   const [statusBarColor, setStatusBarColor] = useState<string | null>(null);
  
+  useEffect(() => {
+    const unsubscribe = startSyncListener();
+    return () => unsubscribe();
+  }, []);
+  
   useEffect(() => {
     console.log('User changed:', user);
     if (user) {
