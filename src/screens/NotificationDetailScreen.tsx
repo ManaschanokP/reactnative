@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { NotificationItem } from '../types/notificationTypes';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -12,6 +13,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NotificationDetail'>;
 
 const NotificationDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { item } = route.params; // ✅ รับข้อมูลที่ส่งมาจากหน้า List
+  const insets        = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
@@ -36,6 +38,11 @@ const NotificationDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
         <Text style={styles.closeText}>ปิด</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.workButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.closeText}>เริ่มงาน</Text>
+      </TouchableOpacity>
+      <View style={{ height: insets.bottom + 44 }} />
     </View>
   );
 };
@@ -68,6 +75,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  workButton: {
+    marginTop: 30,
+    backgroundColor: '#3ddf6d',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
   },
 });
 

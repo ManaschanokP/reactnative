@@ -1,9 +1,10 @@
 // app/src/services/locationService.ts
 import Geolocation, { GeoPosition } from 'react-native-geolocation-service';
-import { PermissionsAndroid, Platform, AppState } from 'react-native';
+import { PermissionsAndroid, Platform, AppState, AppStateStatus } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { enqueueLocation, flushQueue } from './locationQueue';
+
 
 const KEYS = {
   REQUEST_ID: 'track_request_id',
@@ -141,6 +142,14 @@ export const startLocationTracking = async (
     console.warn('❌ Location permission denied');
     return false;
   }
+  AppState.addEventListener('change', (nextState: AppStateStatus) => {
+    console.log('📱 AppState changed to:', nextState);
+    if (nextState === 'background') {
+      console.log('📱 App is in BACKGROUND — GPS should still run');
+    } else if (nextState === 'active') {
+      console.log('📱 App is ACTIVE again');
+    }
+  });
 
   // รีเซ็ต state
   await AsyncStorage.multiSet([
@@ -162,6 +171,7 @@ export const startLocationTracking = async (
       distanceFilter:     0,   // เมตร — อัปเดตเมื่อขยับ 50m
       interval:           5000, // ✅ ตรงกับ interval = 4000 ใน Kotlin
       fastestInterval:    5000, // ✅ ตรงกับ fastestInterval = 2000 ใน Kotlin
+
       forceRequestLocation: true,
       showLocationDialog: true,
     },

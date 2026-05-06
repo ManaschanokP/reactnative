@@ -116,7 +116,7 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
        if (!response.error && response.listStatus.length > 0) {
         let names = response.listStatus.map(s => s.status_name);
-/*
+
        if (item.status_id === 'SD05') {
           const allStatusNames = Object.keys(STATUS_ID_MAP);
           names = allStatusNames.filter(name =>
@@ -125,8 +125,8 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               'การจัดส่งสำเร็จ'].includes(name),
           );
         }
-          */
-
+          
+/*
         if (item.status_id === 'SD05') {
           // ✅ กำหนดสถานะที่แสดงหลัง "การจัดส่งสำเร็จ" ตามลำดับที่ต้องการ
           names = [
@@ -136,7 +136,7 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             'ยกเลิก',
             'พบปัญหา',
           ];
-        }
+        }*/
 
         setStatusList(names);
         setSelectedStatus(names[0]);
@@ -208,6 +208,14 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     }
     if (needsSignatureRating && !signature) {
       Alert.alert('แจ้งเตือน', 'กรุณาเซ็นชื่อยืนยันการจัดส่ง');
+      return;
+    }
+    if (needsBox && !box.trim()) {
+      Alert.alert('แจ้งเตือน', 'กรุณากรอกจำนวนกล่อง');
+      return;
+    }
+    if (needsMile && !mile.trim()) {
+      Alert.alert('แจ้งเตือน', 'กรุณากรอกเลขไมล์');
       return;
     }
 
@@ -284,7 +292,7 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               const sigResponse = await submitSignature({
                 request_id: item.request_id,
                 status_id,
-                picture:    cleanSignature,
+                esig_cus:    cleanSignature,
               });
               console.log('submitSignature response:', sigResponse);
             }
@@ -335,10 +343,15 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const isMileEnabled        = selectedStatus === 'กำลังจัดส่ง' || selectedStatus === 'การดำเนินการสำเร็จ';
   const needsPhoto           = REQUIRES_PHOTO.includes(selectedStatus);
   const needsSignatureRating = REQUIRES_SIGNATURE_RATING.includes(selectedStatus);
+  const needsBox  = isBoxEnabled;
+  const needsMile = isMileEnabled;
+
   const isSubmitDisabled     =
     updating ||
     (needsPhoto && !photo) ||
     (needsSignatureRating && !signature);
+    (needsBox  && !box.trim()) ||   
+    (needsMile && !mile.trim());
 
   const signatureHeight = Math.round(width * 0.4);
 
@@ -459,25 +472,40 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           </View>
         )}
 
-        <Text style={styles.fieldLabel}>จำนวนกล่อง :</Text>
+        <Text style={styles.fieldLabel}>
+          จำนวนกล่อง :
+          {needsBox && <Text style={styles.required}> *</Text>}
+          </Text>
         <TextInput
-          style={[styles.input, !isBoxEnabled && styles.inputDisabled]}
+          style={[styles.input, !isBoxEnabled && styles.inputDisabled,needsBox && !box.trim() && styles.inputError,]}
           keyboardType="numeric"
           value={box}
           onChangeText={(text) => setBox(text.replace(/[^0-9]/g, ''))}
           editable={isBoxEnabled}
-          placeholder="จำนวนกล่อง"
+          placeholder="จำนวนกล่อง (จำเป็น)"
+          placeholderTextColor={needsBox ? '#e74c3c' : '#aaa'}
         />
+        {needsBox && !box.trim() && (
+          <Text style={styles.errorText}>⚠ กรุณากรอกจำนวนกล่อง</Text>
+        )}
 
-        <Text style={styles.fieldLabel}>เลขไมล์ :</Text>
+        <Text style={styles.fieldLabel}>เลขไมล์ :
+          {needsMile && <Text style={styles.required}> *</Text>}
+        </Text>
         <TextInput
-          style={[styles.input, !isMileEnabled && styles.inputDisabled]}
+          style={[styles.input, !isMileEnabled && styles.inputDisabled,
+            needsMile && !mile.trim() && styles.inputError,
+          ]}
           keyboardType="numeric"
           value={mile}
           onChangeText={(text) => setMile(text.replace(/[^0-9]/g, ''))}
           editable={isMileEnabled}
-          placeholder="เลขไมล์"
+          placeholder="เลขไมล์ (จำเป็น)"
+          placeholderTextColor={needsMile ? '#e74c3c' : '#aaa'}
         />
+        {needsMile && !mile.trim() && (
+          <Text style={styles.errorText}>⚠ กรุณากรอกเลขไมล์</Text>
+        )}
 
         <Text style={styles.fieldLabel}>รายละเอียด :</Text>
         <TextInput
@@ -598,6 +626,19 @@ const styles = StyleSheet.create({
   },
   inputDisabled:   { backgroundColor: '#f0f0f0', color: '#aaa' },
   inputMultiline:  { height: 80, textAlignVertical: 'top' },
+
+  required:   { color: '#e74c3c', fontWeight: 'bold' },
+  inputError: {
+    borderColor:     '#e74c3c',
+    borderWidth:     2,
+    backgroundColor: '#fff5f5',
+  },
+  errorText: {
+    color:     '#e74c3c',
+    fontSize:  11,
+    marginTop: 3,
+    marginLeft: 2,
+  },
 
   // Confirm button
   confirmButton: {

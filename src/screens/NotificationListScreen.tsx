@@ -8,6 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../context/AuthProvider';
 import { getNotifications } from '../services/apiService';
 import { NotificationItem } from '../types/notificationTypes';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -23,6 +25,7 @@ const NotificationListScreen: React.FC = () => {
   const [data, setData] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     fetchNotifications();
@@ -100,6 +103,7 @@ const NotificationListScreen: React.FC = () => {
         renderItem={renderItem}
         style={styles.listView}
       />
+      <View style={{ height: insets.bottom + 44 }} />
     </View>
   );
 };

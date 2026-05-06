@@ -33,6 +33,8 @@ export default function TrackingScreen({ route, navigation }: Props) {
     fetchTracking();
   }, []);
 
+  console.log('📦 route.params:', route.params);
+
   const fetchTracking = async () => {
     try {
       setLoading(true);
