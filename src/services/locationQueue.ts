@@ -66,6 +66,18 @@ const sendRecord = async (record: LocationRecord): Promise<boolean> => {
     const baseUrl = await getBaseUrlByCompany();
     const url = `${baseUrl}${API_ENDPOINTS.DISTANCE}`;
 
+     console.log('─────────────────────────────────');
+    console.log('📡 sending location to API...');
+    console.log('   URL          :', url);
+    console.log('   id           :', record.id);
+    console.log('   request_id   :', record.request_id);
+    console.log('   user_id      :', record.user_id);
+    console.log('   lat          :', record.lat);
+    console.log('   long         :', record.long);
+    console.log('   distance     :', record.distance, 'km');
+    console.log('   status_id    :', record.status_id);
+    console.log('   datetime     :', record.datetime_location);
+
     const formData = new FormData();
     formData.append('request_id',        record.request_id);
     formData.append('user_id',           record.user_id);
