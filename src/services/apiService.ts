@@ -218,7 +218,7 @@ export const updatePicture = async (
 export const submitSignature = async (params: {
   request_id: string;
   status_id: string;
-  esig_cus: string;
+  picture: string;
 }): Promise<{ error: boolean; message: string }> => {
   return apiService.postForm(API_ENDPOINTS.SIGNATURE, params);
 };

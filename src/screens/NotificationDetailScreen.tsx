@@ -7,6 +7,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 type RootStackParamList = {
   NotificationList: undefined;
   NotificationDetail: { item: NotificationItem };
+  ViewDetail: {
+    item: {
+      request_id: string;
+      status_id: string;
+      status_name: string;
+      type_name: string;
+      to_company: string;
+      d_date: string;
+      d_time: string;
+    };
+  };
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NotificationDetail'>;
@@ -14,6 +25,21 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NotificationDetail'>;
 const NotificationDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { item } = route.params; // ✅ รับข้อมูลที่ส่งมาจากหน้า List
   const insets        = useSafeAreaInsets();
+  const canStartWork = item.status_name !== 'การดำเนินการสำเร็จ';
+ 
+    const handleStartWork = () => {
+      navigation.navigate('ViewDetail', {
+        item: {
+          request_id: item.request_id,
+          status_id: 'SD00',
+          status_name: 'กำลังไปรับของ',
+          type_name: item.type_name ?? '',
+          to_company: item.t_com ?? '',
+          d_date: item.d_date ?? '',
+          d_time: item.d_time ?? '',
+        },
+      });
+    };
 
   return (
     <View style={styles.container}>
@@ -35,13 +61,17 @@ const NotificationDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       <Text style={styles.label}>รายละเอียด :</Text>
       <Text style={styles.text}>{item.remake}</Text>
 
-      <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.closeText}>ปิด</Text>
+      <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => navigation.goBack()}>
+              <Text style={styles.closeText}>ปิด</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.workButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.closeText}>เริ่มงาน</Text>
-      </TouchableOpacity>
+       {canStartWork && (
+              <TouchableOpacity style={styles.workButton} onPress={handleStartWork}>
+                <Text style={styles.closeText}>เริ่มงาน</Text>
+              </TouchableOpacity>
+            )}
       <View style={{ height: insets.bottom + 44 }} />
     </View>
   );

@@ -292,7 +292,7 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               const sigResponse = await submitSignature({
                 request_id: item.request_id,
                 status_id,
-                picture:    cleanSignature,
+                esig_cus:    cleanSignature,
               });
               console.log('submitSignature response:', sigResponse);
             }
