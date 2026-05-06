@@ -1,5 +1,5 @@
 //app/src/types/navigationTypes.ts
-import { JobItem } from './jobTypes';
+import {JobItem} from './jobTypes';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -11,9 +11,9 @@ export type RootStackParamList = {
   NotificationList: undefined;
   NotificationDetail: undefined;
   JobList: undefined;
-  ViewDetail: { item: JobItem };
+  ViewDetail: {item: JobItem};
   Scan: undefined; //เพิ่มไปหน้าสแกน
-  Tracking: { requestId: string };
-  Signature: { request_id: string; status_id: string };
-  Evaluation: { request_id: string; status_id: string };
+  Tracking: {requestId: string};
+  Signature: {request_id: string; status_id: string};
+  Evaluation: {request_id: string; status_id: string};
 };

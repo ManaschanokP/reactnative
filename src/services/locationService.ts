@@ -87,7 +87,7 @@ const handleLocationUpdate = async (position: GeoPosition) => {
       latitude, longitude,
     );
 
-    if (moved > 0.2) {
+    if (moved <= 0.2) {
       // ✅ ตรงกับ if (dist>0.2) ใน Kotlin
       dist = distLast + moved;
       await AsyncStorage.setItem(KEYS.LAT,  latitude.toString());
@@ -158,7 +158,7 @@ export const startLocationTracking = async (
     (error) => console.error('GPS error:', error),
     {
       enableHighAccuracy: true,
-      distanceFilter:     50,   // เมตร — อัปเดตเมื่อขยับ 50m
+      distanceFilter:     0,   // เมตร — อัปเดตเมื่อขยับ 50m
       interval:           4000, // ✅ ตรงกับ interval = 4000 ใน Kotlin
       fastestInterval:    2000, // ✅ ตรงกับ fastestInterval = 2000 ใน Kotlin
       forceRequestLocation: true,

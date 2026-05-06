@@ -36,6 +36,10 @@ const NotificationDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
         <Text style={styles.closeText}>ปิด</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.workButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.closeText}>เริ่มงาน</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -68,6 +72,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  workButton: {
+    marginTop: 30,
+    backgroundColor: '#3ddf6d',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
   },
 });
 
