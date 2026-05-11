@@ -349,7 +349,7 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const isSubmitDisabled     =
     updating ||
     (needsPhoto && !photo) ||
-    (needsSignatureRating && !signature);
+    (needsSignatureRating && !signature)||
     (needsBox  && !box.trim()) ||   
     (needsMile && !mile.trim());
 

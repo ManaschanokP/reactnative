@@ -9,12 +9,13 @@ import {
 } from 'react-native'; // 🔍 เพิ่ม TextInput, Alert
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
-import {AuthContext} from '../context/AuthProvider';
+import {AuthContext, getCompanyColor} from '../context/AuthProvider';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen: React.FC<Props> = ({navigation}) => {
-  const {user} = useContext(AuthContext)!;
+  const {user , companyColor} = useContext(AuthContext)!;
   // 🔍 เพิ่ม state สำหรับค้นหา
   const [searchId, setSearchId] = useState('');
   console.log('User Home Screen:', user);
@@ -31,6 +32,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
     });
   };
 
+  const isDriverOrMessenger = user?.status === 'U04' || user?.status === 'U05';
   //format function
   const formatRequestId = (value: string) => {
     let cleaned = value.toUpperCase().replace(/-/g, '');
@@ -64,17 +66,15 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
             onSubmitEditing={handleSearch}
           />
 
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.buttonText}>🔍</Text>
+          <TouchableOpacity  style={[styles.searchButton, { backgroundColor: companyColor }]}onPress={handleSearch}>
+            
+             <Icon name="search" size={26} color="#fff" />
           </TouchableOpacity>
         </View>
 
 
         <TouchableOpacity
-          style={[
-            styles.button,
-            {backgroundColor: user?.status === 'U03' ? '#a7cc43' : '#f8ac59'},
-          ]}
+           style={[styles.button, { backgroundColor: companyColor }]}
           onPress={() => {
             console.log('Scan QR-Code Pressed');
             navigation.navigate('Scan');
@@ -82,17 +82,14 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           <Text style={styles.buttonText}>Scan QR-Code</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.button,
-            {backgroundColor: user?.status === 'U03' ? '#a7cc43' : '#f8ac59'},
-          ]}
-          onPress={() => {
-            console.log('น้ำมัน Pressed');
-            navigation.navigate('FuelEntry');
-          }}>
-          <Text style={styles.buttonText}>น้ำมัน</Text>
-        </TouchableOpacity>
+        {isDriverOrMessenger && (
+          <TouchableOpacity
+             style={[styles.button, { backgroundColor: companyColor }]}
+            onPress={() => navigation.navigate('FuelEntry')}
+          >
+            <Text style={styles.buttonText}>น้ำมัน</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </>
   );
@@ -124,7 +121,7 @@ const styles = StyleSheet.create({
   },
 
   searchButton: {
-    backgroundColor: '#f8ac59',
+    
     justifyContent: 'center',
     paddingHorizontal: 15,
   },
@@ -146,12 +143,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    backgroundColor: '#a7cc43',
-    padding: 10,
+   
+    padding: 2,
     justifyContent: 'space-around',
   },
   navButton: {
-    padding: 10,
+    padding: 2
   },
   navButtonText: {
     color: '#fff',

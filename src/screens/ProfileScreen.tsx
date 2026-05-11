@@ -1,44 +1,58 @@
 // app/src/screens/ProfileScreen.tsx
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, BackHandler, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View, Text, TextInput, Alert, StyleSheet,
+  BackHandler, ActivityIndicator, TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigationTypes';
 import { AuthContext } from '../context/AuthProvider';
 import { ProfileForm } from '../types/authTypes';
-import { getBaseUrlByCompany, API_ENDPOINTS } from '../config/apiConfig'; // ✅ Import API Config
+import { getBaseUrlByCompany, API_ENDPOINTS } from '../config/apiConfig';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 const ProfileScreen: React.FC<Props> = ({ navigation }) => {
-  const { user, logout } = useContext(AuthContext)!;
+  const { user, logout, updateUser } = useContext(AuthContext)!;
 
   const [form, setForm] = useState<ProfileForm>({
-    id: user?.id ?? '',
-    name: user?.name ?? '',
+    id:         user?.id         ?? '',
+    name:       user?.name       ?? '',
     department: user?.department ?? '',
-    tel: user?.tel ?? '',
-    phone: user?.phone ?? '',
-    company: user?.company ?? '',
+    tel:        user?.tel        ?? '',
+    phone:      user?.phone      ?? '',
+    company:    user?.company    ?? '',
   });
 
-  const [loading, setLoading] = useState(false); // ✅ เพิ่มสถานะ Loading
+  const [loading, setLoading] = useState(false);
 
+  // ─── Hardware back button ─────────────────────────────────────
   useEffect(() => {
     const backAction = () => {
       Alert.alert('Hold on!', 'Are you sure you want to go back?', [
-        { text: 'Cancel', onPress: () => null, style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         { text: 'YES', onPress: () => BackHandler.exitApp() },
       ]);
       return true;
     };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction,
-    );
-
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, []);
+
+  // ─── Sync form เมื่อ user context เปลี่ยน ────────────────────
+  useEffect(() => {
+    if (user) {
+      setForm({
+        id:         user.id         ?? '',
+        name:       user.name       ?? '',
+        department: user.department ?? '',
+        tel:        user.tel        ?? '',
+        phone:      user.phone      ?? '',
+        company:    user.company    ?? '',
+      });
+    }
+  }, [user]);
 
   const handleChange = (key: keyof ProfileForm, value: string) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -56,159 +70,293 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
+  // ─── Submit ───────────────────────────────────────────────────
   const handleSubmit = async () => {
-    const status = user?.status ?? 'U03';
-    
+    // ── Validation ──
+    if (!form.tel.trim() && !form.phone.trim()) {
+      Alert.alert('แจ้งเตือน', 'กรุณากรอกเบอร์ภายในหรือเบอร์มือถืออย่างน้อย 1 ช่อง');
+      return;
+    }
+
     try {
       setLoading(true);
-      
-      // ✅ ดึง Base URL และ Endpoint
+
       const baseUrl = await getBaseUrlByCompany();
-      const url = `${baseUrl}${API_ENDPOINTS.UPDATE_PROFILE}`;
+      const url     = `${baseUrl}${API_ENDPOINTS.UPDATE_PROFILE}`;
 
-      // ✅ เตรียมข้อมูล FormData เพื่อส่งไปให้ Backend
       const formData = new FormData();
-      formData.append('username', form.id);
-      formData.append('name', form.name);
+      formData.append('username',   form.id);
+      formData.append('name',       form.name);
       formData.append('department', form.department);
-      formData.append('tel', form.tel);
-      formData.append('phone', form.phone);
-      formData.append('company', form.company);
+      formData.append('tel',        form.tel);
+      formData.append('phone',      form.phone);
+      formData.append('company',    form.company);
 
-      console.log('🚀 [POST] ยิง API อัปเดตโปรไฟล์ไปที่:', url);
-      console.log('📦 [PAYLOAD]:', form);
+      console.log('📡 POST UpdateProfile:', url);
+      console.log('📦 payload:', form);
 
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const obj = await response.json();
-      console.log('✅ [RESPONSE]:', obj);
+      const response = await fetch(url, { method: 'POST', body: formData });
+      const obj      = await response.json();
+      console.log('✅ response:', obj);
 
       if (!obj.error) {
-        Alert.alert('สำเร็จ', obj.message || 'อัปเดตข้อมูลสำเร็จ');
-        
-        if (status === 'U04' || status === 'Home') {
-          navigation.navigate('Home');
-        } else {
-          navigation.navigate('Menu');
-        }
+        // ✅ อัปเดต context + AsyncStorage ทันที ไม่ต้อง login ใหม่
+        await updateUser({
+          name:       form.name,
+          department: form.department,
+          tel:        form.tel,
+          phone:      form.phone,
+          company:    form.company,
+        });
+
+        Alert.alert('สำเร็จ', obj.message || 'อัปเดตข้อมูลสำเร็จ', [
+          {
+            text: 'ตกลง',
+            onPress: () => {
+              const status = user?.status ?? '';
+              if (status === 'U04' || status === 'Home') {
+                navigation.navigate('Home');
+              } else {
+                navigation.navigate('Home');
+              }
+            },
+          },
+        ]);
       } else {
         Alert.alert('ผิดพลาด', obj.message || 'ไม่สามารถอัปเดตข้อมูลได้');
       }
     } catch (error: any) {
-      console.error('❌ [ERROR]:', error);
+      console.error('❌ error:', error);
       Alert.alert('ผิดพลาด', error.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
     } finally {
       setLoading(false);
     }
   };
 
+  // ─── Render ───────────────────────────────────────────────────
   return (
-    <View style={styles.container}>
-      <Field label="ชื่อ-นามสกุล" value={form.name} editable={false} />
-      <Field label="แผนก" value={form.department} editable={false} />
-      <Field
-        label="เบอร์ภายใน"
-        value={form.tel}
-        onChangeText={text => handleChange('tel', text)}
-      />
-      <Field
-        label="เบอร์มือถือ"
-        value={form.phone}
-        onChangeText={text => handleChange('phone', text)}
-      />
-      <Field label="บริษัท" value={form.company} editable={false} />
-      
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
-        <View style={{ flex: 1, marginRight: 5 }}>
-          {/* ✅ ใส่ Loading ตอนกดอัปเดต */}
-          <TouchableOpacity 
-            style={[styles.saveButton, loading && styles.disabledButton]} 
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.saveButtonText}>บันทึก</Text>
-            )}
-          </TouchableOpacity>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
+      {/* ── Header ── */}
+      <View style={styles.header}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {form.name ? form.name.charAt(0).toUpperCase() : '?'}
+          </Text>
         </View>
-
-        <View style={{ flex: 1, marginLeft: 5 }}>
-          <TouchableOpacity style={styles.logoutButton} onPress={confirmLogout}>
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.headerName}>{form.name}</Text>
+        <Text style={styles.headerDept}>{form.department}</Text>
       </View>
-    </View>
+
+      {/* ── Form Card ── */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>ข้อมูลส่วนตัว</Text>
+
+        <Field
+          label="ชื่อ-นามสกุล"
+          value={form.name}
+          editable={false}
+        />
+        <Field
+          label="แผนก"
+          value={form.department}
+          editable={false}
+        />
+        <Field
+          label="บริษัท"
+          value={form.company}
+          editable={false}
+        />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>ข้อมูลติดต่อ</Text>
+
+        <Field
+          label="เบอร์ภายใน"
+          value={form.tel}
+          editable={true}
+          keyboardType="phone-pad"
+          onChangeText={text => handleChange('tel', text)}
+          placeholder="กรอกเบอร์ภายใน"
+        />
+        <Field
+          label="เบอร์มือถือ"
+          value={form.phone}
+          editable={true}
+          keyboardType="phone-pad"
+          onChangeText={text => handleChange('phone', text)}
+          placeholder="กรอกเบอร์มือถือ"
+        />
+      </View>
+
+      {/* ── Buttons ── */}
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={[styles.saveButton, loading && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}> บันทึก</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={confirmLogout}
+        >
+          <Text style={styles.buttonText}> Logout</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ height: 40 }} />
+    </ScrollView>
   );
 };
 
+// ─── Field component ──────────────────────────────────────────────
 type FieldProps = {
-  label: string;
-  value: string;
-  editable?: boolean;
+  label:         string;
+  value:         string;
+  editable?:     boolean;
+  keyboardType?: 'default' | 'phone-pad' | 'numeric' | 'email-address';
+  placeholder?:  string;
   onChangeText?: (text: string) => void;
 };
 
-const Field: React.FC<FieldProps> = ({ label, value, editable = true, onChangeText }) => (
-  <View style={styles.row}>
-    <Text style={styles.label}>{label} :</Text>
+const Field: React.FC<FieldProps> = ({
+  label, value, editable = true, keyboardType = 'default',
+  placeholder, onChangeText,
+}) => (
+  <View style={styles.fieldRow}>
+    <Text style={styles.fieldLabel}>{label} :</Text>
     <TextInput
-      style={[styles.input, !editable && styles.disabled]}
+      style={[styles.fieldInput, !editable && styles.fieldDisabled]}
       value={value}
       onChangeText={onChangeText}
       editable={editable}
-      placeholder={label}
+      keyboardType={keyboardType}
+      placeholder={placeholder ?? label}
+      placeholderTextColor="#bbb"
     />
   </View>
 );
 
+// ─── Styles ───────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { padding: 20, flex: 1, backgroundColor: '#fff' },
-  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  label: { fontWeight: 'bold', width: 110, color: '#333' },
-  input: {
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  content:   { padding: 16 },
+
+  // Header
+  header: {
+    alignItems:      'center',
+    paddingVertical: 24,
+    marginBottom:    12,
+  },
+  avatar: {
+    width:           72,
+    height:          72,
+    borderRadius:    36,
+    backgroundColor: '#a7cc43',
+    justifyContent:  'center',
+    alignItems:      'center',
+    marginBottom:    10,
+    elevation:       3,
+  },
+  avatarText: {
+    fontSize:   30,
+    fontWeight: 'bold',
+    color:      '#fff',
+  },
+  headerName: {
+    fontSize:   18,
+    fontWeight: 'bold',
+    color:      '#333',
+  },
+  headerDept: {
+    fontSize:  13,
+    color:     '#888',
+    marginTop: 4,
+  },
+
+  // Card
+  card: {
+    backgroundColor: '#fff',
+    borderRadius:    10,
+    padding:         16,
+    marginBottom:    12,
+    elevation:       2,
+  },
+  cardTitle: {
+    fontSize:          15,
+    fontWeight:        'bold',
+    color:             '#a7cc43',
+    marginBottom:      12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom:     8,
+  },
+
+  // Field
+  fieldRow: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    marginBottom:   14,
+  },
+  fieldLabel: {
+    width:      110,
+    fontWeight: 'bold',
+    fontSize:   13,
+    color:      '#555',
+  },
+  fieldInput: {
+    flex:              1,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    flex: 1,
-    paddingVertical: 6,
+    paddingVertical:   6,
     paddingHorizontal: 8,
-    color: '#000',
+    fontSize:          14,
+    color:             '#333',
   },
-  disabled: {
-    backgroundColor: '#f0f0f0',
-    color: '#777',
+  fieldDisabled: {
+    backgroundColor: '#f5f5f5',
+    color:           '#999',
+    borderBottomColor: '#eee',
+  },
+
+  // Buttons
+  buttonRow: {
+    flexDirection: 'row',
+    gap:           10,
+    marginTop:     8,
   },
   saveButton: {
+    flex:            1,
     backgroundColor: '#a7cc43',
-    padding: 10,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 40,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    padding:         14,
+    borderRadius:    10,
+    alignItems:      'center',
+    elevation:       2,
   },
   logoutButton: {
-    backgroundColor: '#c44141',
-    padding: 10,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 40,
+    flex:            1,
+    backgroundColor: '#e74c3c',
+    padding:         14,
+    borderRadius:    10,
+    alignItems:      'center',
+    elevation:       2,
   },
-  logoutButtonText: {
-    color: '#fff',
+  buttonDisabled: { backgroundColor: '#ccc' },
+  buttonText: {
+    color:      '#fff',
     fontWeight: 'bold',
-  },
-  disabledButton: {
-    backgroundColor: '#ccc',
+    fontSize:   15,
   },
 });
 

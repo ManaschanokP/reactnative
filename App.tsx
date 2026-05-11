@@ -101,7 +101,7 @@ function App(): React.JSX.Element {
  
 function NavigationHandler() {
   const navigationRef = useRef<NavigationContainerRef<any>>(null!);
-  const {user} = useContext(AuthContext)!;
+  const {user, companyColor} = useContext(AuthContext)!;
   const [statusBarColor, setStatusBarColor] = useState<string | null>(null);
  
   useEffect(() => {
@@ -142,7 +142,7 @@ function NavigationHandler() {
  
   return (
     <>
-      <StatusBar backgroundColor={statusBarColor} barStyle="light-content" />
+       <StatusBar backgroundColor={user ? companyColor : null} barStyle="light-content" />
       <NavigationContainer linking={linking} ref={navigationRef}>
         <MainApp
           navigationRef={
@@ -159,7 +159,7 @@ function MainApp({
 }: {
   navigationRef?: React.RefObject<NavigationContainerRef<any>>;
 }) {
-  const {user} = useContext(AuthContext)!;
+  const {user , companyColor} = useContext(AuthContext)!;
   console.log('User in MainApp:', user);
  
   useEffect(() => {
@@ -170,7 +170,7 @@ function MainApp({
         if (user.status === 'U04' || user.status === 'U05') {
           navigationRef.current.navigate('Home');
         } else {
-          navigationRef.current.navigate('Menu');
+          navigationRef.current.navigate('Home');
         }
       }
     }
@@ -180,14 +180,12 @@ function MainApp({
     <>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: {
-            backgroundColor: user?.status === '03' ? '#a7cc43' : '#f8ac59',
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-        }}>
+          // ✅ Header สีตาม company
+          headerStyle:      { backgroundColor: user ? companyColor : '#f8ac59' },
+          headerTintColor:  '#fff',
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      >
         {user ? (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />

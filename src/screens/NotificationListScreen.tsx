@@ -1,15 +1,14 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import {
   View, FlatList, Text, TouchableOpacity,
   StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native'; // ✅ เพิ่ม useFocusEffect
 import { AuthContext } from '../context/AuthProvider';
 import { getNotifications } from '../services/apiService';
 import { NotificationItem } from '../types/notificationTypes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -19,48 +18,65 @@ type RootStackParamList = {
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'NotificationList'>;
 
 const NotificationListScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp>();
-  const { user } = useContext(AuthContext)!;
+  const navigation = useNavigation<NavigationProp>(); 
+  const { user }   = useContext(AuthContext)!;
+  const insets     = useSafeAreaInsets();
 
-  const [data, setData] = useState<NotificationItem[]>([]);
+  const [data,    setData]    = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-   const insets = useSafeAreaInsets();
+  const [error,   setError]   = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  // ✅ re-fetch ทุกครั้งที่หน้านี้ได้ focus (กลับมาจาก NotificationDetail)
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [user]),
+  );
 
   const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      console.log('👤 user:', JSON.stringify(user));
-
-      const params = {
+    const params = {
       user_status: user.status,
-      requester: user.id,
-      page: 'Driver',
+      requester:   user.id,
+      page:        'Driver',
     };
-      
-      console.log('📤 params ที่ส่ง:', JSON.stringify(params));
 
-      const response = await getNotifications(params);
-      console.log('📦 response:', JSON.stringify(response));
+    const response = await getNotifications(params);
 
-      if (response.error) {
-        throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
-      }
+    if (response.error) throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
 
-      setData(response.Notification); // ✅ ตรงกับ response จริง
-    } catch (err) {
-      setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // ✅ filter ก่อน
+    const filtered = response.Notification.filter(
+      (item: NotificationItem) => item.status_name === 'มอบหมายงานสำเร็จ',
+    );
+
+    console.log(`Total: ${response.Notification.length} | Filtered: ${filtered.length}`);
+
+    // ✅ sort จาก filtered ไม่ใช่ response.Notification
+    const sorted = [...filtered].sort((a, b) => {
+      const parseDate = (date: string, time: string) => {
+        if (date.includes('/')) {
+          const [d, m, y] = date.split('/');
+          return new Date(`${y}-${m}-${d} ${time}`).getTime();
+        }
+        return new Date(`${date} ${time}`).getTime();
+      };
+      return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
+    });
+
+    setData(sorted); // ✅ ถูกต้อง
+
+  } catch (err) {
+    setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+  
 
   const renderItem = ({ item }: { item: NotificationItem }) => (
     <TouchableOpacity
@@ -102,6 +118,9 @@ const NotificationListScreen: React.FC = () => {
         keyExtractor={(item) => item.request_id}
         renderItem={renderItem}
         style={styles.listView}
+        // ✅ pull to refresh
+        onRefresh={fetchNotifications}
+        refreshing={loading}
       />
       <View style={{ height: insets.bottom + 44 }} />
     </View>
@@ -109,23 +128,23 @@ const NotificationListScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  listView: { flex: 1 },
+  container:   { flex: 1, backgroundColor: '#fff' },
+  listView:    { flex: 1 },
   listItem: {
-    padding: 15,
+    padding:           15,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-    gap: 4,
+    gap:               4,
   },
-  requestId: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  detail: { fontSize: 14, color: '#666' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 16, color: '#e74c3c', marginBottom: 12 },
+  requestId:   { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  detail:      { fontSize: 14, color: '#666' },
+  centered:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText:   { fontSize: 16, color: '#e74c3c', marginBottom: 12 },
   retryButton: {
     paddingHorizontal: 24,
-    paddingVertical: 10,
-    backgroundColor: '#a7cc43',
-    borderRadius: 8,
+    paddingVertical:   10,
+    backgroundColor:   '#a7cc43',
+    borderRadius:      8,
   },
   retryText: { color: '#fff', fontSize: 15 },
 });

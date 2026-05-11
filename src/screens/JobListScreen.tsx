@@ -1,13 +1,14 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Label,
-  FlatList, ActivityIndicator, Modal, TextInput,
+  View, Text, StyleSheet, TouchableOpacity,
+  FlatList, ActivityIndicator, Modal,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DatePicker, { DateType } from 'react-native-ui-datepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Button } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native'; // ✅ เพิ่ม
 import { RootStackParamList } from '../types/navigationTypes';
 import { AuthContext } from '../context/AuthProvider';
 import { getMyJobs } from '../services/apiService';
@@ -24,25 +25,35 @@ const toApiDate = (date: Date): string => {
 };
 
 const STATUS_OPTIONS = [
-  { label: 'ทั้งหมด', value: '01' },
-  { label: 'กำลังดำเนินการ', value: '02' },
-  { label: 'ดำเนินการสำเร็จ', value: '03' },
-  { label: 'ยกเลิก', value: '04' },
+  { label: 'ทั้งหมด',          value: '01' },
+  { label: 'กำลังดำเนินการ',   value: '02' },
+  { label: 'ดำเนินการสำเร็จ',  value: '03' },
+  { label: 'ยกเลิก',           value: '04' },
 ];
 
 const JobListScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useContext(AuthContext)!;
-  const today = new Date();
+  const insets   = useSafeAreaInsets();
+  const today    = new Date();
 
-  const [startDate, setStartDate] = useState<Date>(today);
-  const [endDate, setEndDate] = useState<Date>(today);
+  const [startDate,       setStartDate]       = useState<Date>(today);
+  const [endDate,         setEndDate]         = useState<Date>(today);
   const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
-  const [status, setStatus] = useState('01');
-  const [jobs, setJobs] = useState<JobItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const insets = useSafeAreaInsets();
+  const [showEndPicker,   setShowEndPicker]   = useState(false);
+  const [status,          setStatus]          = useState('01');
+  const [jobs,            setJobs]            = useState<JobItem[]>([]);
+  const [loading,         setLoading]         = useState(false);
+  const [error,           setError]           = useState<string | null>(null);
+
+  // ✅ re-fetch อัตโนมัติเมื่อกลับจาก ViewDetail
+  useFocusEffect(
+    useCallback(() => {
+      // re-fetch เฉพาะถ้ามีข้อมูลอยู่แล้ว (เคยกดค้นหาไปแล้ว)
+      if (jobs.length > 0) {
+        fetchJobs();
+      }
+    }, [startDate, endDate, status]),
+  );
 
   const handleStartDateChange = (params: { date: DateType }) => {
     if (params.date instanceof Date) {
@@ -65,16 +76,30 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
       setError(null);
       const response = await getMyJobs({
         driver: user.id,
-        start: toApiDate(startDate),
-        end: toApiDate(endDate),
+        start:  toApiDate(startDate),
+        end:    toApiDate(endDate),
         status,
       });
+
       if (response.error) {
         setJobs([]);
         setError(response.message ?? 'ไม่พบข้อมูล');
         return;
       }
-      setJobs(response.MyJobs);
+
+      // ✅ เพิ่มตรงนี้ แทน setJobs(response.MyJobs)
+      const sorted = [...response.MyJobs].sort((a, b) => {
+        const parseDate = (date: string, time: string) => {
+          if (date.includes('/')) {
+            const [d, m, y] = date.split('/');
+            return new Date(`${y}-${m}-${d} ${time}`).getTime();
+          }
+          return new Date(`${date} ${time}`).getTime();
+        };
+        return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
+      });
+      setJobs(sorted);
+
     } catch (err) {
       setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
       console.error(err);
@@ -111,11 +136,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
       <Modal visible={showStartPicker} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <DatePicker
-              mode="single"
-              date={startDate}
-              onChange={handleStartDateChange}
-            />
+            <DatePicker mode="single" date={startDate} onChange={handleStartDateChange} />
             <Button title="ปิด" onPress={() => setShowStartPicker(false)} />
           </View>
         </View>
@@ -125,18 +146,13 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
       <Modal visible={showEndPicker} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <DatePicker
-              mode="single"
-              date={endDate}
-              minDate={startDate}
-              onChange={handleEndDateChange}
-            />
+            <DatePicker mode="single" date={endDate} minDate={startDate} onChange={handleEndDateChange} />
             <Button title="ปิด" onPress={() => setShowEndPicker(false)} />
           </View>
         </View>
       </Modal>
 
-      {/* Date Row - 1 แถว */}
+      {/* Date Row */}
       <View style={styles.dateRow}>
         <View style={styles.dateBlock}>
           <Text style={styles.label}>เริ่ม :</Text>
@@ -145,7 +161,6 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
             <MaterialIcons name="date-range" size={20} color="#a7cc43" />
           </TouchableOpacity>
         </View>
-
         <View style={styles.dateBlock}>
           <Text style={styles.label}>สิ้นสุด :</Text>
           <TouchableOpacity onPress={() => setShowEndPicker(true)} style={styles.dateInputRow}>
@@ -154,14 +169,11 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
+
       {/* Status Picker */}
       <View style={styles.filterRow}>
         <Text style={styles.label}>สถานะ :</Text>
-        <Picker
-          selectedValue={status}
-          onValueChange={setStatus}
-          style={styles.picker}
-        >
+        <Picker selectedValue={status} onValueChange={setStatus} style={styles.picker}>
           {STATUS_OPTIONS.map(opt => (
             <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
           ))}
@@ -170,7 +182,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* Search Button */}
       <TouchableOpacity style={styles.searchButton} onPress={fetchJobs}>
-        <Text style={styles.searchText}>ค้นหา</Text>
+        <Text style={styles.searchText}> ค้นหา</Text>
       </TouchableOpacity>
 
       {/* Results */}
@@ -187,94 +199,74 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           data={jobs}
           keyExtractor={item => item.request_id}
           renderItem={renderItem}
+          // ✅ pull to refresh
+          onRefresh={fetchJobs}
+          refreshing={loading}
           ListEmptyComponent={
             <Text style={styles.emptyText}>กดค้นหาเพื่อดูรายการงาน</Text>
           }
         />
       )}
-       <View style={{ height: insets.bottom + 20 }} />
+
+      <View style={{ height: insets.bottom + 20 }} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  dateRow: { 
-    flexDirection: 'row',  // วางแนวตั้ง ทีละแถว
-    gap: 8,
-    marginBottom: 10, 
-  },
-  dateBlock: { 
-    flex: 1, 
-    marginBottom: 8, 
-    minHeight: 60, },
-  label: { fontWeight: 'bold', fontSize: 14, marginBottom: 4 },
-
+  container:  { flex: 1, padding: 16, backgroundColor: '#fff' },
+  dateRow:    { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  dateBlock:  { flex: 1, marginBottom: 8, minHeight: 60 },
+  label:      { fontWeight: 'bold', fontSize: 14, marginBottom: 4 },
   dateInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
+    flexDirection:    'row',
+    alignItems:       'center',
+    justifyContent:   'space-between',
+    borderWidth:      1,
+    borderColor:      '#ccc',
+    borderRadius:     6,
     paddingHorizontal: 8,
-    paddingVertical: 8,
-    marginTop: 4,
-    backgroundColor: '#fafafa',
+    paddingVertical:  8,
+    marginTop:        4,
+    backgroundColor:  '#fafafa',
   },
-dateText: {
-  fontSize: 12,
-  color: '#333',
-},
-Label: {
-  fontWeight: 'bold',
-  fontSize: 12,   // เล็กลงให้พอดี
-  marginBottom: 2,
-},
-filterRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginTop: 8,    // เพิ่มระยะห่างจาก date row
-  marginBottom: 8,
-},
-  
-searchButton: {
-  backgroundColor: '#a7cc43',
-  padding: 12,
-  borderRadius: 8,
-  alignItems: 'center',
-  marginTop: 8,    // เพิ่มระยะห่างจาก picker
-  marginBottom: 12,
-},
-
-  picker: { flex: 1 },
-  
-  searchText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  dateText:   { fontSize: 12, color: '#333' },
+  filterRow:  { flexDirection: 'row', alignItems: 'center', marginTop: 8, marginBottom: 8 },
+  picker:     { flex: 1 },
+  searchButton: {
+    backgroundColor: '#a7cc43',
+    padding:         12,
+    borderRadius:    8,
+    alignItems:      'center',
+    marginTop:       8,
+    marginBottom:    12,
+  },
+  searchText:   { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   jobItem: {
-    padding: 24,
+    padding:           16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-    gap: 4,
+    gap:               4,
   },
-  jobTitle: { fontSize: 15, fontWeight: 'bold', color: '#333' },
-  jobDetail: { fontSize: 14, color: '#666' },
-  jobStatus: { fontSize: 13, fontWeight: 'bold', marginTop: 4 },
+  jobTitle:     { fontSize: 15, fontWeight: 'bold', color: '#333' },
+  jobDetail:    { fontSize: 14, color: '#666' },
+  jobStatus:    { fontSize: 13, fontWeight: 'bold', marginTop: 4 },
   statusActive: { color: '#e67e22' },
-  statusDone: { color: '#27ae60' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 },
-  errorText: { color: '#e74c3c', fontSize: 15 },
-  emptyText: { textAlign: 'center', color: '#aaa', marginTop: 40 },
+  statusDone:   { color: '#27ae60' },
+  centered:     { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 },
+  errorText:    { color: '#e74c3c', fontSize: 15 },
+  emptyText:    { textAlign: 'center', color: '#aaa', marginTop: 40 },
   modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flex:            1,
+    justifyContent:  'center',
+    alignItems:      'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
+    padding:         20,
+    borderRadius:    10,
+    alignItems:      'center',
   },
 });
 
