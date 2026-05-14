@@ -56,23 +56,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     gap: 60,
-    },
-    button: {
-      width: 300,
-      height: 150,
-      marginTop: 100,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    buttonImage: {
-      width: 100,
-      height: 100,
-      marginBottom: 10,
-    },
-    buttonText: {
-      fontSize: 30,
-      fontWeight: 'bold',
-      paddingTop: 10,
+  },
+  button: {
+    width: 300,
+    height: 150,
+    marginTop: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonImage: {
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+  },
+  buttonText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    paddingTop: 10,
   },
 });
 

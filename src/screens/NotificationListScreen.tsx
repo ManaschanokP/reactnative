@@ -4,7 +4,7 @@ import {
   StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation, useFocusEffect } from '@react-navigation/native'; // ✅ เพิ่ม useFocusEffect
+import { useNavigation, useFocusEffect } from '@react-navigation/native'; //เพิ่ม useFocusEffect
 import { AuthContext } from '../context/AuthProvider';
 import { getNotifications } from '../services/apiService';
 import { NotificationItem } from '../types/notificationTypes';
@@ -26,7 +26,7 @@ const NotificationListScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
 
-  // ✅ re-fetch ทุกครั้งที่หน้านี้ได้ focus (กลับมาจาก NotificationDetail)
+  //re-fetch ทุกครั้งที่หน้านี้ได้ focus (กลับมาจาก NotificationDetail)
   useFocusEffect(
     useCallback(() => {
       fetchNotifications();
@@ -48,14 +48,14 @@ const NotificationListScreen: React.FC = () => {
 
     if (response.error) throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
 
-    // ✅ filter ก่อน
+    //filter ก่อน
     const filtered = response.Notification.filter(
       (item: NotificationItem) => item.status_name === 'มอบหมายงานสำเร็จ',
     );
 
     console.log(`Total: ${response.Notification.length} | Filtered: ${filtered.length}`);
 
-    // ✅ sort จาก filtered ไม่ใช่ response.Notification
+    //sort จาก filtered ไม่ใช่ response.Notification
     const sorted = [...filtered].sort((a, b) => {
       const parseDate = (date: string, time: string) => {
         if (date.includes('/')) {
@@ -67,7 +67,7 @@ const NotificationListScreen: React.FC = () => {
       return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
     });
 
-    setData(sorted); // ✅ ถูกต้อง
+    setData(sorted); //ถูกต้อง
 
   } catch (err) {
     setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
@@ -118,7 +118,7 @@ const NotificationListScreen: React.FC = () => {
         keyExtractor={(item) => item.request_id}
         renderItem={renderItem}
         style={styles.listView}
-        // ✅ pull to refresh
+        //pull to refresh
         onRefresh={fetchNotifications}
         refreshing={loading}
       />

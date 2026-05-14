@@ -1,17 +1,22 @@
-import React, { useRef, useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import SignatureScreen, { SignatureViewRef } from 'react-native-signature-canvas';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigationTypes';
-import { submitSignature } from '../services/apiService';
+import SignatureScreen, {SignatureViewRef} from 'react-native-signature-canvas';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../types/navigationTypes';
+import {submitSignature} from '../services/apiService';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signature'>;
 
-const SignaturePadScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { request_id, status_id } = route.params;
-  const ref = useRef<SignatureViewRef>(null); // ✅ ใช้ SignatureViewRef แทน typeof SignatureScreen
+const SignaturePadScreen: React.FC<Props> = ({route, navigation}) => {
+  const {request_id, status_id} = route.params;
+  const ref = useRef<SignatureViewRef>(null); //ใช้ SignatureViewRef แทน typeof SignatureScreen
   const [saving, setSaving] = useState(false);
 
   const handleClear = () => {
@@ -26,13 +31,17 @@ const SignaturePadScreen: React.FC<Props> = ({ route, navigation }) => {
     const base64 = signature.replace('data:image/png;base64,', '');
     try {
       setSaving(true);
-      const response = await submitSignature({ request_id, status_id, picture: base64 });
+      const response = await submitSignature({
+        request_id,
+        status_id,
+        picture: base64,
+      });
       Alert.alert('สำเร็จ', response.message, [
         {
           text: 'ตกลง',
           onPress: () => {
             if (status_id === 'SD05' || status_id === 'SD09') {
-              navigation.navigate('Evaluation', { request_id, status_id });
+              navigation.navigate('Evaluation', {request_id, status_id});
             } else {
               navigation.navigate('JobList');
             }
@@ -69,12 +78,12 @@ const SignaturePadScreen: React.FC<Props> = ({ route, navigation }) => {
         <TouchableOpacity
           style={[styles.saveButton, saving && styles.disabled]}
           onPress={handleSave}
-          disabled={saving}
-        >
-          {saving
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.saveText}>บันทึก</Text>
-          }
+          disabled={saving}>
+          {saving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.saveText}>บันทึก</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -113,7 +122,7 @@ const styles = StyleSheet.create({
     borderColor: '#C0392B',
     alignItems: 'center',
   },
-  clearText: { color: '#C0392B', fontSize: 16, fontWeight: 'bold' },
+  clearText: {color: '#C0392B', fontSize: 16, fontWeight: 'bold'},
   saveButton: {
     flex: 2,
     padding: 14,
@@ -121,8 +130,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E8449',
     alignItems: 'center',
   },
-  saveText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  disabled: { backgroundColor: '#ccc' },
+  saveText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
+  disabled: {backgroundColor: '#ccc'},
 });
 
 export default SignaturePadScreen;

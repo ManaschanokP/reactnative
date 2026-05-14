@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react'; // 🔍 เพิ่ม useState
+import React, {useContext, useState} from 'react'; //เพิ่ม useState
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-} from 'react-native'; // 🔍 เพิ่ม TextInput, Alert
+} from 'react-native'; // เพิ่ม TextInput, Alert
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
 import {AuthContext, getCompanyColor} from '../context/AuthProvider';
@@ -15,8 +15,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen: React.FC<Props> = ({navigation}) => {
-  const {user , companyColor} = useContext(AuthContext)!;
-  // 🔍 เพิ่ม state สำหรับค้นหา
+  const {user, companyColor} = useContext(AuthContext)!;
+  //เพิ่ม state สำหรับค้นหา
   const [searchId, setSearchId] = useState('');
   console.log('User Home Screen:', user);
   console.log('User Status Home Screen:', user?.status);
@@ -66,15 +66,15 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
             onSubmitEditing={handleSearch}
           />
 
-          <TouchableOpacity  style={[styles.searchButton, { backgroundColor: companyColor }]}onPress={handleSearch}>
-            
-             <Icon name="search" size={26} color="#fff" />
+          <TouchableOpacity
+            style={[styles.searchButton, {backgroundColor: companyColor}]}
+            onPress={handleSearch}>
+            <Icon name="search" size={26} color="#fff" />
           </TouchableOpacity>
         </View>
 
-
         <TouchableOpacity
-           style={[styles.button, { backgroundColor: companyColor }]}
+          style={[styles.button, {backgroundColor: companyColor}]}
           onPress={() => {
             console.log('Scan QR-Code Pressed');
             navigation.navigate('Scan');
@@ -84,9 +84,8 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
         {isDriverOrMessenger && (
           <TouchableOpacity
-             style={[styles.button, { backgroundColor: companyColor }]}
-            onPress={() => navigation.navigate('FuelEntry')}
-          >
+            style={[styles.button, {backgroundColor: companyColor}]}
+            onPress={() => navigation.navigate('FuelEntry')}>
             <Text style={styles.buttonText}>น้ำมัน</Text>
           </TouchableOpacity>
         )}
@@ -103,7 +102,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
-  // 🔍 🔥 เพิ่ม style search
+  //เพิ่ม style search
   searchBox: {
     flexDirection: 'row',
     borderWidth: 1,
@@ -121,12 +120,11 @@ const styles = StyleSheet.create({
   },
 
   searchButton: {
-    
     justifyContent: 'center',
     paddingHorizontal: 15,
   },
 
-  // 🔽 ของเดิม
+  //ของเดิม
   button: {
     padding: 10,
     marginVertical: 10,
@@ -143,12 +141,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
-   
+
     padding: 2,
     justifyContent: 'space-around',
   },
   navButton: {
-    padding: 2
+    padding: 2,
   },
   navButtonText: {
     color: '#fff',

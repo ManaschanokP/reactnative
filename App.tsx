@@ -25,14 +25,14 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScanScreen from './src/screens/ScanScreen';
 import ViewDetailScreen from './src/screens/ViewDetailScreen';
-import {SafeAreaProvider} from 'react-native-safe-area-context'; // ✅ import อยู่แล้ว
+import {SafeAreaProvider} from 'react-native-safe-area-context'; //import อยู่แล้ว
 import SignaturePadScreen from './src/screens/SignaturePadScreen';
 import EvaluationScreen from './src/screens/EvaluationScreen';
 import TrackingScreen from './src/screens/TrackingScreen';
 import { startSyncListener } from './src/services/syncService';
- 
+
 const NAVIGATION_IDS = ['NotificationDetail'];
- 
+
 function buildDeepLinkFromNotificationData(data: any): string | null {
   const navigationId = data?.navigationId;
   if (!NAVIGATION_IDS.includes(navigationId)) {
@@ -45,7 +45,7 @@ function buildDeepLinkFromNotificationData(data: any): string | null {
   console.warn('Missing postId');
   return null;
 }
- 
+
 const linking = {
   prefixes: ['myapp://'],
   config: {
@@ -86,9 +86,9 @@ const linking = {
     };
   },
 };
- 
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
- 
+
 function App(): React.JSX.Element {
   return (
     <SafeAreaProvider>
@@ -98,17 +98,17 @@ function App(): React.JSX.Element {
     </SafeAreaProvider>
   );
 }
- 
+
 function NavigationHandler() {
   const navigationRef = useRef<NavigationContainerRef<any>>(null!);
   const {user, companyColor} = useContext(AuthContext)!;
   const [statusBarColor, setStatusBarColor] = useState<string | null>(null);
- 
+
   useEffect(() => {
     const unsubscribe = startSyncListener();
     return () => unsubscribe();
   }, []);
-  
+
   useEffect(() => {
     console.log('User changed:', user);
     if (user) {
@@ -121,7 +121,7 @@ function NavigationHandler() {
       setStatusBarColor(null);
     }
   }, [user]);
- 
+
   useEffect(() => {
     const requestUserPermission = async () => {
       PermissionsAndroid.request(
@@ -139,7 +139,7 @@ function NavigationHandler() {
     };
     requestUserPermission();
   }, []);
- 
+
   return (
     <>
        <StatusBar backgroundColor={user ? companyColor : null} barStyle="light-content" />
@@ -153,7 +153,7 @@ function NavigationHandler() {
     </>
   );
 }
- 
+
 function MainApp({
   navigationRef,
 }: {
@@ -161,7 +161,7 @@ function MainApp({
 }) {
   const {user , companyColor} = useContext(AuthContext)!;
   console.log('User in MainApp:', user);
- 
+
   useEffect(() => {
     if (user && navigationRef?.current) {
       if (user.first_login === 'Y') {
@@ -175,7 +175,7 @@ function MainApp({
       }
     }
   }, [user, navigationRef]);
- 
+
   return (
     <>
       <Stack.Navigator
@@ -215,5 +215,5 @@ function MainApp({
     </>
   );
 }
- 
+
 export default App;

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, {useState, useContext} from 'react';
 import {
   View,
   Text,
@@ -10,21 +10,21 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import {Picker} from '@react-native-picker/picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { Button } from 'react-native-elements';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import DatePicker, { DateType } from 'react-native-ui-datepicker';
-import { RootStackParamList } from '../types/navigationTypes';
+import {Button} from 'react-native-elements';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import DatePicker, {DateType} from 'react-native-ui-datepicker';
+import {RootStackParamList} from '../types/navigationTypes';
 
-// นำเข้า Context และ API Config (ปรับ Path ให้ตรงกับโปรเจกต์ของคุณ)
-import { AuthContext } from '../context/AuthProvider';
-import { getBaseUrlByCompany, API_ENDPOINTS } from '../config/apiConfig';
+// นำเข้า Context และ API Config
+import {AuthContext} from '../context/AuthProvider';
+import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
 
-const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
-  const { user } = useContext(AuthContext)!; // ดึงข้อมูล user ที่ล็อกอินอยู่
+const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
+  const {user} = useContext(AuthContext)!; // ดึงข้อมูล user ที่ล็อกอินอยู่
 
   const [license_no, setlicense_no] = useState('');
   const [date, setDate] = useState(new Date());
@@ -32,11 +32,11 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
   const [liter, setliter] = useState('');
   const [price, setprice] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
+
   // เพิ่ม State สำหรับสถานะ Loading ตอนกด Submit
   const [loading, setLoading] = useState(false);
 
-  const handleDateChange = (params: { date: DateType }) => {
+  const handleDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
       setDate(params.date);
       setShowDatePicker(false);
@@ -72,7 +72,7 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
         liter: liter,
         price: price,
       };
-      
+
       // 2. เตรียมข้อมูล FormData ส่งให้ API
       const formData = new FormData();
       formData.append('user_id', user.id); // รหัสพนักงานขับรถ
@@ -90,14 +90,17 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
         body: formData,
       });
       const obj = await res.json();
-        console.log('obj:', res);
+      console.log('obj:', res);
       // 4. เช็คผลลัพธ์
       if (!obj.error) {
         Alert.alert('สำเร็จ', 'บันทึกข้อมูลการเติมน้ำมันเรียบร้อยแล้ว', [
-          { text: 'ตกลง', onPress: () => navigation.goBack() } // บันทึกเสร็จให้เด้งกลับหน้าเดิม
+          {text: 'ตกลง', onPress: () => navigation.goBack()}, // บันทึกเสร็จให้เด้งกลับหน้าเดิม
         ]);
       } else {
-        Alert.alert('เกิดข้อผิดพลาด', obj.message || 'ไม่สามารถบันทึกข้อมูลได้');
+        Alert.alert(
+          'เกิดข้อผิดพลาด',
+          obj.message || 'ไม่สามารถบันทึกข้อมูลได้',
+        );
       }
     } catch (error) {
       console.error('Submit Fuel Error:', error);
@@ -109,12 +112,14 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     // เปลี่ยนมาใช้ ScrollView เพื่อไม่ให้คีย์บอร์ดบังปุ่ม Submit
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}>
       <Text style={styles.label}>วันที่ :</Text>
       <TouchableOpacity onPress={() => setShowDatePicker(true)}>
         <View style={styles.row}>
           <TextInput
-            style={[styles.input, { flex: 1, color: '#000' }]}
+            style={[styles.input, {flex: 1, color: '#000'}]}
             value={date.toLocaleDateString('th-TH')} // แสดงเป็น พ.ศ. ให้ดูง่ายขึ้น
             editable={false}
           />
@@ -141,8 +146,7 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
         <Picker
           selectedValue={license_no}
           onValueChange={itemValue => setlicense_no(itemValue)}
-          style={styles.picker}
-        >
+          style={styles.picker}>
           <Picker.Item label="เลือกทะเบียน" value="" />
           <Picker.Item label="ABC-1234" value="ABC-1234" />
           <Picker.Item label="XYZ-5678" value="XYZ-5678" />
@@ -154,7 +158,7 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.input}
         keyboardType="numeric"
         value={mile}
-        onChangeText={(text) => setMile(text.replace(/[^0-9]/g, ''))} // กันพิมพ์ตัวอักษร
+        onChangeText={text => setMile(text.replace(/[^0-9]/g, ''))} // กันพิมพ์ตัวอักษร
         placeholder="ระบุเลขไมล์"
       />
 
@@ -163,7 +167,7 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.input}
         keyboardType="numeric"
         value={liter}
-        onChangeText={(text) => setliter(text.replace(/[^0-9.]/g, ''))} // รองรับทศนิยม
+        onChangeText={text => setliter(text.replace(/[^0-9.]/g, ''))} // รองรับทศนิยม
         placeholder="0.00"
       />
 
@@ -172,16 +176,15 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.input}
         keyboardType="numeric"
         value={price}
-        onChangeText={(text) => setprice(text.replace(/[^0-9.]/g, ''))} // รองรับทศนิยม
+        onChangeText={text => setprice(text.replace(/[^0-9.]/g, ''))} // รองรับทศนิยม
         placeholder="0.00"
       />
 
       {/* ปุ่มบันทึกข้อมูล */}
-      <TouchableOpacity 
-        style={[styles.submitButton, loading && styles.submitButtonDisabled]} 
+      <TouchableOpacity
+        style={[styles.submitButton, loading && styles.submitButtonDisabled]}
         onPress={handleSubmit}
-        disabled={loading}
-      >
+        disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
@@ -189,7 +192,7 @@ const FuelEntryScreen: React.FC<Props> = ({ navigation }) => {
         )}
       </TouchableOpacity>
 
-      <View style={{ height: 40 }} />
+      <View style={{height: 40}} />
     </ScrollView>
   );
 };
@@ -257,7 +260,7 @@ const styles = StyleSheet.create({
     elevation: 2, // เงาสำหรับ Android
     shadowColor: '#000', // เงาสำหรับ iOS
     shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
   },
   submitButtonDisabled: {
     backgroundColor: '#ccc',
