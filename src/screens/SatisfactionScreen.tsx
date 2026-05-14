@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigationTypes';
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../types/navigationTypes';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Satisfaction'>;
 
-const SatisfactionScreen: React.FC<Props> = ({ navigation }) => {
+const SatisfactionScreen: React.FC<Props> = ({navigation}) => {
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
 
   const handleScoreSelection = (score: number) => {
@@ -14,7 +14,6 @@ const SatisfactionScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleSubmit = () => {
     if (selectedScore !== null) {
-
       Alert.alert('Success', `You selected a score of ${selectedScore}.`);
       navigation.navigate('Home');
     } else {
@@ -26,15 +25,14 @@ const SatisfactionScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Please rate your satisfaction:</Text>
       <View style={styles.scoreContainer}>
-        {[1, 2, 3, 4, 5].map((score) => (
+        {[1, 2, 3, 4, 5].map(score => (
           <TouchableOpacity
             key={score}
             style={[
               styles.scoreButton,
               selectedScore === score && styles.selectedScoreButton,
             ]}
-            onPress={() => handleScoreSelection(score)}
-          >
+            onPress={() => handleScoreSelection(score)}>
             <Text style={styles.scoreText}>{score}</Text>
           </TouchableOpacity>
         ))}

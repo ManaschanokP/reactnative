@@ -1,7 +1,12 @@
-import React, { useState, useContext, useCallback } from 'react';
+import React, {useState, useContext, useCallback} from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
-  FlatList, ActivityIndicator, Modal,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DatePicker, { DateType } from 'react-native-ui-datepicker';
@@ -53,14 +58,14 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const today  = new Date();
 
-  const [startDate,       setStartDate]       = useState<Date>(today);
-  const [endDate,         setEndDate]         = useState<Date>(today);
+  const [startDate, setStartDate] = useState<Date>(today);
+  const [endDate, setEndDate] = useState<Date>(today);
   const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker,   setShowEndPicker]   = useState(false);
-  const [status,          setStatus]          = useState('01');
-  const [jobs,            setJobs]            = useState<JobItem[]>([]);
-  const [loading,         setLoading]         = useState(false);
-  const [error,           setError]           = useState<string | null>(null);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [status, setStatus] = useState('01');
+  const [jobs, setJobs] = useState<JobItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -68,7 +73,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
     }, [startDate, endDate, status]),
   );
 
-  const handleStartDateChange = (params: { date: DateType }) => {
+  const handleStartDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
       setStartDate(params.date);
       if (params.date > endDate) setEndDate(params.date);
@@ -76,7 +81,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleEndDateChange = (params: { date: DateType }) => {
+  const handleEndDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
       setEndDate(params.date);
       setShowEndPicker(false);
@@ -89,8 +94,8 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
       setError(null);
       const response = await getMyJobs({
         driver: user.id,
-        start:  toApiDate(startDate),
-        end:    toApiDate(endDate),
+        start: toApiDate(startDate),
+        end: toApiDate(endDate),
         status,
       });
       if (response.error) {
@@ -191,12 +196,15 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-
       {/* Start Date Modal */}
       <Modal visible={showStartPicker} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <DatePicker mode="single" date={startDate} onChange={handleStartDateChange} />
+            <DatePicker
+              mode="single"
+              date={startDate}
+              onChange={handleStartDateChange}
+            />
             <Button title="ปิด" onPress={() => setShowStartPicker(false)} />
           </View>
         </View>
@@ -206,7 +214,12 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
       <Modal visible={showEndPicker} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <DatePicker mode="single" date={endDate} minDate={startDate} onChange={handleEndDateChange} />
+            <DatePicker
+              mode="single"
+              date={endDate}
+              minDate={startDate}
+              onChange={handleEndDateChange}
+            />
             <Button title="ปิด" onPress={() => setShowEndPicker(false)} />
           </View>
         </View>
@@ -415,9 +428,9 @@ footerItem: {
 
   // Modal
   modalContainer: {
-    flex:            1,
-    justifyContent:  'center',
-    alignItems:      'center',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {

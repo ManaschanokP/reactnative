@@ -26,16 +26,14 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScanScreen from './src/screens/ScanScreen';
 import ViewDetailScreen from './src/screens/ViewDetailScreen';
-import {SafeAreaProvider} from 'react-native-safe-area-context'; // ✅ import อยู่แล้ว
+import {SafeAreaProvider} from 'react-native-safe-area-context'; //import อยู่แล้ว
 import SignaturePadScreen from './src/screens/SignaturePadScreen';
 import EvaluationScreen from './src/screens/EvaluationScreen';
 import TrackingScreen from './src/screens/TrackingScreen';
-import { startSyncListener } from './src/services/syncService';
+import {startSyncListener} from './src/services/syncService';
 
-
- 
 const NAVIGATION_IDS = ['NotificationDetail'];
- 
+
 function buildDeepLinkFromNotificationData(data: any): string | null {
   const navigationId = data?.navigationId;
   if (!NAVIGATION_IDS.includes(navigationId)) {
@@ -48,7 +46,7 @@ function buildDeepLinkFromNotificationData(data: any): string | null {
   console.warn('Missing postId');
   return null;
 }
- 
+
 const linking = {
   prefixes: ['myapp://'],
   config: {
@@ -89,9 +87,9 @@ const linking = {
     };
   },
 };
- 
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
- 
+
 function App(): React.JSX.Element {
   return (
     <SafeAreaProvider>
@@ -101,17 +99,17 @@ function App(): React.JSX.Element {
     </SafeAreaProvider>
   );
 }
- 
+
 function NavigationHandler() {
   const navigationRef = useRef<NavigationContainerRef<any>>(null!);
   const {user, companyColor} = useContext(AuthContext)!;
   const [statusBarColor, setStatusBarColor] = useState<string | null>(null);
- 
+
   useEffect(() => {
     const unsubscribe = startSyncListener();
     return () => unsubscribe();
   }, []);
-  
+
   useEffect(() => {
     console.log('User changed:', user);
     if (user) {
@@ -124,7 +122,7 @@ function NavigationHandler() {
       setStatusBarColor(null);
     }
   }, [user]);
- 
+
   useEffect(() => {
     const requestUserPermission = async () => {
       PermissionsAndroid.request(
@@ -142,14 +140,13 @@ function NavigationHandler() {
     };
     requestUserPermission();
   }, []);
- 
+
   return (
     <>
-    <StatusBar
-      backgroundColor="#ffffff"
-      barStyle="dark-content"
-    />
-       <StatusBar backgroundColor={user ? companyColor : null} barStyle="light-content" />
+      <StatusBar
+        backgroundColor={user ? companyColor : null}
+        barStyle="light-content"
+      />
       <NavigationContainer linking={linking} ref={navigationRef}>
         <MainApp
           navigationRef={
@@ -160,15 +157,15 @@ function NavigationHandler() {
     </>
   );
 }
- 
+
 function MainApp({
   navigationRef,
 }: {
   navigationRef?: React.RefObject<NavigationContainerRef<any>>;
 }) {
-  const {user , companyColor} = useContext(AuthContext)!;
+  const {user, companyColor} = useContext(AuthContext)!;
   console.log('User in MainApp:', user);
- 
+
   useEffect(() => {
     if (user && navigationRef?.current) {
       if (user.first_login === 'Y') {
@@ -182,28 +179,49 @@ function MainApp({
       }
     }
   }, [user, navigationRef]);
- 
+
   return (
     <>
+
+     <StatusBar
+      backgroundColor="#ffffff"
+      barStyle="dark-content"
+    />
       <Stack.Navigator
         screenOptions={{
-          // ✅ Header สีตาม company
-          headerStyle:      { backgroundColor: user ? companyColor : '#f8ac59' },
-          headerTintColor:  '#fff',
-          headerTitleStyle: { fontFamily: 'bold' },
-        }}
-      >
+        headerStyle: {
+          backgroundColor: user ? companyColor : '#F5A800',
+        },
+        headerTintColor: '#1c1fca',
+        headerTitleStyle: {fontFamily: 'bold'},
+      }}>
+
         {user ? (
           <>
-            <Stack.Screen name="Home" component={HomeScreen}                          options={{ headerShown: false }}/>
+            <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{headerShown: false}}
+          />
             <Stack.Screen name="ViewDetail" component={ViewDetailScreen} />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />
             <Stack.Screen name="FuelEntry" component={FuelEntryScreen} />
             <Stack.Screen name="JobList" component={JobListScreen} />
-            <Stack.Screen name="Profile" component={ProfileScreen}                    options={{ headerShown: false }}/>
-            <Stack.Screen name="NotificationList" component={NotificationListScreen}  options={{ headerShown: false }}/>
-            <Stack.Screen name="NotificationDetail" component={NotificationDetailScreen} />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="NotificationList"
+              component={NotificationListScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="NotificationDetail"
+              component={NotificationDetailScreen}
+            />
             <Stack.Screen name="Scan" component={ScanScreen} />
             <Stack.Screen name="Signature" component={SignaturePadScreen} />
             <Stack.Screen name="Evaluation" component={EvaluationScreen} />
@@ -222,5 +240,5 @@ function MainApp({
     </>
   );
 }
- 
+
 export default App;

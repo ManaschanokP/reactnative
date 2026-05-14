@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -9,15 +9,15 @@ import {
   useBarcodeScanner,
   CameraHighlights,
 } from '@mgcrea/vision-camera-barcode-scanner';
-import { Worklets } from 'react-native-worklets-core';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigationTypes';
+import {Worklets} from 'react-native-worklets-core';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../types/navigationTypes';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Scan'>;
 
-export default function ScanScreen({ navigation }: Props) {
+export default function ScanScreen({navigation}: Props) {
   const device = useCameraDevice('back');
-  const { hasPermission, requestPermission } = useCameraPermission();
+  const {hasPermission, requestPermission} = useCameraPermission();
   const isNavigating = useRef(false);
 
   useEffect(() => {
@@ -30,17 +30,17 @@ export default function ScanScreen({ navigation }: Props) {
     if (isNavigating.current) return;
     isNavigating.current = true;
 
-    navigation.navigate('Tracking', { requestId: value });
+    navigation.navigate('Tracking', {requestId: value});
 
     setTimeout(() => {
       isNavigating.current = false;
     }, 2000);
   };
 
-  // ✅ createRunOnJS — สร้าง bridge จาก worklet thread → JS thread
+  //createRunOnJS — สร้าง bridge จาก worklet thread → JS thread
   const handleScannedJS = Worklets.createRunOnJS(handleScanned);
 
-  const { props: cameraProps, highlights } = useBarcodeScanner({
+  const {props: cameraProps, highlights} = useBarcodeScanner({
     fps: 5,
     barcodeTypes: ['qr', 'ean-13', 'code-128'],
     onBarcodeScanned: barcodes => {
@@ -99,12 +99,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#000',
   },
-  text: { color: '#fff', marginBottom: 16 },
+  text: {color: '#fff', marginBottom: 16},
   button: {
     backgroundColor: '#007AFF',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
+<<<<<<< HEAD
+  buttonText: {color: '#fff', fontWeight: 'bold'},
+});
+=======
   buttonText: { color: '#fff', fontFamily: 'bold' },
 });
+>>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d

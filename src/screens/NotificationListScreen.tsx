@@ -14,6 +14,8 @@ import IonIcon from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
+
+
 type RootStackParamList = {
   NotificationList: undefined;
   NotificationDetail: { item: NotificationItem };
@@ -43,6 +45,7 @@ const NotificationListScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
 
+  //re-fetch ทุกครั้งที่หน้านี้ได้ focus (กลับมาจาก NotificationDetail)
   useFocusEffect(
     useCallback(() => {
       fetchNotifications();
@@ -54,14 +57,36 @@ const NotificationListScreen: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const params = {
-        user_status: user.status,
-        requester:   user.id,
-        page:        'Driver',
+    const params = {
+      user_status: user.status,
+      requester:   user.id,
+      page:        'Driver',
+    };
+
+    const response = await getNotifications(params);
+
+    if (response.error) throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
+
+    //filter ก่อน
+    const filtered = response.Notification.filter(
+      (item: NotificationItem) => item.status_name === 'มอบหมายงานสำเร็จ',
+    );
+
+    console.log(`Total: ${response.Notification.length} | Filtered: ${filtered.length}`);
+
+    //sort จาก filtered ไม่ใช่ response.Notification
+    const sorted = [...filtered].sort((a, b) => {
+      const parseDate = (date: string, time: string) => {
+        if (date.includes('/')) {
+          const [d, m, y] = date.split('/');
+          return new Date(`${y}-${m}-${d} ${time}`).getTime();
+        }
+        return new Date(`${date} ${time}`).getTime();
       };
 
       const response = await getNotifications(params);
       if (response.error) throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
+    setData(sorted); //ถูกต้อง
 
       const filtered = response.Notification.filter(
         (item: NotificationItem) => item.status_name === 'มอบหมายงานสำเร็จ',
@@ -180,6 +205,7 @@ const NotificationListScreen: React.FC = () => {
   }
 
   return (
+    <SafeAreaView style={{flex: 1}}>
     <View style={styles.container}>
       <SafeAreaView style={{flex: 1}}>
         <View>
@@ -191,7 +217,8 @@ const NotificationListScreen: React.FC = () => {
         data={data}
         keyExtractor={(item) => item.request_id}
         renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
+        style={styles.listView}
+        //pull to refresh
         onRefresh={fetchNotifications}
         refreshing={loading}
         ListEmptyComponent={
@@ -203,6 +230,7 @@ const NotificationListScreen: React.FC = () => {
       />
       <View style={{ height: insets.bottom + 60 }} />
     </View>
+    </SafeAreaView>
   );
 };
 
