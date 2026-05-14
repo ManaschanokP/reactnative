@@ -68,7 +68,7 @@ const EvaluationScreen: React.FC<Props> = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 24, alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 8, color: '#333' },
+  title: { fontSize: 20, fontFamily: 'bold', marginBottom: 8, color: '#333' },
   subtitle: { fontSize: 14, color: '#888', marginBottom: 32 },
   starsRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   star: { fontSize: 48, color: '#ddd' },
@@ -76,9 +76,9 @@ const styles = StyleSheet.create({
   ratingText: { fontSize: 16, color: '#555', marginBottom: 32 },
   saveButton: {
     width: '100%', padding: 16, borderRadius: 10,
-    backgroundColor: '#a7cc43', alignItems: 'center',
+    backgroundColor: '#93D500', alignItems: 'center',
   },
-  saveText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  saveText: { color: '#fff', fontSize: 16, fontFamily: 'bold' },
   disabled: { backgroundColor: '#ccc' },
 });
 

@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   label: {
-    fontWeight: 'bold',
+    fontFamily: 'bold',
     fontSize: 16,
     marginBottom: 10,
     textAlign: 'center',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     borderColor: '#C0392B',
     alignItems: 'center',
   },
-  clearText: { color: '#C0392B', fontSize: 16, fontWeight: 'bold' },
+  clearText: { color: '#C0392B', fontSize: 16, fontFamily: 'bold' },
   saveButton: {
     flex: 2,
     padding: 14,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E8449',
     alignItems: 'center',
   },
-  saveText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  saveText: { color: '#fff', fontSize: 16, fontFamily: 'bold' },
   disabled: { backgroundColor: '#ccc' },
 });
 

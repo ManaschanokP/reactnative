@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   label: {
-    fontWeight: 'bold',
+    fontFamily: 'bold',
     fontSize: 16,
     marginTop: 20,
     color: '#333',
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   closeText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'bold',
   },
   workButton: {
     marginTop: 30,

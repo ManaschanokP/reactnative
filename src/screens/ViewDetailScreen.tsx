@@ -386,7 +386,7 @@ const ViewDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         <Text style={styles.cardTitle}>อัปเดตสถานะ</Text>
 
         {loadingStatus ? (
-          <ActivityIndicator color="#a7cc43" style={{ marginVertical: 12 }} />
+          <ActivityIndicator color="#93D500" style={{ marginVertical: 12 }} />
         ) : (
           <Picker
             selectedValue={selectedStatus}
@@ -561,17 +561,17 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize:          16,
-    fontWeight:        'bold',
-    color:             '#a7cc43',
+    fontFamily:        'bold',
+    color:             '#93D500',
     marginBottom:      12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     paddingBottom:     8,
   },
   row:            { flexDirection: 'row', marginBottom: 8, flexWrap: 'wrap' },
-  rowLabel:       { fontWeight: 'bold', fontSize: 14, color: '#555', width: 120 },
+  rowLabel:       { fontFamily: 'bold', fontSize: 14, color: '#555', width: 120 },
   rowValue:       { fontSize: 14, color: '#333', flex: 1 },
-  highlightValue: { color: '#e67e22', fontWeight: 'bold' },
+  highlightValue: { color: '#e67e22', fontFamily: 'bold' },
   picker:         { marginBottom: 8 },
 
   // GPS banner
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   },
   trackingBannerText: {
     color:      '#2e7d32',
-    fontWeight: 'bold',
+    fontFamily: 'bold',
     fontSize:   13,
   },
 
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     width:           '100%',
     alignItems:      'center',
   },
-  photoButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  photoButtonText: { color: '#fff', fontFamily: 'bold', fontSize: 15 },
   photoPreview: {
     width:        '100%',
     height:       200,
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
 
   // Fields
   fieldLabel: {
-    fontWeight:   'bold',
+    fontFamily:   'bold',
     fontSize:     14,
     color:        '#555',
     marginTop:    8,
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
   inputDisabled:   { backgroundColor: '#f0f0f0', color: '#aaa' },
   inputMultiline:  { height: 80, textAlignVertical: 'top' },
 
-  required:   { color: '#e74c3c', fontWeight: 'bold' },
+  required:   { color: '#e74c3c', fontFamily: 'bold' },
   inputError: {
     borderColor:     '#e74c3c',
     borderWidth:     2,
@@ -642,14 +642,14 @@ const styles = StyleSheet.create({
 
   // Confirm button
   confirmButton: {
-    backgroundColor: '#a7cc43',
+    backgroundColor: '#93D500',
     padding:         16,
     borderRadius:    10,
     alignItems:      'center',
     marginTop:       28,
   },
   buttonDisabled: { backgroundColor: '#ccc' },
-  confirmText:    { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  confirmText:    { color: '#fff', fontSize: 16, fontFamily: 'bold' },
 
   // Signature
   specialSection: {
@@ -691,8 +691,8 @@ const styles = StyleSheet.create({
     borderColor:   '#3498db',
     alignItems:    'center',
   },
-  clearText:        { color: '#e74c3c', fontWeight: 'bold', fontSize: 14 },
-  saveText:         { color: '#3498db', fontWeight: 'bold', fontSize: 14 },
+  clearText:        { color: '#e74c3c', fontFamily: 'bold', fontSize: 14 },
+  saveText:         { color: '#3498db', fontFamily: 'bold', fontSize: 14 },
   signatureSuccess: { color: '#27ae60', fontSize: 12, textAlign: 'center', marginTop: 5 },
   signaturePending: { color: '#e67e22', fontSize: 12, textAlign: 'center', marginTop: 5 },
 });

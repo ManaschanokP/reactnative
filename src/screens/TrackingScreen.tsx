@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     elevation: 1,
   },
-  requestId: { fontSize: 15, color: '#333', fontWeight: '500' },
+  requestId: { fontSize: 15, color: '#333', fontFamily: '500' },
 
   row: {
     flexDirection: 'row',
@@ -267,11 +267,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: '#dee2e6',
   },
-  headerCell: { fontSize: 12, fontWeight: 'bold', color: '#333', textAlign: 'center' },
+  headerCell: { fontSize: 12, fontFamily: 'bold', color: '#333', textAlign: 'center' },
   rowEven: { backgroundColor: '#fff' },
   rowOdd: { backgroundColor: '#f8f9fa' },
   cell: { fontSize: 11, color: '#444', textAlign: 'center' },
-  cellHighlight: { color: '#2bbbad', fontWeight: '600' },
+  cellHighlight: { color: '#2bbbad', fontFamily: '600' },
   empty: { textAlign: 'center', color: '#aaa', paddingVertical: 20 },
 
   closeBtn: {
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-  closeBtnText: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
+  closeBtnText: { color: '#fff', fontSize: 15, fontFamily: 'bold' },
 
   // Modal
   modalOverlay: {
@@ -308,12 +308,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  modalTitle: { fontSize: 17, fontWeight: 'bold', color: '#2bbbad' },
+  modalTitle: { fontSize: 17, fontFamily: 'bold', color: '#2bbbad' },
   modalXBtn: { fontSize: 20, color: '#999' },
   modalScrollContent: { paddingBottom: 20 },
 
   detailRow: { flexDirection: 'row', marginBottom: 10 },
-  detailLabel: { fontWeight: 'bold', fontSize: 13, color: '#555', width: 130 },
+  detailLabel: { fontFamily: 'bold', fontSize: 13, color: '#555', width: 130 },
   detailValue: { fontSize: 13, color: '#333', flex: 1 },
 
   imageSection: { marginTop: 12 },
@@ -337,5 +337,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
-  modalCloseText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  modalCloseText: { color: '#fff', fontFamily: 'bold', fontSize: 15 },
 });

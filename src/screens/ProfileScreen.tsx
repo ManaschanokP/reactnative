@@ -10,12 +10,13 @@ import { RootStackParamList } from '../types/navigationTypes';
 import { AuthContext } from '../context/AuthProvider';
 import { ProfileForm } from '../types/authTypes';
 import { getBaseUrlByCompany, API_ENDPOINTS } from '../config/apiConfig';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const { user, logout, updateUser } = useContext(AuthContext)!;
-
+  const insets        = useSafeAreaInsets();
   const [form, setForm] = useState<ProfileForm>({
     id:         user?.id         ?? '',
     name:       user?.name       ?? '',
@@ -215,7 +216,7 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <View style={{ height: 40 }} />
+       <View style={{ height: insets.bottom + 120 }} />
     </ScrollView>
   );
 };
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     width:           72,
     height:          72,
     borderRadius:    36,
-    backgroundColor: '#a7cc43',
+    backgroundColor: '#93D500',
     justifyContent:  'center',
     alignItems:      'center',
     marginBottom:    10,
@@ -271,12 +272,12 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize:   30,
-    fontWeight: 'bold',
+    fontFamily: 'bold',
     color:      '#fff',
   },
   headerName: {
     fontSize:   18,
-    fontWeight: 'bold',
+    fontFamily: 'bold',
     color:      '#333',
   },
   headerDept: {
@@ -295,8 +296,8 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize:          15,
-    fontWeight:        'bold',
-    color:             '#a7cc43',
+    fontFamily:        'bold',
+    color:             '#93D500',
     marginBottom:      12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     width:      110,
-    fontWeight: 'bold',
+    fontFamily: 'bold',
     fontSize:   13,
     color:      '#555',
   },
@@ -338,7 +339,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex:            1,
-    backgroundColor: '#a7cc43',
+    backgroundColor: '#93D500',
     padding:         14,
     borderRadius:    10,
     alignItems:      'center',
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
   buttonDisabled: { backgroundColor: '#ccc' },
   buttonText: {
     color:      '#fff',
-    fontWeight: 'bold',
+    fontFamily: 'bold',
     fontSize:   15,
   },
 });

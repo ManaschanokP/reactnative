@@ -95,7 +95,7 @@ const NotificationListScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#a7cc43" />
+        <ActivityIndicator size="large" color="#93D500" />
       </View>
     );
   }
@@ -136,14 +136,14 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
     gap:               4,
   },
-  requestId:   { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  requestId:   { fontSize: 16, fontFamily: 'bold', color: '#333' },
   detail:      { fontSize: 14, color: '#666' },
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText:   { fontSize: 16, color: '#e74c3c', marginBottom: 12 },
   retryButton: {
     paddingHorizontal: 24,
     paddingVertical:   10,
-    backgroundColor:   '#a7cc43',
+    backgroundColor:   '#93D500',
     borderRadius:      8,
   },
   retryText: { color: '#fff', fontSize: 15 },
