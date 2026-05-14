@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback } from 'react';
 import {
   View, FlatList, Text, TouchableOpacity,
-  StyleSheet, ActivityIndicator,
+  StyleSheet, ActivityIndicator,Image,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -99,7 +99,12 @@ const NotificationListScreen: React.FC = () => {
         <View style={styles.cardHeader}>
           <View style={styles.idRow}>
             <View style={[styles.idIcon, { backgroundColor: companyColor }]}>
-              <Icon name="local-shipping" size={14} color="#fff" />
+              
+              <Image
+                              source={require('../../assets/Status-IDcard ( ThaiGL ).svg')}
+                              
+                              resizeMode="contain"
+                            />
             </View>
             <Text style={styles.requestId}>{item.request_id}</Text>
           </View>
