@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Image,
+  Dimensions,
 } from 'react-native'; // เพิ่ม TextInput, Alert
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -22,7 +24,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   console.log('User Home Screen:', user);
   console.log('User Status Home Screen:', user?.status);
 
-  // เพิ่ม function ค้นหา
+  //เพิ่ม function ค้นหา
   const handleSearch = () => {
     if (!searchId.trim()) {
       Alert.alert('แจ้งเตือน', 'กรุณากรอก Request ID');
@@ -54,48 +56,63 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <>
-    <SafeAreaView style={{flex: 1}}>
-      <View style={styles.container}>
-        <View style={styles.searchBox}>
-          <TextInput
-            placeholder="Search ID..."
-            value={searchId}
-            onChangeText={text => {
-              const formatted = formatRequestId(text);
-              setSearchId(formatted);
-            }}
-            style={styles.input}
-            onSubmitEditing={handleSearch}
+      <SafeAreaView style={{flex: 1}}>
+        <View style={styles.container}>
+          <Image
+            source={require('../../assets/delivery.png')}
+            style={styles.delivery}
+            resizeMode="contain"
           />
+          <View style={styles.searchBox}>
+            <TextInput
+              placeholder="ป้อนหมายเลขติดตาม"
+              value={searchId}
+              onChangeText={text => {
+                const formatted = formatRequestId(text);
+                setSearchId(formatted);
+              }}
+              style={styles.input}
+              onSubmitEditing={handleSearch}
+            />
+
+            <TouchableOpacity
+              style={[styles.searchButton, {backgroundColor: companyColor}]}
+              onPress={handleSearch}>
+              <Icon name="search" size={26} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.orContainer}>
+            <View style={styles.line} />
+
+            <Text style={styles.orText}>Or</Text>
+
+            <View style={styles.line} />
+          </View>
 
           <TouchableOpacity
-            style={[styles.searchButton, {backgroundColor: companyColor}]}
-            onPress={handleSearch}>
-            <Icon name="search" size={26} color="#fff" />
+            style={[styles.button]}
+            onPress={() => {
+              console.log('Scan QR-Code Pressed');
+              navigation.navigate('Scan');
+            }}>
+            <Text style={styles.buttonText}>Scan QR-Code</Text>
           </TouchableOpacity>
+
+          {isDriverOrMessenger && (
+            <TouchableOpacity
+              style={[styles.button]}
+              onPress={() => navigation.navigate('FuelEntry')}>
+              <Text style={styles.buttonText}>น้ำมัน</Text>
+            </TouchableOpacity>
+          )}
         </View>
-
-        <TouchableOpacity
-          style={[styles.button, {backgroundColor: companyColor}]}
-          onPress={() => {
-            console.log('Scan QR-Code Pressed');
-            navigation.navigate('Scan');
-          }}>
-          <Text style={styles.buttonText}>Scan QR-Code</Text>
-        </TouchableOpacity>
-
-        {isDriverOrMessenger && (
-          <TouchableOpacity
-            style={[styles.button, {backgroundColor: companyColor}]}
-            onPress={() => navigation.navigate('FuelEntry')}>
-            <Text style={styles.buttonText}>น้ำมัน</Text>
-          </TouchableOpacity>
-        )}
-      </View>
       </SafeAreaView>
     </>
   );
 };
+
+const {width, height} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -110,7 +127,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 20,
+    borderRadius: 10,
     overflow: 'hidden',
     width: '80%',
     marginBottom: 20,
@@ -120,6 +137,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 15,
     fontSize: 16,
+    fontFamily: 'Quicksand-Medium',
   },
 
   searchButton: {
@@ -130,21 +148,25 @@ const styles = StyleSheet.create({
   //ของเดิม
   button: {
     padding: 10,
-    marginVertical: 10,
-    borderRadius: 5,
-    width: '40%',
+    marginVertical: 5,
+    borderRadius: 10,
+    Height: 60,
+    width: '80%',
     alignItems: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   buttonText: {
-    color: '#fff',
+    color: '#000000',
     fontSize: 16,
+    fontFamily: 'Quicksand-Bold',
   },
   bottomNav: {
     flexDirection: 'row',
     position: 'absolute',
     bottom: 0,
     width: '100%',
-
     padding: 2,
     justifyContent: 'space-around',
   },
@@ -154,6 +176,29 @@ const styles = StyleSheet.create({
   navButtonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  delivery: {
+    width: width * 0.82,
+    height: 182,
+    alignSelf: 'center',
+    marginBottom: 35,
+  },
+  orContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+
+  line: {
+    height: 1,
+    backgroundColor: '#CFCFCF',
+    width: 95,
+  },
+
+  orText: {
+    marginHorizontal: 15,
+    fontSize: 12,
+    color: '#6C7278',
   },
 });
 
