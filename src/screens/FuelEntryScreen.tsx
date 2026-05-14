@@ -126,7 +126,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
           <MaterialIcons
             name="date-range"
             size={30}
-            color="#a7cc43"
+            color="#93D500"
             style={styles.iconButton}
           />
         </View>
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   label: {
-    fontWeight: 'bold',
+    fontFamily: 'bold',
     marginTop: 20,
     color: '#333',
   },
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   // Style สำหรับปุ่ม Submit
   submitButton: {
-    backgroundColor: '#a7cc43',
+    backgroundColor: '#93D500',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'bold',
   },
 });
 

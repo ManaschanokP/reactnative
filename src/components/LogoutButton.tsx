@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: '100%',
-    backgroundColor: '#a7cc43',
+    backgroundColor: '#93D500',
     padding: 10,
     justifyContent: 'space-around',
   },

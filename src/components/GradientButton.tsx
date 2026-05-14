@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: 'white',
         fontSize: 25,
-        fontWeight: 'bold',
+        fontFamily: 'bold',
     },
     buttonImage: {
         width: 80,

@@ -11,16 +11,16 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../types/navigationTypes';
-import {AuthContext} from '../context/AuthProvider';
-import {ProfileForm} from '../types/authTypes';
-import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigationTypes';
+import { AuthContext } from '../context/AuthProvider';
+import { ProfileForm } from '../types/authTypes';
+import { getBaseUrlByCompany, API_ENDPOINTS } from '../config/apiConfig';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
-const ProfileScreen: React.FC<Props> = ({navigation}) => {
-  const {user, logout, updateUser} = useContext(AuthContext)!;
+const ProfileScreen: React.FC<Props> = ({ navigation }) => {
+  const { user, logout, updateUser } = useContext(AuthContext)!;
 
   const [form, setForm] = useState<ProfileForm>({
     id: user?.id ?? '',
@@ -213,7 +213,7 @@ const ProfileScreen: React.FC<Props> = ({navigation}) => {
         </TouchableOpacity>
       </View>
 
-      <View style={{height: 40}} />
+      <View style={{ height: 40 }} />
     </ScrollView>
   );
 };
@@ -262,24 +262,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width:           72,
+    height:          72,
+    borderRadius:    36,
     backgroundColor: '#a7cc43',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-    elevation: 3,
+    justifyContent:  'center',
+    alignItems:      'center',
+    marginBottom:    10,
+    elevation:       3,
   },
   avatarText: {
-    fontSize: 30,
+    fontSize:   30,
     fontWeight: 'bold',
-    color: '#fff',
+    color:      '#fff',
   },
   headerName: {
-    fontSize: 18,
+    fontSize:   18,
     fontWeight: 'bold',
-    color: '#333',
+    color:      '#333',
   },
   headerDept: {
     fontSize: 13,
@@ -296,10 +296,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#a7cc43',
-    marginBottom: 12,
+    fontSize:          15,
+    fontWeight:        'bold',
+    color:             '#a7cc43',
+    marginBottom:      12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     paddingBottom: 8,
@@ -312,10 +312,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   fieldLabel: {
-    width: 110,
+    width:      110,
     fontWeight: 'bold',
-    fontSize: 13,
-    color: '#555',
+    fontSize:   13,
+    color:      '#555',
   },
   fieldInput: {
     flex: 1,
@@ -339,12 +339,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveButton: {
-    flex: 1,
+    flex:            1,
     backgroundColor: '#a7cc43',
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    elevation: 2,
+    padding:         14,
+    borderRadius:    10,
+    alignItems:      'center',
+    elevation:       2,
   },
   logoutButton: {
     flex: 1,
@@ -356,9 +356,9 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {backgroundColor: '#ccc'},
   buttonText: {
-    color: '#fff',
+    color:      '#fff',
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize:   15,
   },
 });
 

@@ -1,98 +1,105 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useNavigationState } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigationTypes';
 import { AuthContext } from '../context/AuthProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import OctiIcon from 'react-native-vector-icons/Octicons';
+import IonIcon from 'react-native-vector-icons/Ionicons';
+import FoundationIcon from 'react-native-vector-icons/Foundation';
+
+const ICON_COLOR = '#6C7278';
 
 const RootTabs: React.FC = () => {
-  const { user , companyColor }   = useContext(AuthContext)!;
+  const { user, companyColor } = useContext(AuthContext)!;
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const insets     = useSafeAreaInsets();
+
+  // ✅ ใช้ useNavigationState แทน useRoute
+  const currentRoute = useNavigationState(state => {
+    if (!state) return '';
+    const route = state.routes[state.index];
+    return route?.name ?? '';
+  });
 
   const handleNavigation = (screen: keyof RootStackParamList) => {
     navigation.navigate(screen);
   };
 
-  // ✅ U04 = Driver, U05 = Messenger — เห็นทุก tab
-  // ✅ อื่นๆ (U03 ฯลฯ) — เห็นแค่ Home และ Profile
+  const isActive = (screen: string) => currentRoute === screen;
   const isDriverOrMessenger = user?.status === 'U04' || user?.status === 'U05';
 
+  const getIconColor  = (screen: string) => isActive(screen) ? companyColor : ICON_COLOR;
+  const getTextColor  = (screen: string) => isActive(screen) ? companyColor : ICON_COLOR;
+
   return (
-    <View
-      style={[
-        styles.bottomNav,
-        {
-          backgroundColor: companyColor,
-          paddingBottom: insets.bottom || 4,
-        },
-      ]}
-    >
-      {/* ── Home — แสดงทุก user ── */}
-      <TouchableOpacity
-        style={styles.navButton}
-        onPress={() => handleNavigation('Home')}
-      >
-        <Icon name="home" size={26} color="#fff" />
-        <Text style={styles.navButtonText}>Home</Text>
+    <View style={[styles.bottomNav, { paddingBottom: insets.bottom || 10 }]}>
+
+      {/* ── Home ── */}
+      <TouchableOpacity style={styles.navButton} onPress={() => handleNavigation('Home')}>
+        {isActive('Home') ? (
+          // ✅ กดแล้ว — 
+          <FoundationIcon name="home" size={28} color={getIconColor('Home')} />
+        ) : (
+          // ✅ ยังไม่กด — 
+          <OctiIcon name="home" size={26} color={getIconColor('Home')} />
+        )}
+        <Text style={[styles.navButtonText, { color: getTextColor('Home') }]}>Home</Text>
       </TouchableOpacity>
 
-      {/* ── Notifications — เฉพาะ Driver/Messenger ── */}
+      {/* ── Notifications ── */}
       {isDriverOrMessenger && (
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => handleNavigation('NotificationList')}
-        >
-
-         <Icon name="notifications" size={26} color="#fff" />
-          <Text style={styles.navButtonText}>Notifications</Text>
+        <TouchableOpacity style={styles.navButton} onPress={() => handleNavigation('NotificationList')}>
+          <OctiIcon name={isActive('NotificationList') ? 'bell-fill' : 'bell'} size={26} color={getIconColor('NotificationList')} />
+          <Text style={[styles.navButtonText, { color: getTextColor('NotificationList') }]}>Notifications</Text>
         </TouchableOpacity>
       )}
 
-      {/* ── Jobs — เฉพาะ Driver/Messenger ── */}
+      {/* ── Jobs ── */}
       {isDriverOrMessenger && (
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => handleNavigation('JobList')}
-        >
-          <Icon name="work" size={26} color="#fff" />
-          <Text style={styles.navButtonText}>Jobs</Text>
+        <TouchableOpacity style={styles.navButton} onPress={() => handleNavigation('JobList')}>
+          <IonIcon name={isActive('JobList') ? 'grid' : 'grid-outline'} size={26} color={getIconColor('JobList')} />
+          <Text style={[styles.navButtonText, { color: getTextColor('JobList') }]}>Jobs</Text>
         </TouchableOpacity>
       )}
 
-      {/* ── Profile — แสดงทุก user ── */}
-      <TouchableOpacity
-        style={styles.navButton}
-        onPress={() => handleNavigation('Profile')}
-      >
-         <Icon name="person" size={26} color="#fff" />
-        <Text style={styles.navButtonText}>Profile</Text>
+      {/* ── Profile ── */}
+      <TouchableOpacity style={styles.navButton} onPress={() => handleNavigation('Profile')}>
+        <Icon name={isActive('Profile') ? 'person' : 'person-outline'} size={26} color={getIconColor('Profile')} />
+        <Text style={[styles.navButtonText, { color: getTextColor('Profile') }]}>Profile</Text>
       </TouchableOpacity>
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   bottomNav: {
-    flexDirection:  'row',
-    position:       'absolute',
-    bottom:         0,
-    width:          '100%',
-    padding:        6,
-    justifyContent: 'space-around',
-    alignItems:     'center',
+    flexDirection:   'row',
+    position:        'absolute',
+    bottom:          0,
+    width:           '100%',
+    backgroundColor: '#fff',
+    paddingTop:      10,
+    justifyContent:  'space-around',
+    alignItems:      'center',
+    borderTopWidth:  1,
+    borderTopColor:  '#f0f0f0',
+    elevation:       8,
+    shadowColor:     '#000',
+    shadowOffset:    { width: 0, height: -2 },
+    shadowOpacity:   0.05,
+    shadowRadius:    4,
   },
   navButton: {
-    padding:    0,
-    alignItems: 'center',
-    minWidth:   60,
+    alignItems:        'center',
+    paddingHorizontal: 12,
+    gap:               3,
   },
   navButtonText: {
-    color:     '#fff',
-    fontSize:  13,
-    textAlign: 'center',
-    fontWeight: 'bold',
+    fontSize:   11,
+    fontFamily: 'Quicksand-Medium',
   },
 });
 
