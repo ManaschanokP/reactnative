@@ -421,11 +421,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         <Text style={styles.cardTitle}>อัปเดตสถานะ</Text>
 
         {loadingStatus ? (
-<<<<<<< HEAD
-          <ActivityIndicator color="#a7cc43" style={{marginVertical: 12}} />
-=======
           <ActivityIndicator color="#93D500" style={{ marginVertical: 12 }} />
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
         ) : (
           <Picker
             selectedValue={selectedStatus}
@@ -614,34 +610,19 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardTitle: {
-<<<<<<< HEAD
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#a7cc43',
-    marginBottom: 12,
-=======
     fontSize:          16,
-    fontFamily:        'bold',
+    fontFamily:        'Quicksand-Bold',
     color:             '#93D500',
     marginBottom:      12,
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     paddingBottom: 8,
   },
-<<<<<<< HEAD
-  row: {flexDirection: 'row', marginBottom: 8, flexWrap: 'wrap'},
-  rowLabel: {fontWeight: 'bold', fontSize: 14, color: '#555', width: 120},
-  rowValue: {fontSize: 14, color: '#333', flex: 1},
-  highlightValue: {color: '#e67e22', fontWeight: 'bold'},
-  picker: {marginBottom: 8},
-=======
   row:            { flexDirection: 'row', marginBottom: 8, flexWrap: 'wrap' },
-  rowLabel:       { fontFamily: 'bold', fontSize: 14, color: '#555', width: 120 },
+  rowLabel:       { fontFamily: 'Quicksand-Bold', fontSize: 14, color: '#555', width: 120 },
   rowValue:       { fontSize: 14, color: '#333', flex: 1 },
-  highlightValue: { color: '#e67e22', fontFamily: 'bold' },
+  highlightValue: { color: '#e67e22', fontFamily: 'Quicksand-Bold' },
   picker:         { marginBottom: 8 },
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
 
   // GPS banner
   trackingBanner: {
@@ -653,39 +634,29 @@ const styles = StyleSheet.create({
     borderColor: '#a5d6a7',
   },
   trackingBannerText: {
-<<<<<<< HEAD
-    color: '#2e7d32',
-    fontWeight: 'bold',
-    fontSize: 13,
-=======
     color:      '#2e7d32',
-    fontFamily: 'bold',
+    fontFamily: 'Quicksand-Bold',
     fontSize:   13,
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
   },
 
   // Photo
   photoSection: {marginVertical: 12, alignItems: 'center'},
   photoButton: {
     backgroundColor: '#3498db',
-<<<<<<< HEAD
-    padding: 12,
-=======
     padding:         12,
     borderRadius:    8,
     width:           '100%',
     alignItems:      'center',
   },
-  photoButtonText: { color: '#fff', fontFamily: 'bold', fontSize: 15 },
+  photoButtonText: { color: '#fff', fontFamily: 'Quicksand-Bold', fontSize: 15 },
   photoPreview: {
     width:        '100%',
     height:       200,
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
     borderRadius: 8,
     width: '100%',
     alignItems: 'center',
   },
-  photoButtonText: {color: '#fff', fontWeight: 'bold', fontSize: 15},
+  photoButtonText: {color: '#fff', fontFamily: 'Quicksand-Bold', fontSize: 15},
   photoPreview: {
     width: '100%',
     height: 200,
@@ -696,17 +667,10 @@ const styles = StyleSheet.create({
 
   // Fields
   fieldLabel: {
-<<<<<<< HEAD
-    fontWeight: 'bold',
-    fontSize: 14,
-    color: '#555',
-    marginTop: 8,
-=======
-    fontFamily:   'bold',
+    fontFamily:   'Quicksand-Bold',
     fontSize:     14,
     color:        '#555',
     marginTop:    8,
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
     marginBottom: 4,
   },
   input: {
@@ -721,11 +685,7 @@ const styles = StyleSheet.create({
   inputDisabled: {backgroundColor: '#f0f0f0', color: '#aaa'},
   inputMultiline: {height: 80, textAlignVertical: 'top'},
 
-<<<<<<< HEAD
-  required: {color: '#e74c3c', fontWeight: 'bold'},
-=======
-  required:   { color: '#e74c3c', fontFamily: 'bold' },
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
+  required:   { color: '#e74c3c', fontFamily: 'Quicksand-Bold' },
   inputError: {
     borderColor: '#e74c3c',
     borderWidth: 2,
@@ -740,16 +700,6 @@ const styles = StyleSheet.create({
 
   // Confirm button
   confirmButton: {
-<<<<<<< HEAD
-    backgroundColor: '#a7cc43',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 28,
-  },
-  buttonDisabled: {backgroundColor: '#ccc'},
-  confirmText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
-=======
     backgroundColor: '#93D500',
     padding:         16,
     borderRadius:    10,
@@ -757,8 +707,7 @@ const styles = StyleSheet.create({
     marginTop:       28,
   },
   buttonDisabled: { backgroundColor: '#ccc' },
-  confirmText:    { color: '#fff', fontSize: 16, fontFamily: 'bold' },
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
+  confirmText:    { color: '#fff', fontSize: 16, fontFamily: 'Quicksand-Bold' },
 
   // Signature
   specialSection: {
@@ -800,8 +749,8 @@ const styles = StyleSheet.create({
     borderColor: '#3498db',
     alignItems: 'center',
   },
-  clearText: {color: '#e74c3c', fontWeight: 'bold', fontSize: 14},
-  saveText: {color: '#3498db', fontWeight: 'bold', fontSize: 14},
+  clearText: {color: '#e74c3c', fontFamily: 'Quicksand-Bold', fontSize: 14},
+  saveText: {color: '#3498db', fontFamily: 'Quicksand-Bold', fontSize: 14},
   signatureSuccess: {
     color: '#27ae60',
     fontSize: 12,
@@ -814,13 +763,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
   },
-<<<<<<< HEAD
-=======
-  clearText:        { color: '#e74c3c', fontFamily: 'bold', fontSize: 14 },
-  saveText:         { color: '#3498db', fontFamily: 'bold', fontSize: 14 },
+  clearText:        { color: '#e74c3c', fontFamily: 'Quicksand-Bold', fontSize: 14 },
+  saveText:         { color: '#3498db', fontFamily: 'Quicksand-Bold', fontSize: 14 },
   signatureSuccess: { color: '#27ae60', fontSize: 12, textAlign: 'center', marginTop: 5 },
   signaturePending: { color: '#e67e22', fontSize: 12, textAlign: 'center', marginTop: 5 },
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
 });
 
 export default ViewDetailScreen;

@@ -273,11 +273,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     elevation: 1,
   },
-<<<<<<< HEAD
-  requestId: {fontSize: 15, color: '#333', fontWeight: '500'},
-=======
   requestId: { fontSize: 15, color: '#333', fontFamily: '500' },
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
 
   row: {
     flexDirection: 'row',
@@ -291,26 +287,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: '#dee2e6',
   },
-<<<<<<< HEAD
-  headerCell: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
-  rowEven: {backgroundColor: '#fff'},
-  rowOdd: {backgroundColor: '#f8f9fa'},
-  cell: {fontSize: 11, color: '#444', textAlign: 'center'},
-  cellHighlight: {color: '#2bbbad', fontWeight: '600'},
-  empty: {textAlign: 'center', color: '#aaa', paddingVertical: 20},
-=======
   headerCell: { fontSize: 12, fontFamily: 'bold', color: '#333', textAlign: 'center' },
   rowEven: { backgroundColor: '#fff' },
   rowOdd: { backgroundColor: '#f8f9fa' },
   cell: { fontSize: 11, color: '#444', textAlign: 'center' },
   cellHighlight: { color: '#2bbbad', fontFamily: '600' },
   empty: { textAlign: 'center', color: '#aaa', paddingVertical: 20 },
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
 
   closeBtn: {
     backgroundColor: '#2bbbad',
@@ -318,11 +300,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-<<<<<<< HEAD
-  closeBtnText: {color: '#fff', fontSize: 15, fontWeight: 'bold'},
-=======
   closeBtnText: { color: '#fff', fontSize: 15, fontFamily: 'bold' },
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
 
   // Modal
   modalOverlay: {
@@ -350,15 +328,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-<<<<<<< HEAD
-  modalTitle: {fontSize: 17, fontWeight: 'bold', color: '#2bbbad'},
-  modalXBtn: {fontSize: 20, color: '#999'},
-  modalScrollContent: {paddingBottom: 20},
-
-  detailRow: {flexDirection: 'row', marginBottom: 10},
-  detailLabel: {fontWeight: 'bold', fontSize: 13, color: '#555', width: 130},
-  detailValue: {fontSize: 13, color: '#333', flex: 1},
-=======
   modalTitle: { fontSize: 17, fontFamily: 'bold', color: '#2bbbad' },
   modalXBtn: { fontSize: 20, color: '#999' },
   modalScrollContent: { paddingBottom: 20 },
@@ -366,7 +335,6 @@ const styles = StyleSheet.create({
   detailRow: { flexDirection: 'row', marginBottom: 10 },
   detailLabel: { fontFamily: 'bold', fontSize: 13, color: '#555', width: 130 },
   detailValue: { fontSize: 13, color: '#333', flex: 1 },
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d
 
   imageSection: {marginTop: 12},
   trackImage: {
@@ -393,10 +361,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
-<<<<<<< HEAD
-  modalCloseText: {color: '#fff', fontWeight: 'bold', fontSize: 15},
-});
-=======
   modalCloseText: { color: '#fff', fontFamily: 'bold', fontSize: 15 },
 });
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d

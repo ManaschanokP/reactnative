@@ -106,10 +106,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
   },
-<<<<<<< HEAD
-  buttonText: {color: '#fff', fontWeight: 'bold'},
-});
-=======
   buttonText: { color: '#fff', fontFamily: 'bold' },
 });
->>>>>>> a1672dea294c26be37b185be6a4df1ffb08a183d

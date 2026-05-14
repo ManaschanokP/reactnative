@@ -14,8 +14,6 @@ import IonIcon from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-
-
 type RootStackParamList = {
   NotificationList: undefined;
   NotificationDetail: { item: NotificationItem };
@@ -45,7 +43,6 @@ const NotificationListScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
 
-  //re-fetch ทุกครั้งที่หน้านี้ได้ focus (กลับมาจาก NotificationDetail)
   useFocusEffect(
     useCallback(() => {
       fetchNotifications();
@@ -57,36 +54,14 @@ const NotificationListScreen: React.FC = () => {
       setLoading(true);
       setError(null);
 
-    const params = {
-      user_status: user.status,
-      requester:   user.id,
-      page:        'Driver',
-    };
-
-    const response = await getNotifications(params);
-
-    if (response.error) throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
-
-    //filter ก่อน
-    const filtered = response.Notification.filter(
-      (item: NotificationItem) => item.status_name === 'มอบหมายงานสำเร็จ',
-    );
-
-    console.log(`Total: ${response.Notification.length} | Filtered: ${filtered.length}`);
-
-    //sort จาก filtered ไม่ใช่ response.Notification
-    const sorted = [...filtered].sort((a, b) => {
-      const parseDate = (date: string, time: string) => {
-        if (date.includes('/')) {
-          const [d, m, y] = date.split('/');
-          return new Date(`${y}-${m}-${d} ${time}`).getTime();
-        }
-        return new Date(`${date} ${time}`).getTime();
+      const params = {
+        user_status: user.status,
+        requester:   user.id,
+        page:        'Driver',
       };
 
       const response = await getNotifications(params);
       if (response.error) throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
-    setData(sorted); //ถูกต้อง
 
       const filtered = response.Notification.filter(
         (item: NotificationItem) => item.status_name === 'มอบหมายงานสำเร็จ',
@@ -126,10 +101,10 @@ const NotificationListScreen: React.FC = () => {
             <View style={[styles.idIcon, { backgroundColor: companyColor }]}>
               
               <Image
-                              source={require('../../assets/Status-IDcard ( ThaiGL ).svg')}
-                              
-                              resizeMode="contain"
-                            />
+                  source={require('../../assets/Status-IDcard(ThaiGL).svg')}
+                  style={styles.idIcon}
+                  resizeMode="contain"
+              />
             </View>
             <Text style={styles.requestId}>{item.request_id}</Text>
           </View>
@@ -205,9 +180,8 @@ const NotificationListScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={{flex: 1}}>
     <View style={styles.container}>
-      <SafeAreaView style={{flex: 1}}>
+      <SafeAreaView >
         <View>
         <Text style={styles.titleText}>Notification List</Text>
         </View>
@@ -217,12 +191,11 @@ const NotificationListScreen: React.FC = () => {
         data={data}
         keyExtractor={(item) => item.request_id}
         renderItem={renderItem}
-        style={styles.listView}
-        //pull to refresh
+        contentContainerStyle={styles.listContent}
         onRefresh={fetchNotifications}
         refreshing={loading}
         ListEmptyComponent={
-          <View style={styles.centered}>
+          <View style={styles.emptyContainer}>
             <Icon name="notifications-none" size={48} color="#ddd" />
             <Text style={styles.emptyText}>ไม่มีการแจ้งเตือน</Text>
           </View>
@@ -230,13 +203,22 @@ const NotificationListScreen: React.FC = () => {
       />
       <View style={{ height: insets.bottom + 60 }} />
     </View>
-    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: '#f4f6f8' },
-  listContent: { padding: 30, gap: 22 },
+  listContent: {
+  padding:    12,
+  gap:        10,
+  flexGrow:   1,        
+  alignItems: 'stretch', 
+},
+
+emptyContainer: {
+  alignItems:  'top',
+  marginTop:   10,       // ✅ ชิดบน ไม่ใช่ตรงกลาง
+},
 
   // Title bar
   titleBar: {
@@ -269,11 +251,9 @@ const styles = StyleSheet.create({
   },
   idRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
   idIcon: {
-    width:          24,
-    height:         24,
-    borderRadius:   6,
-    justifyContent: 'center',
-    alignItems:     'center',
+    width:          44,
+    height:         44,
+    
   },
   requestId: {
     fontSize:   18,
@@ -320,7 +300,7 @@ const styles = StyleSheet.create({
   footerStatus: { fontSize: 12, color: '#373737', fontFamily: 'Quicksand-Bold', fontWeight: 'bold' },
 
   // States
-  centered:    { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
+  centered:    { flex: 1, justifyContent: 'center', alignItems: 'center',  },
   errorText:   { color: '#e74c3c', fontSize: 15, fontFamily: 'Quicksand-Medium', marginBottom: 12 },
   retryButton: { paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
   retryText:   { color: '#fff', fontSize: 15, fontFamily: 'Quicksand-Medium' },

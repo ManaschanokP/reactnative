@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Modal,
+  Modal,Image,
+  Dimensions,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DatePicker, { DateType } from 'react-native-ui-datepicker';
@@ -21,6 +22,9 @@ import { JobItem } from '../types/jobTypes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import {SafeAreaView} from 'react-native-safe-area-context';
+
+
 type Props = NativeStackScreenProps<RootStackParamList, 'JobList'>;
 
 const toApiDate = (date: Date): string => {
@@ -196,6 +200,11 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <SafeAreaView >
+              <View>
+              
+              </View>
+            </SafeAreaView>
       {/* Start Date Modal */}
       <Modal visible={showStartPicker} transparent animationType="slide">
         <View style={styles.modalContainer}>
@@ -282,7 +291,15 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       ) : error ? (
         <View style={styles.centered}>
-          <Text style={styles.errorText}>{error}</Text>
+          
+           <View style={styles.centered}>
+              <Image
+            source={require('../../assets/image2.png')}
+            style={styles.delivery}
+            resizeMode="contain"
+          />
+              <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
+            </View>
         </View>
       ) : (
         <FlatList
@@ -294,7 +311,11 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           refreshing={loading}
           ListEmptyComponent={
             <View style={styles.centered}>
-              <Icon name="inbox" size={48} color="#ddd" />
+              <Image
+            source={require('../../assets/image2.png')}
+            style={styles.delivery}
+            resizeMode="contain"
+          />
               <Text style={styles.emptyText}>กดค้นหาเพื่อดูรายการงาน</Text>
             </View>
           }
@@ -305,6 +326,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
     </View>
   );
 };
+const {width, height} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: '#f4f6f8' },
@@ -332,16 +354,20 @@ const styles = StyleSheet.create({
     backgroundColor:  '#fafafa',
   },
   dateBtnText:  { fontSize: 16, color: '#333', fontFamily: 'Quicksand-Medium' },
-  statusRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  statusRow:    { flexDirection: 'row', alignItems: 'center', gap: 10 ,height: 64},
   pickerWrap: {
     flex:            1,
+    height:          52,
     borderWidth:     1,
     borderColor:     '#e0e0e0',
-    borderRadius:    8,
+    borderRadius:    10,
     backgroundColor: '#fafafa',
     overflow:        'hidden',
   },
-  picker:       { height: 10 },
+  picker:       { 
+    height: 22 ,
+    flex:   1,
+  },
   searchBtn: {
     width:        44,
     height:       44,
@@ -424,7 +450,7 @@ footerItem: {
   // States
   centered:   { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
   errorText:  { color: '#e74c3c', fontSize: 16, fontFamily: 'Quicksand-Medium' },
-  emptyText:  { color: '#bbb', fontSize: 14, marginTop: 12, fontFamily: 'Quicksand-Regular' },
+  emptyText:  { color: '#bbb', fontSize: 14, marginBottom: 220, fontFamily: 'Quicksand-Regular' },
 
   // Modal
   modalContainer: {
@@ -439,6 +465,12 @@ footerItem: {
     borderRadius:    12,
     alignItems:      'center',
     width:           '90%',
+  },
+  delivery: {
+    width: width * 0.82,
+    height: 278,
+    
+    marginBottom: 24,
   },
 });
 

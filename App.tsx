@@ -143,9 +143,10 @@ function NavigationHandler() {
 
   return (
     <>
+    
       <StatusBar
         backgroundColor={user ? companyColor : null}
-        barStyle="light-content"
+        barStyle="dark-content"
       />
       <NavigationContainer linking={linking} ref={navigationRef}>
         <MainApp
@@ -207,7 +208,7 @@ function MainApp({
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />
             <Stack.Screen name="FuelEntry" component={FuelEntryScreen} />
-            <Stack.Screen name="JobList" component={JobListScreen} />
+            <Stack.Screen name="JobList" component={JobListScreen} options={{headerShown: false}}/>
             <Stack.Screen
               name="Profile"
               component={ProfileScreen}
