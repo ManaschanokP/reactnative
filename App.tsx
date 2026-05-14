@@ -145,6 +145,10 @@ function NavigationHandler() {
  
   return (
     <>
+    <StatusBar
+      backgroundColor="#ffffff"
+      barStyle="dark-content"
+    />
        <StatusBar backgroundColor={user ? companyColor : null} barStyle="light-content" />
       <NavigationContainer linking={linking} ref={navigationRef}>
         <MainApp

@@ -62,10 +62,7 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
           });
           const responseUpdateToken = await updateToken(dataUpdateToken);
           login(fcmToken ?? '', userData);
-          Alert.alert(
-            'Login Successful',
-            `Welcome, ${responseUserCompany.User[0].name}`,
-          );
+          
         } else {
           Toast.show({
             type: 'error',
