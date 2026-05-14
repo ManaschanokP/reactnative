@@ -9,6 +9,8 @@ import { AuthContext } from '../context/AuthProvider';
 import { getNotifications } from '../services/apiService';
 import { NotificationItem } from '../types/notificationTypes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
+
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -112,6 +114,7 @@ const NotificationListScreen: React.FC = () => {
   }
 
   return (
+    <SafeAreaView style={{flex: 1}}>
     <View style={styles.container}>
       <FlatList
         data={data}
@@ -124,6 +127,7 @@ const NotificationListScreen: React.FC = () => {
       />
       <View style={{ height: insets.bottom + 44 }} />
     </View>
+    </SafeAreaView>
   );
 };
 

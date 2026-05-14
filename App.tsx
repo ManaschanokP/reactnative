@@ -30,9 +30,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context'; //import อย
 import SignaturePadScreen from './src/screens/SignaturePadScreen';
 import EvaluationScreen from './src/screens/EvaluationScreen';
 import TrackingScreen from './src/screens/TrackingScreen';
-import { startSyncListener } from './src/services/syncService';
-
-
+import {startSyncListener} from './src/services/syncService';
 
 const NAVIGATION_IDS = ['NotificationDetail'];
 
@@ -145,7 +143,10 @@ function NavigationHandler() {
 
   return (
     <>
-       <StatusBar backgroundColor={user ? companyColor : null} barStyle="light-content" />
+      <StatusBar
+        backgroundColor={user ? companyColor : null}
+        barStyle="light-content"
+      />
       <NavigationContainer linking={linking} ref={navigationRef}>
         <MainApp
           navigationRef={
@@ -162,7 +163,7 @@ function MainApp({
 }: {
   navigationRef?: React.RefObject<NavigationContainerRef<any>>;
 }) {
-  const {user , companyColor} = useContext(AuthContext)!;
+  const {user, companyColor} = useContext(AuthContext)!;
   console.log('User in MainApp:', user);
 
   useEffect(() => {
@@ -181,25 +182,46 @@ function MainApp({
 
   return (
     <>
+
+     <StatusBar
+      backgroundColor="#ffffff"
+      barStyle="dark-content"
+    />
       <Stack.Navigator
         screenOptions={{
-          // ✅ Header สีตาม company
-          headerStyle:      { backgroundColor: user ? companyColor : '#f8ac59' },
-          headerTintColor:  '#fff',
-          headerTitleStyle: { fontFamily: 'bold' },
-        }}
-      >
+        headerStyle: {
+          backgroundColor: user ? companyColor : '#F5A800',
+        },
+        headerTintColor: '#1c1fca',
+        headerTitleStyle: {fontFamily: 'bold'},
+      }}>
+
         {user ? (
           <>
-            <Stack.Screen name="Home" component={HomeScreen}                          options={{ headerShown: false }}/>
+            <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{headerShown: false}}
+          />
             <Stack.Screen name="ViewDetail" component={ViewDetailScreen} />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />
             <Stack.Screen name="FuelEntry" component={FuelEntryScreen} />
             <Stack.Screen name="JobList" component={JobListScreen} />
-            <Stack.Screen name="Profile" component={ProfileScreen}                    options={{ headerShown: false }}/>
-            <Stack.Screen name="NotificationList" component={NotificationListScreen}  options={{ headerShown: false }}/>
-            <Stack.Screen name="NotificationDetail" component={NotificationDetailScreen} />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="NotificationList"
+              component={NotificationListScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="NotificationDetail"
+              component={NotificationDetailScreen}
+            />
             <Stack.Screen name="Scan" component={ScanScreen} />
             <Stack.Screen name="Signature" component={SignaturePadScreen} />
             <Stack.Screen name="Evaluation" component={EvaluationScreen} />

@@ -11,6 +11,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
 import {AuthContext, getCompanyColor} from '../context/AuthProvider';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -53,6 +54,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <>
+    <SafeAreaView style={{flex: 1}}>
       <View style={styles.container}>
         <View style={styles.searchBox}>
           <TextInput
@@ -90,6 +92,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           </TouchableOpacity>
         )}
       </View>
+      </SafeAreaView>
     </>
   );
 };
