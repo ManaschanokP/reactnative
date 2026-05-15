@@ -24,7 +24,10 @@ import IonIcon from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import StatusIdCardIcon from '../../assets/ID-TGL.svg';
-
+import StatusMask from '../../assets/Status-Mark.svg';
+import StatusCalendar from '../../assets/Status-Calendar.svg';
+import StatusPackage from '../../assets/Status-Package.svg';
+import StatusCar from '../../assets/Status-Car.svg';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobList'>;
 
@@ -46,14 +49,14 @@ const STATUS_OPTIONS = [
   { label: 'ทั้งหมด',         value: '01' },
   { label: 'กำลังดำเนินการ',  value: '02' },
   { label: 'ดำเนินการสำเร็จ', value: '03' },
-  { label: 'ยกเลิก',          value: '04' },
+  { label: 'พบปัญหา',      value: '04' },
 ];
 
 // ✅ สีและข้อความตาม status
 const getStatusStyle = (statusId: string) => {
   switch (statusId) {
     case 'SD09': return { bg: '#e4e4e4', text: '#373737', dot: '#373737', label: 'ดำเนินการสำเร็จ' };
-    case 'SD10': return { bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c', label: 'ยกเลิก' };
+    case 'SD04': return { bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c', label: 'พบปัญหา' };
     default:     return { bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60', label: 'กำลังดำเนินการ' };
   }
 };
@@ -155,7 +158,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
 
         {/* ── ปลายทาง ── */}
         <View style={styles.infoRow}>
-          <Icon name="location-on" size={22} color="#373737" />
+          <StatusMask  width={20} height={20} color="#373737" />
           <View>
             <Text style={styles.infoLabel}>ปลายทาง</Text>
             <Text style={styles.infoValue}>{item.to_company}</Text>
@@ -163,7 +166,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
         </View>
         {/* ── ประเภทบริการ ── */}
         <View style={styles.infoRow}>
-          <Icon name="inventory" size={22} color="#373737" style={styles.infoIcon} />
+         <StatusPackage  width={20} height={20} color="#373737" />
           <View>
             <Text style={styles.infoLabel}>ประเภทการบริการ</Text>
             <Text style={styles.infoValue}>{item.type_name}</Text>
@@ -171,26 +174,22 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         {/* ── วันที่ + สถานะล่าง ── */}
+        {/* ── Footer ── */}
         <View style={styles.cardFooter}>
-
-          {/* วันที่ */}
-          <View style={styles.footerItem}>
-            <IonIcon name="calendar-clear" size={22} color="#373737" />
+          <View style={styles.footerItemLeft}>
+            <StatusCalendar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>วันที่ถึงปลายทาง</Text>
               <Text style={styles.footerDate}>{item.d_date} {item.d_time}</Text>
             </View>
           </View>
-
-          {/* สถานะ */}
-          <View style={[styles.footerItem, { marginLeft: 44 }]}>
-            <FontAwesome5 name="car-side" size={22} color="#373737" />
+          <View style={[styles.footerItemRight, ]}>
+            <StatusCar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>สถานะ</Text>
               <Text style={styles.footerStatus}>{item.status_name}</Text>
             </View>
           </View>
-
         </View>
 
       
@@ -272,7 +271,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.picker}
             >
               {STATUS_OPTIONS.map(opt => (
-                <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
+                <Picker.Item key={opt.value} label={opt.label} value={opt.value} style={styles.infoValue} />
               ))}
             </Picker>
           </View>
@@ -437,16 +436,22 @@ const styles = StyleSheet.create({
   borderTopWidth: 1,
   borderTopColor: '#f0f0f0',
 },
-footerItem: {
+footerItemLeft: {
   flexDirection: 'row',
   alignItems:    'flex-end',
   gap:           6,
   flex:          1,
 },
+footerItemRight: {
+  flexDirection: 'row',
+  alignItems:    'flex-end',
+  gap:           6,
+  paddingRight:  0, // ✅ ปรับให้ตรงกับ statusBadge
+},
   footerLeft:   { flexDirection: 'row', alignItems: 'center' },
   footerRight:  { flexDirection: 'row', alignItems: 'center' },
-  footerDate:   { fontSize: 16, color: '#373737', fontFamily: 'Quicksand-Medium' , fontWeight: 'Medium'},
-  footerStatus: { fontSize: 12, color: '#373737', fontFamily: 'Quicksand-Bold' , fontWeight: 'bold'},
+  footerDate:   { fontSize: 16, color: '#373737', fontFamily: 'Quicksand-Medium' },
+  footerStatus: { fontSize: 12, color: '#373737', fontFamily: 'Quicksand-Medium' },
 
   // States
   centered:   { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 60 },
