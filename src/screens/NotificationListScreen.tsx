@@ -143,7 +143,7 @@ const NotificationListScreen: React.FC = () => {
               <Text style={styles.footerDate}>{item.d_date} {item.d_time}</Text>
             </View>
           </View>
-          <View style={[styles.footerItem, { marginLeft: 44 }]}>
+          <View style={[styles.footerItem,]}>
             <StatusCar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>สถานะ</Text>
@@ -297,6 +297,8 @@ emptyContainer: {
     flexDirection: 'row',
     alignItems:    'flex-end',
     gap:           6,
+    paddingHorizontal: 10,
+    paddingVertical:   4,
   },
   footerDate:   { fontSize: 14, color: '#373737', fontFamily: 'Quicksand-Medium'  },
   footerStatus: { fontSize: 12, color: '#373737', fontFamily: 'Quicksand-Medium'},
