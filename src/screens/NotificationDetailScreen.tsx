@@ -14,7 +14,8 @@ import {NotificationItem} from '../types/notificationTypes';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {getCompanyColor} from '../context/AuthProvider';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import IonIcon from 'react-native-vector-icons/Ionicons';
+import Icon6 from 'react-native-vector-icons/FontAwesome6';
+
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -108,57 +109,75 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
             <View style={styles.divider} />
 
             {/* Detail List */}
-            <View style={styles.detailContainer}>
               <View style={styles.detailItem}>
-                <Text style={styles.icon}>⚑</Text>
+                <Icon
+                  name="flag"
+                  size={24}
+                  color="#8BC400"
+                  style={styles.icon}
+                />
 
                 <View>
                   <Text style={styles.label}>สถานะ</Text>
-
                   <Text style={styles.value}>{item.status_name}</Text>
                 </View>
               </View>
 
               <View style={styles.detailItem}>
-                <Text style={styles.icon}>📍</Text>
+                <Icon6
+                  name="location-dot"
+                  size={24}
+                  color="#8BC400"
+                  style={styles.icon}
+                />
 
                 <View>
                   <Text style={styles.label}>ปลายทาง</Text>
-
                   <Text style={styles.value}>{item.t_com}</Text>
                 </View>
               </View>
 
               <View style={styles.detailItem}>
-                <Text style={styles.icon}>📅</Text>
+                <Icon
+                  name="calendar-month"
+                  size={24}
+                  color="#8BC400"
+                  style={styles.icon}
+                />
 
                 <View>
                   <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
-
                   <Text style={styles.value}>{item.d_date}</Text>
                 </View>
               </View>
 
               <View style={styles.detailItem}>
-                <Text style={styles.icon}>🕒</Text>
+                <Icon6
+                  name="clock"
+                  size={24}
+                  color="#8BC400"
+                  style={styles.icon}
+                />
 
                 <View>
-                  <Text style={styles.label}>เวลาถึงปลายทาง</Text>
-
+                  <Text style={styles.label}>เวลาที่ถึงปลายทาง</Text>
                   <Text style={styles.value}>{item.d_time}</Text>
                 </View>
               </View>
 
               <View style={styles.detailItem}>
-                <Text style={styles.icon}>📋</Text>
+                <Icon
+                  name="format-list-bulleted"
+                  size={24}
+                  color="#8BC400"
+                  style={styles.icon}
+                />
 
                 <View style={{flex: 1}}>
                   <Text style={styles.label}>รายละเอียด</Text>
-
                   <Text style={styles.value}>{item.remake}</Text>
                 </View>
               </View>
-            </View>
 
             {/* Buttons */}
             <View style={styles.buttonContainer}>
@@ -230,69 +249,10 @@ const styles = StyleSheet.create({
     padding: 24,
   },
 
-  // requestSection: {
-  //   alignItems: 'center',
-  //   marginBottom: 20,
-  // },
-
-  // requestLabel: {
-  //   fontSize: 14,
-  //   color: '#777',
-  //   marginBottom: 6,
-  // },
-
-  // requestId: {
-  //   fontSize: 30,
-  //   fontFamily: 'bold',
-  //   color: '#97d700',
-  //   marginBottom: 10,
-  // },
-
-  // statusBadge: {
-  //   backgroundColor: '#e7e7e7',
-  //   paddingHorizontal: 16,
-  //   paddingVertical: 7,
-  //   borderRadius: 30,
-  // },
-
-  // statusBadgeText: {
-  //   fontSize: 13,
-  //   color: '#444',
-  //   fontFamily: 'regular',
-  // },
-
   divider: {
     height: 1,
     backgroundColor: '#ddd',
     marginBottom: 24,
-  },
-
-  detailContainer: {
-    gap: 22,
-  },
-
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-
-  // icon: {
-  //   fontSize: 20,
-  //   width: 35,
-  //   color: '#97d700',
-  // },
-
-  label: {
-    fontSize: 13,
-    color: '#999',
-    marginBottom: 4,
-    fontFamily: 'regular',
-  },
-
-  value: {
-    fontSize: 18,
-    color: '#222',
-    fontFamily: 'bold',
   },
 
   buttonContainer: {
@@ -380,10 +340,40 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 
-  document:{
+  document: {
     width: 30,
-    height: 30,
+    height: 25,
     paddingRight: 50,
   },
 
+  detailContainer: {
+  backgroundColor: '#F3F3F3',
+  borderRadius: 12,
+  padding: 20,
+},
+
+detailItem: {
+  flexDirection: 'row',
+  alignItems: 'flex-start',
+  marginBottom: 24,
+},
+
+icon: {
+  marginRight: 16,
+  marginTop: 15,
+  marginLeft: 15,
+},
+
+label: {
+  fontSize: 14,
+  color: '#9E9E9E',
+  marginBottom: 4,
+  fontFamily: 'Kanit-Regular',
+},
+
+value: {
+  fontSize: 18,
+  color: '#333',
+  fontFamily: 'Kanit-SemiBold',
+},
 });
