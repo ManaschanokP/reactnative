@@ -14,6 +14,7 @@ import {RootStackParamList} from '../types/navigationTypes';
 import {AuthContext, getCompanyColor} from '../context/AuthProvider';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import IonIcon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -62,7 +63,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         </View>
         <View style={styles.container}>
           <Image
-            source={require('../../assets/delivery.png')}
+            source={require('../../assets/Delivery3.png')}
             style={styles.delivery}
             resizeMode="contain"
           />
@@ -99,6 +100,12 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
               console.log('Scan QR-Code Pressed');
               navigation.navigate('Scan');
             }}>
+            <Icon
+              name="qr-code-scanner"
+              size={28}
+              color="#373737"
+              style={styles.leftIcon}
+            />
             <Text style={styles.buttonText}>Scan QR-Code</Text>
           </TouchableOpacity>
 
@@ -106,6 +113,11 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
             <TouchableOpacity
               style={[styles.button]}
               onPress={() => navigation.navigate('FuelEntry')}>
+              <Image
+                source={require('../../assets/fuel.png')}
+                style={styles.vectoricon}
+                resizeMode="contain"
+              />
               <Text style={styles.buttonText}>น้ำมัน</Text>
             </TouchableOpacity>
           )}
@@ -135,7 +147,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: '80%',
     marginBottom: 20,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
 
   input: {
@@ -150,6 +162,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
 
+  leftIcon: {
+    marginRight: 12,
+  },
+
+  vectoricon:{
+    width: 25,
+    height: 25,
+    paddingRight: 50,
+  },
+
   //ของเดิม
   button: {
     padding: 10,
@@ -161,6 +183,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#ddd',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   buttonText: {
     color: '#000000',
@@ -206,7 +230,7 @@ const styles = StyleSheet.create({
     color: '#6C7278',
   },
 
-  hello:{
+  hello: {
     fontSize: 24,
     fontFamily: 'Quicksand-Bold',
     color: '#373737',

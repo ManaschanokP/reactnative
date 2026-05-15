@@ -1,12 +1,28 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+  Image,
+} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NotificationItem} from '../types/notificationTypes';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {getCompanyColor} from '../context/AuthProvider';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import IonIcon from 'react-native-vector-icons/Ionicons';
 
 type RootStackParamList = {
   NotificationList: undefined;
-  NotificationDetail: {item: NotificationItem};
+
+  NotificationDetail: {
+    item: NotificationItem;
+  };
+
   ViewDetail: {
     item: {
       request_id: string;
@@ -23,8 +39,12 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'NotificationDetail'>;
 
 const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
-  const {item} = route.params; //รับข้อมูลที่ส่งมาจากหน้า List
+  const {item} = route.params;
+
   const insets = useSafeAreaInsets();
+
+  const companyColor = getCompanyColor(item.company_code);
+
   const canStartWork = item.status_name !== 'การดำเนินการสำเร็จ';
 
   const handleStartWork = () => {
@@ -42,77 +62,328 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Request ID :</Text>
-      <Text style={styles.text}>{item.request_id}</Text>
+    <SafeAreaView style={{flex: 1}}>
+      <View style={styles.container}>
+        <StatusBar backgroundColor={companyColor} barStyle="light-content" />
 
-      <Text style={styles.label}>สถานะ :</Text>
-      <Text style={styles.text}>{item.status_name}</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backButton}>{'‹'}</Text>
+          </TouchableOpacity>
 
-      <Text style={styles.label}>ปลายทาง :</Text>
-      <Text style={styles.text}>{item.t_com}</Text>
+          <Text style={styles.headerTitle}>Notification Detail</Text>
+        </View>
 
-      <Text style={styles.label}>วันที่ถึงปลายทาง :</Text>
-      <Text style={styles.text}>{item.d_date}</Text>
+        {/* Content */}
+        <View style={styles.card}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Request */}
+            <View style={styles.requestSection}>
+              <View style={styles.requestRow}>
+                {/* Icon */}
+                <Image
+                  source={require('../../assets/document.png')}
+                  style={styles.document}
+                  resizeMode="contain"
+                />
 
-      <Text style={styles.label}>เวลาถึงปลายทาง :</Text>
-      <Text style={styles.text}>{item.d_time}</Text>
+                {/* Right Content */}
+                <View>
+                  <Text style={styles.requestLabel}>Request ID</Text>
 
-      <Text style={styles.label}>รายละเอียด :</Text>
-      <Text style={styles.text}>{item.remake}</Text>
+                  <Text style={styles.requestId}>{item.request_id}</Text>
 
-      <TouchableOpacity
-        style={styles.closeButton}
-        onPress={() => navigation.goBack()}>
-        <Text style={styles.closeText}>ปิด</Text>
-      </TouchableOpacity>
+                  <View style={styles.statusBadge}>
+                    <Text style={styles.statusBadgeText}>
+                      {item.status_name}
+                    </Text>
 
-      {canStartWork && (
-        <TouchableOpacity style={styles.workButton} onPress={handleStartWork}>
-          <Text style={styles.closeText}>เริ่มงาน</Text>
-        </TouchableOpacity>
-      )}
-      <View style={{height: insets.bottom + 44}} />
-    </View>
+                    <View style={styles.statusDot} />
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* Detail List */}
+            <View style={styles.detailContainer}>
+              <View style={styles.detailItem}>
+                <Text style={styles.icon}>⚑</Text>
+
+                <View>
+                  <Text style={styles.label}>สถานะ</Text>
+
+                  <Text style={styles.value}>{item.status_name}</Text>
+                </View>
+              </View>
+
+              <View style={styles.detailItem}>
+                <Text style={styles.icon}>📍</Text>
+
+                <View>
+                  <Text style={styles.label}>ปลายทาง</Text>
+
+                  <Text style={styles.value}>{item.t_com}</Text>
+                </View>
+              </View>
+
+              <View style={styles.detailItem}>
+                <Text style={styles.icon}>📅</Text>
+
+                <View>
+                  <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
+
+                  <Text style={styles.value}>{item.d_date}</Text>
+                </View>
+              </View>
+
+              <View style={styles.detailItem}>
+                <Text style={styles.icon}>🕒</Text>
+
+                <View>
+                  <Text style={styles.label}>เวลาถึงปลายทาง</Text>
+
+                  <Text style={styles.value}>{item.d_time}</Text>
+                </View>
+              </View>
+
+              <View style={styles.detailItem}>
+                <Text style={styles.icon}>📋</Text>
+
+                <View style={{flex: 1}}>
+                  <Text style={styles.label}>รายละเอียด</Text>
+
+                  <Text style={styles.value}>{item.remake}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.buttonContainer}>
+              {canStartWork && (
+                <TouchableOpacity
+                  style={styles.startButton}
+                  onPress={handleStartWork}>
+                  <Text style={styles.buttonText}>เริ่มงาน</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => navigation.goBack()}>
+                <Text style={styles.buttonText}>ปิด</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View
+              style={{
+                height: insets.bottom + 20,
+              }}
+            />
+          </ScrollView>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
+
+export default NotificationDetailScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#97d700',
   },
-  label: {
-    fontFamily: 'bold',
-    fontSize: 16,
-    marginTop: 20,
-    color: '#333',
-  },
-  text: {
-    fontSize: 16,
-    marginBottom: 10,
-    color: '#555',
-  },
-  closeButton: {
-    marginTop: 30,
-    backgroundColor: '#C0392B',
-    paddingVertical: 12,
-    borderRadius: 8,
+
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 15,
   },
-  closeText: {
+
+  backButton: {
+    fontSize: 45,
+    fontFamily: 'Quicksand-Bold',
+    color: '#fff',
+    marginRight: 10,
+    paddingTop: 34,
+    paddingLeft: 5,
+  },
+
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: 'Quicksand-Bold',
+    color: '#fff',
+    paddingTop: 48,
+    paddingLeft: 10,
+  },
+
+  card: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+  },
+
+  // requestSection: {
+  //   alignItems: 'center',
+  //   marginBottom: 20,
+  // },
+
+  // requestLabel: {
+  //   fontSize: 14,
+  //   color: '#777',
+  //   marginBottom: 6,
+  // },
+
+  // requestId: {
+  //   fontSize: 30,
+  //   fontFamily: 'bold',
+  //   color: '#97d700',
+  //   marginBottom: 10,
+  // },
+
+  // statusBadge: {
+  //   backgroundColor: '#e7e7e7',
+  //   paddingHorizontal: 16,
+  //   paddingVertical: 7,
+  //   borderRadius: 30,
+  // },
+
+  // statusBadgeText: {
+  //   fontSize: 13,
+  //   color: '#444',
+  //   fontFamily: 'regular',
+  // },
+
+  divider: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginBottom: 24,
+  },
+
+  detailContainer: {
+    gap: 22,
+  },
+
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+
+  // icon: {
+  //   fontSize: 20,
+  //   width: 35,
+  //   color: '#97d700',
+  // },
+
+  label: {
+    fontSize: 13,
+    color: '#999',
+    marginBottom: 4,
+    fontFamily: 'regular',
+  },
+
+  value: {
+    fontSize: 18,
+    color: '#222',
+    fontFamily: 'bold',
+  },
+
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    marginTop: 45,
+  },
+
+  startButton: {
+    backgroundColor: '#97d700',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 10,
+    alignItems: 'center',
+    minWidth: 120,
+  },
+
+  closeButton: {
+    backgroundColor: '#d90000',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 10,
+    alignItems: 'center',
+    minWidth: 120,
+  },
+
+  buttonText: {
     color: '#fff',
     fontSize: 16,
     fontFamily: 'bold',
   },
-  workButton: {
-    marginTop: 30,
-    backgroundColor: '#3ddf6d',
-    paddingVertical: 12,
-    borderRadius: 8,
+
+  //request ID
+  requestSection: {
+    marginBottom: 20,
+  },
+
+  requestRow: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-});
 
-export default NotificationDetailScreen;
+  requestIcon: {
+    fontSize: 40,
+    marginRight: 16,
+  },
+
+  requestLabel: {
+    fontSize: 15,
+    color: '#333',
+    marginBottom: 4,
+    fontFamily: 'regular',
+  },
+
+  requestId: {
+    fontSize: 28,
+    color: '#93D500',
+    fontFamily: 'bold',
+    marginBottom: 10,
+  },
+
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+
+    backgroundColor: '#d9d9d9',
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+
+  statusBadgeText: {
+    fontSize: 14,
+    color: '#333',
+    fontFamily: 'bold',
+  },
+
+  statusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 10,
+    backgroundColor: '#333',
+    marginLeft: 10,
+  },
+
+  document:{
+    width: 30,
+    height: 30,
+    paddingRight: 50,
+  },
+
+});

@@ -24,7 +24,6 @@ import {loginUser, checkLogin, updateToken} from '../services/apiService';
 import {LoginRequest, UpdateTokenRequest} from '../types/authTypes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -242,7 +241,6 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
               </TouchableOpacity>
             </View>
           </SafeAreaView>
-          
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -253,8 +251,8 @@ const {width} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
+  flex: 1,
+},
 
   content: {
     flex: 1,
