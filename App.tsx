@@ -194,7 +194,7 @@ function MainApp({
           backgroundColor: user ? companyColor : '#F5A800',
         },
         headerTintColor: '#fdfdfd',
-        headerTitleStyle: {fontFamily: 'bold'},
+        headerTitleStyle: {fontFamily: 'Quicksand-Bold'},
       }}>
 
         {user ? (
@@ -204,7 +204,7 @@ function MainApp({
             component={HomeScreen}
             options={{headerShown: false}}
           />
-            <Stack.Screen name="ViewDetail" component={ViewDetailScreen} />
+            <Stack.Screen name="ViewDetail" component={ViewDetailScreen} options={{ title: 'Jobs Detail' }}/>
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />
             <Stack.Screen name="FuelEntry" component={FuelEntryScreen} />

@@ -103,7 +103,7 @@ const NotificationListScreen: React.FC = () => {
         {/* ── Header ── */}
         <View style={styles.cardHeader}>
           <View style={styles.idRow}>
-            <StatusIdCardIcon width={20} height={20} />
+            <StatusIdCardIcon width={20} height={20} color='companycode'/>
             <Text style={styles.requestId}>{item.request_id}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
@@ -136,14 +136,14 @@ const NotificationListScreen: React.FC = () => {
 
         {/* ── Footer ── */}
         <View style={styles.cardFooter}>
-          <View style={styles.footerItem}>
+          <View style={styles.footerItemLeft}>
             <StatusCalendar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>วันที่ถึงปลายทาง</Text>
               <Text style={styles.footerDate}>{item.d_date} {item.d_time}</Text>
             </View>
           </View>
-          <View style={[styles.footerItem, { marginLeft: 44 }]}>
+          <View style={[styles.footerItemRight, ]}>
             <StatusCar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>สถานะ</Text>
@@ -287,17 +287,27 @@ emptyContainer: {
   // Footer
   cardFooter: {
     flexDirection:  'row',
+    justifyContent: 'space-between',
     alignItems:     'flex-end',
     marginTop:      8,
     paddingTop:     8,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
+    
   },
-  footerItem: {
-    flexDirection: 'row',
-    alignItems:    'flex-end',
-    gap:           6,
-  },
+  footerItemLeft: {
+  flexDirection: 'row',
+  alignItems:    'flex-end',
+  gap:           6,
+  flex:          1,
+},
+footerItemRight: {
+  flexDirection: 'row',
+  alignItems:    'flex-end',
+  gap:           6,
+  paddingRight:  0, // ✅ ปรับให้ตรงกับ statusBadge
+},
+
   footerDate:   { fontSize: 14, color: '#373737', fontFamily: 'Quicksand-Medium'  },
   footerStatus: { fontSize: 12, color: '#373737', fontFamily: 'Quicksand-Medium'},
 
