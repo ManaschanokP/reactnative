@@ -6,7 +6,6 @@ import {
   TextInput,
   Image,
   StyleSheet,
-  Alert,
   TouchableOpacity,
   Text,
   Dimensions,
@@ -16,6 +15,7 @@ import {
   Keyboard,
   ScrollView,
 } from 'react-native';
+
 import Toast from 'react-native-toast-message';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -29,59 +29,89 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<Props> = ({navigation}) => {
-  const insets = useSafeAreaInsets();
+  const {login} = useContext(AuthContext)!;
   const [credentials, setCredentials] = useState<LoginRequest>({
     username: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
-  const [dataUpdateToken, setUpdateToken] = useState<UpdateTokenRequest>({
-    token: '',
-    id: '',
-  });
+  useEffect(() => {
+    loadRememberedUser();
+    const unsubscribe = navigation.addListener('beforeRemove', e => {
+      e.preventDefault();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
-  const {login} = useContext(AuthContext)!;
+  const loadRememberedUser = async () => {
+    try {
+      const savedUsername = await AsyncStorage.getItem('rememberedUsername');
+      const savedPassword = await AsyncStorage.getItem('rememberedPassword');
+      if (savedUsername && savedPassword) {
+        setCredentials({
+          username: savedUsername,
+          password: savedPassword,
+        });
+        setRememberMe(true);
+      }
+    } catch (error) {
+      console.log('Load remember user error:', error);
+    }
+  };
 
   const handleLogin = async () => {
     try {
       const responseUserCompany = await loginUser(credentials);
-      console.log('responseUserCompany : ', responseUserCompany);
-      const companyCode = responseUserCompany.User[0].company;
-      console.log('CompanyCode : ', companyCode);
-
-      await AsyncStorage.setItem('companyCode', companyCode);
-
-      if (!responseUserCompany.error) {
-        const responseLogin = await checkLogin(credentials);
-        const userData = responseLogin.User[0];
-
-        if (!responseLogin.error) {
-          const fcmToken = await AsyncStorage.getItem('FCM_TOKEN');
-          setUpdateToken({
-            ...updateToken,
-            token: fcmToken ?? '',
-            id: userData.id,
-          });
-          const responseUpdateToken = await updateToken(dataUpdateToken);
-          login(fcmToken ?? '', userData);
-          
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Login Failed',
-            text2: responseLogin.message,
-            visibilityTime: 2000,
-          });
-        }
-      } else {
+      if (responseUserCompany.error) {
         Toast.show({
           type: 'error',
           text1: 'Login Failed',
           text2: responseUserCompany.message,
           visibilityTime: 2000,
         });
+        return;
       }
+
+      const companyCode = responseUserCompany.User[0].company;
+
+      await AsyncStorage.setItem('companyCode', companyCode);
+
+      const responseLogin = await checkLogin(credentials);
+
+      if (responseLogin.error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Login Failed',
+          text2: responseLogin.message,
+          visibilityTime: 2000,
+        });
+        return;
+      }
+
+      const userData = responseLogin.User[0];
+      // Remember Me
+      if (rememberMe) {
+        await AsyncStorage.setItem('rememberedUsername', credentials.username);
+        await AsyncStorage.setItem('rememberedPassword', credentials.password);
+      } else {
+        await AsyncStorage.removeItem('rememberedUsername');
+        await AsyncStorage.removeItem('rememberedPassword');
+      }
+
+      // Update FCM Token
+      const fcmToken = await AsyncStorage.getItem('FCM_TOKEN');
+
+      const tokenPayload: UpdateTokenRequest = {
+        token: fcmToken ?? '',
+        id: userData.id,
+      };
+      await updateToken(tokenPayload);
+      login(fcmToken ?? '', userData);
     } catch (error) {
+      console.log('Login Error:', error);
+
       Toast.show({
         type: 'error',
         text1: 'Login Failed',
@@ -91,28 +121,19 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
     }
   };
 
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [rememberMe, setRememberMe] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', e => {
-      e.preventDefault();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
   return (
     <KeyboardAvoidingView
-      style={{flex: 1}}
+      style={{flex: 1, backgroundColor: '#F7F8FA'}}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
-          contentContainerStyle={{flexGrow: 1}}
+          style={{flex: 1, backgroundColor: '#F7F8FA'}}
+          contentContainerStyle={{
+            flexGrow: 1,
+          }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <SafeAreaView style={styles.container}>
+          <SafeAreaView style={{flex: 1}}>
             <View style={styles.content}>
               {/* Logo */}
               <Image
@@ -202,7 +223,6 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
                 <View
                   style={[
                     styles.checkbox,
-
                     rememberMe && styles.checkboxActive,
                   ]}>
                   {rememberMe && (
@@ -222,19 +242,18 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
               </TouchableOpacity>
             </View>
           </SafeAreaView>
-           <View style={{height: insets.bottom + 20 , backgroundColor : '#F7F8FA',}} />
+          
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
 
-const {width, height} = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F8FA',
   },
 
   content: {
@@ -296,6 +315,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
 
     shadowColor: '#000',
+
     shadowOffset: {
       width: 0,
       height: 2,
@@ -369,6 +389,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
 
     shadowColor: '#98CE00',
+
     shadowOffset: {
       width: 0,
       height: 6,
@@ -389,4 +410,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 });
+
 export default LoginScreen;

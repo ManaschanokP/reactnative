@@ -57,6 +57,9 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   return (
     <>
       <SafeAreaView style={{flex: 1}}>
+        <View style={styles.hello1}>
+          <Text style={styles.hello}>สวัสดี , {user?.name?.split(' ')[0]}</Text>
+        </View>
         <View style={styles.container}>
           <Image
             source={require('../../assets/delivery.png')}
@@ -119,7 +122,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#F9F9F9',
+    paddingBottom: '15%',
   },
 
   //เพิ่ม style search
@@ -131,6 +135,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: '80%',
     marginBottom: 20,
+    backgroundColor: '#fff'
   },
 
   input: {
@@ -199,6 +204,22 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     fontSize: 12,
     color: '#6C7278',
+  },
+
+  hello:{
+    fontSize: 24,
+    fontFamily: 'Quicksand-Bold',
+    color: '#373737',
+    justifyContent: 'flex-end',
+  },
+  hello1: {
+    //flex: 1,
+    justifyContent: 'flex-start',
+    //alignItems: 'center',
+    backgroundColor: '#F9F9F9',
+    paddingLeft: '8%',
+    paddingTop: '10%',
+    paddingBottom: 0,
   },
 });
 
