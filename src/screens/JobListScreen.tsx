@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import StatusIdCardIcon from '../../assets/ID-TGL.svg';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobList'>;
@@ -137,9 +138,9 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
         {/* ── Header row ── */}
         <View style={styles.cardHeader}>
           <View style={styles.idRow}>
-            <View style={[styles.idIcon, { backgroundColor: companyColor }]}>
-              <Icon name="local-shipping" size={14} color="#fff" />
-            </View>
+           
+              <StatusIdCardIcon width={20} height={20} />
+            
             <Text style={styles.requestId}>{item.request_id}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>

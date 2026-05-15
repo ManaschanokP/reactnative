@@ -24,10 +24,12 @@ import {loginUser, checkLogin, updateToken} from '../services/apiService';
 import {LoginRequest, UpdateTokenRequest} from '../types/authTypes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<Props> = ({navigation}) => {
+  const insets = useSafeAreaInsets();
   const [credentials, setCredentials] = useState<LoginRequest>({
     username: '',
     password: '',
@@ -220,6 +222,7 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
               </TouchableOpacity>
             </View>
           </SafeAreaView>
+           <View style={{height: insets.bottom + 20 , backgroundColor : '#F7F8FA',}} />
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>

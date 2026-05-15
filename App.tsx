@@ -193,7 +193,7 @@ function MainApp({
         headerStyle: {
           backgroundColor: user ? companyColor : '#F5A800',
         },
-        headerTintColor: '#1c1fca',
+        headerTintColor: '#fdfdfd',
         headerTitleStyle: {fontFamily: 'bold'},
       }}>
 

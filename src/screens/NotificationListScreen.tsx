@@ -13,6 +13,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import StatusIdCardIcon from '../../assets/ID-TGL.svg';
+import StatusMask from '../../assets/Status-Mark.svg';
+import StatusCalendar from '../../assets/Status-Calendar.svg';
+import StatusPackage from '../../assets/Status-Package.svg';
+import StatusCar from '../../assets/Status-Car.svg';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -98,14 +103,7 @@ const NotificationListScreen: React.FC = () => {
         {/* ── Header ── */}
         <View style={styles.cardHeader}>
           <View style={styles.idRow}>
-            <View style={[styles.idIcon, { backgroundColor: companyColor }]}>
-              
-              <Image
-                  source={require('../../assets/Status-IDcard(ThaiGL).svg')}
-                  style={styles.idIcon}
-                  resizeMode="contain"
-              />
-            </View>
+            <StatusIdCardIcon width={20} height={20} />
             <Text style={styles.requestId}>{item.request_id}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
@@ -120,7 +118,7 @@ const NotificationListScreen: React.FC = () => {
 
         {/* ── ปลายทาง ── */}
         <View style={styles.infoRow}>
-          <Icon name="location-on" size={22} color="#373737" />
+          <StatusMask  width={20} height={20} color="#373737" />
           <View>
             <Text style={styles.infoLabel}>ปลายทาง</Text>
             <Text style={styles.infoValue}>{item.t_com}</Text>
@@ -129,7 +127,7 @@ const NotificationListScreen: React.FC = () => {
 
         {/* ── รายละเอียด ── */}
         <View style={styles.infoRow}>
-          <Icon name="inventory" size={22} color="#373737" />
+          <StatusPackage  width={20} height={20} color="#373737" />
           <View>
             <Text style={styles.infoLabel}>ประเภทการบริการ</Text>
             <Text style={styles.infoValue}>{item.remake}</Text>
@@ -139,14 +137,14 @@ const NotificationListScreen: React.FC = () => {
         {/* ── Footer ── */}
         <View style={styles.cardFooter}>
           <View style={styles.footerItem}>
-            <IonIcon name="calendar-clear" size={22} color="#373737" />
+            <StatusCalendar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>วันที่ถึงปลายทาง</Text>
               <Text style={styles.footerDate}>{item.d_date} {item.d_time}</Text>
             </View>
           </View>
-          <View style={[styles.footerItem, { marginLeft: 16 }]}>
-            <FontAwesome5 name="car-side" size={22} color="#373737" />
+          <View style={[styles.footerItem, { marginLeft: 44 }]}>
+            <StatusCar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>สถานะ</Text>
               <Text style={styles.footerStatus}>{item.status_name}</Text>
@@ -181,10 +179,10 @@ const NotificationListScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView >
-        <View>
+      <SafeAreaView edges={['top']}>
+       
         <Text style={styles.titleText}>Notification List</Text>
-        </View>
+        
       </SafeAreaView>
 
       <FlatList
@@ -210,9 +208,10 @@ const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: '#f4f6f8' },
   listContent: {
   padding:    12,
-  gap:        10,
+  gap:        12,
   flexGrow:   1,        
   alignItems: 'stretch', 
+  paddingTop: 8,
 },
 
 emptyContainer: {
@@ -233,7 +232,10 @@ emptyContainer: {
     fontSize:   22,
     fontFamily: 'Quicksand-Bold',
     color:      '#222',
-    paddingHorizontal: 26,
+    paddingHorizontal: 32,
+    paddingTop:        12,  
+    paddingBottom:     12,
+    
   },
 
   // Card
@@ -296,8 +298,8 @@ emptyContainer: {
     alignItems:    'flex-end',
     gap:           6,
   },
-  footerDate:   { fontSize: 14, color: '#373737', fontFamily: 'Quicksand-Bold', fontWeight: 'bold' },
-  footerStatus: { fontSize: 12, color: '#373737', fontFamily: 'Quicksand-Bold', fontWeight: 'bold' },
+  footerDate:   { fontSize: 14, color: '#373737', fontFamily: 'Quicksand-Medium'  },
+  footerStatus: { fontSize: 12, color: '#373737', fontFamily: 'Quicksand-Medium'},
 
   // States
   centered:    { flex: 1, justifyContent: 'center', alignItems: 'center',  },
