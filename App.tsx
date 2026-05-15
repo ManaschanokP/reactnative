@@ -222,6 +222,7 @@ function MainApp({
             <Stack.Screen
               name="NotificationDetail"
               component={NotificationDetailScreen}
+              options={{headerShown: false}}
             />
             <Stack.Screen name="Scan" component={ScanScreen} />
             <Stack.Screen name="Signature" component={SignaturePadScreen} />
