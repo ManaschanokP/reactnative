@@ -9,6 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -16,10 +17,10 @@ import {Button} from 'react-native-elements';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import DatePicker, {DateType} from 'react-native-ui-datepicker';
 import {RootStackParamList} from '../types/navigationTypes';
-
 // นำเข้า Context และ API Config
 import {AuthContext} from '../context/AuthProvider';
 import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
+import Icon from 'react-native-vector-icons/Feather';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
 
@@ -32,10 +33,8 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
   const [liter, setliter] = useState('');
   const [price, setprice] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-
   // เพิ่ม State สำหรับสถานะ Loading ตอนกด Submit
   const [loading, setLoading] = useState(false);
-
   const handleDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
       setDate(params.date);
@@ -111,164 +110,286 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
   };
 
   return (
-    // เปลี่ยนมาใช้ ScrollView เพื่อไม่ให้คีย์บอร์ดบังปุ่ม Submit
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}>
-      <Text style={styles.label}>วันที่ :</Text>
-      <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-        <View style={styles.row}>
-          <TextInput
-            style={[styles.input, {flex: 1, color: '#000'}]}
-            value={date.toLocaleDateString('th-TH')} // แสดงเป็น พ.ศ. ให้ดูง่ายขึ้น
-            editable={false}
-          />
-          <MaterialIcons
-            name="date-range"
-            size={30}
-            color="#93D500"
-            style={styles.iconButton}
-          />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backButton}>{'‹'}</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Fuel Entry</Text>
         </View>
-      </TouchableOpacity>
 
-      <Modal visible={showDatePicker} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <DatePicker mode="single" date={date} onChange={handleDateChange} />
-            <Button title="ปิด" onPress={() => setShowDatePicker(false)} />
-          </View>
+        <View style={styles.card}>
+          <ScrollView
+            style={{flex: 1}}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}>
+            {/* วันที่ */}
+            <Text style={styles.label}>วันที่ :</Text>
+
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <View style={styles.row}>
+                <TextInput
+                  style={[styles.input, {flex: 1}]}
+                  value={date.toLocaleDateString('th-TH')}
+                  editable={false}
+                />
+
+                <MaterialIcons
+                  name="date-range"
+                  size={28}
+                  color="#93D500"
+                  style={styles.iconButton}
+                />
+              </View>
+            </TouchableOpacity>
+
+            {/* Modal Date Picker */}
+            <Modal visible={showDatePicker} transparent animationType="slide">
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <DatePicker
+                    mode="single"
+                    date={date}
+                    onChange={handleDateChange}
+                  />
+
+                  <Button
+                    title="ปิด"
+                    onPress={() => setShowDatePicker(false)}
+                  />
+                </View>
+              </View>
+            </Modal>
+
+            {/* ทะเบียน */}
+            <Text style={styles.label}>ทะเบียน :</Text>
+
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={license_no}
+                onValueChange={itemValue => setlicense_no(itemValue)}
+                style={styles.picker}>
+                <Picker.Item label="เลือกทะเบียน" value="" />
+                <Picker.Item label="ABC-1234" value="ABC-1234" />
+                <Picker.Item label="XYZ-5678" value="XYZ-5678" />
+              </Picker>
+            </View>
+
+            {/* เลขไมล์ */}
+            <Text style={styles.label}>เลขไมล์ :</Text>
+
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={mile}
+              onChangeText={text => setMile(text.replace(/[^0-9]/g, ''))}
+              placeholder="ระบุเลขไมล์"
+              placeholderTextColor="#999"
+            />
+
+            {/* จำนวนลิตร */}
+            <Text style={styles.label}>จำนวน (ลิตร) :</Text>
+
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={liter}
+              onChangeText={text => setliter(text.replace(/[^0-9.]/g, ''))}
+              placeholder="0.00"
+              placeholderTextColor="#999"
+            />
+
+            {/* จำนวนเงิน */}
+            <Text style={styles.label}>จำนวน (บาท) :</Text>
+
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={price}
+              onChangeText={text => setprice(text.replace(/[^0-9.]/g, ''))}
+              placeholder="0.00"
+              placeholderTextColor="#999"
+            />
+
+            {/* ปุ่มบันทึก */}
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                loading && styles.submitButtonDisabled,
+              ]}
+              onPress={handleSubmit}
+              disabled={loading}>
+              <Icon
+                name="download"
+                size={24}
+                color="#ffffff"
+                style={styles.iconbottom}
+              />
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitButtonText}>บันทึก</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={{height: 90}} />
+          </ScrollView>
         </View>
-      </Modal>
-
-      <Text style={styles.label}>ทะเบียน :</Text>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={license_no}
-          onValueChange={itemValue => setlicense_no(itemValue)}
-          style={styles.picker}>
-          <Picker.Item label="เลือกทะเบียน" value="" />
-          <Picker.Item label="ABC-1234" value="ABC-1234" />
-          <Picker.Item label="XYZ-5678" value="XYZ-5678" />
-        </Picker>
       </View>
-
-      <Text style={styles.label}>เลขไมล์ :</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        value={mile}
-        onChangeText={text => setMile(text.replace(/[^0-9]/g, ''))} // กันพิมพ์ตัวอักษร
-        placeholder="ระบุเลขไมล์"
-      />
-
-      <Text style={styles.label}>จำนวน (ลิตร) :</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        value={liter}
-        onChangeText={text => setliter(text.replace(/[^0-9.]/g, ''))} // รองรับทศนิยม
-        placeholder="0.00"
-      />
-
-      <Text style={styles.label}>จำนวน (บาท) :</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        value={price}
-        onChangeText={text => setprice(text.replace(/[^0-9.]/g, ''))} // รองรับทศนิยม
-        placeholder="0.00"
-      />
-
-      {/* ปุ่มบันทึกข้อมูล */}
-      <TouchableOpacity
-        style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-        onPress={handleSubmit}
-        disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.submitButtonText}>บันทึกข้อมูล</Text>
-        )}
-      </TouchableOpacity>
-
-      <View style={{height: 40}} />
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#93D500',
+  },
+
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#93D500',
   },
+
   contentContainer: {
-    padding: 20,
+    flexGrow: 1,
+    paddingTop: 20,
   },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 15,
+  },
+
+  backButton: {
+    fontSize: 45,
+    fontFamily: 'Quicksand-Bold',
+    color: '#fff',
+    marginRight: 10,
+    paddingTop: 34,
+    paddingLeft: 5,
+  },
+
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: 'Quicksand-Bold',
+    color: '#fff',
+    paddingTop: 48,
+    paddingLeft: 10,
+  },
+
+  card: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    width: '100%',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+
   label: {
-    fontFamily: 'bold',
-    marginTop: 20,
-    color: '#333',
+    marginTop: 18,
+    marginBottom: 8,
+    color: '#373737',
+    fontSize: 16,
+    fontFamily: 'Quicksand-Bold',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-    backgroundColor: '#fafafa',
-  },
+
   row: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  iconButton: {
-    marginLeft: 10,
-    marginTop: 8,
+
+  input: {
+    flex: 1,
+    height: 52,
+    borderWidth: 1,
+    borderColor: '#DADADA',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    backgroundColor: '#FAFAFA',
+    color: '#37373780',
+    fontSize: 14,
+    fontFamily: 'Quicksand-Medium',
   },
+
+  iconButton: {
+    position: 'absolute',
+    right: 14,
+  },
+
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginTop: 8,
-    backgroundColor: '#fafafa',
+    borderColor: '#DADADA',
+    borderRadius: 10,
+    backgroundColor: '#FAFAFA',
+    overflow: 'hidden',
   },
+
   picker: {
-    height: 50,
+    height: 52,
+    color: '#37373780',
+    fontFamily: 'Quicksand-Medium',
+    fontSize: 14,
   },
+
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
+
   modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
     width: '90%',
-  },
-  // Style สำหรับปุ่ม Submit
-  submitButton: {
-    backgroundColor: '#93D500',
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
+  },
+
+  submitButton: {
+    height: 50,
+    width: 220,
+    backgroundColor: '#93D500',
+    borderRadius: 10,
     justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 35,
-    elevation: 2, // เงาสำหรับ Android
-    shadowColor: '#000', // เงาสำหรับ iOS
+    elevation: 2,
+    shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    alignSelf: 'center',
+    flexDirection: 'row',
   },
+
   submitButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#CCCCCC',
   },
+
   submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: 'bold',
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontFamily: 'Quicksand-Bold',
+  },
+
+  iconbottom: {
+    alignItems: 'center',
+    paddingRight: 10,
   },
 });
 
