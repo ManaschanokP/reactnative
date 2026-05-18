@@ -143,7 +143,6 @@ function NavigationHandler() {
 
   return (
     <>
-    
       <StatusBar
         backgroundColor={user ? companyColor : null}
         barStyle="dark-content"
@@ -183,32 +182,39 @@ function MainApp({
 
   return (
     <>
-
-     <StatusBar
-      backgroundColor="#ffffff"
-      barStyle="dark-content"
-    />
+      <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
       <Stack.Navigator
         screenOptions={{
-        headerStyle: {
-          backgroundColor: user ? companyColor : '#F5A800',
-        },
-        headerTintColor: '#fdfdfd',
-        headerTitleStyle: {fontFamily: 'Quicksand-Bold'},
-      }}>
-
+          headerStyle: {
+            backgroundColor: user ? companyColor : '#F5A800',
+          },
+          headerTintColor: '#fdfdfd',
+          headerTitleStyle: {fontFamily: 'Quicksand-Bold'},
+        }}>
         {user ? (
           <>
             <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{headerShown: false}}
-          />
-            <Stack.Screen name="ViewDetail" component={ViewDetailScreen} options={{ title: 'Jobs Detail' }}/>
+              name="Home"
+              component={HomeScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="ViewDetail"
+              component={ViewDetailScreen}
+              options={{title: 'Jobs Detail'}}
+            />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />
-            <Stack.Screen name="FuelEntry" component={FuelEntryScreen} />
-            <Stack.Screen name="JobList" component={JobListScreen} options={{headerShown: false}}/>
+            <Stack.Screen
+              name="FuelEntry"
+              component={FuelEntryScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="JobList"
+              component={JobListScreen}
+              options={{headerShown: false}}
+            />
             <Stack.Screen
               name="Profile"
               component={ProfileScreen}
