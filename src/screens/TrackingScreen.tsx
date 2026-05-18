@@ -1,20 +1,13 @@
 import React, {useEffect, useState, useContext} from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Image,
-  Modal,
-  SafeAreaView,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  ActivityIndicator, Alert, Image, Modal, SafeAreaView,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
 import {AuthContext} from '../context/AuthProvider';
 import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Tracking'>;
 
@@ -28,32 +21,28 @@ interface Track {
   esig_req: string | null;
 }
 
+const PICTURE_BASE_URL = 'http://172.16.1.230/logistics/';
+
 export default function TrackingScreen({route, navigation}: Props) {
   const {requestId} = route.params;
-  const {user} = useContext(AuthContext)!;
+  const {companyColor} = useContext(AuthContext)!;
+  const color = companyColor ?? '#a7cc43';
 
-  const [trackList, setTrackList] = useState<Track[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [trackList,     setTrackList]     = useState<Track[]>([]);
+  const [loading,       setLoading]       = useState(true);
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
 
-  useEffect(() => {
-    fetchTracking();
-  }, []);
-
-  console.log('📦 route.params:', route.params);
+  useEffect(() => { fetchTracking(); }, []);
 
   const fetchTracking = async () => {
     try {
       setLoading(true);
       const baseUrl = await getBaseUrlByCompany();
       const url = `${baseUrl}${API_ENDPOINTS.TRACK}`;
-      console.log('url', url);
       const formData = new FormData();
       formData.append('request_id', requestId);
-      console.log('formData', formData);
       const res = await fetch(url, {method: 'POST', body: formData});
       const obj = await res.json();
-
       if (!obj.error) {
         setTrackList(obj.Track ?? []);
       } else {
@@ -61,26 +50,21 @@ export default function TrackingScreen({route, navigation}: Props) {
       }
     } catch (e) {
       Alert.alert('ข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลได้');
-      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  //ดึง base URL สำหรับรูปภาพ
-  const PICTURE_BASE_URL = 'http://172.16.1.230/logistics/';
-
-  const getImageUri = (value: string | null | undefined) => {
+  const getImageUri = (value: string | null | undefined): string | null => {
     if (!value || value.trim() === '') return null;
     if (value.startsWith('http') || value.startsWith('data:')) return value;
-    //ต่อ URL เสมอ
     return `${PICTURE_BASE_URL}${value}`;
   };
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2bbbad" />
+        <ActivityIndicator size="large" color={color} />
         <Text style={styles.loadingText}>กำลังโหลดข้อมูล...</Text>
       </View>
     );
@@ -88,158 +72,194 @@ export default function TrackingScreen({route, navigation}: Props) {
 
   return (
     <View style={styles.wrapper}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}>
-        {/* Request ID */}
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+
+        {/* Request ID Card */}
         <View style={styles.card}>
           <Text style={styles.requestId}>{requestId}</Text>
         </View>
 
         {/* Track Table */}
         <View style={styles.card}>
-          <View style={[styles.row, styles.headerRow]}>
-            <Text style={[styles.headerCell, {flex: 1.3}]}>Date</Text>
+          {/* Header */}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.headerCell, {flex: 1.4}]}>Date</Text>
             <Text style={[styles.headerCell, {flex: 1.1}]}>Time</Text>
             <Text style={[styles.headerCell, {flex: 2}]}>Status</Text>
-            <Text style={[styles.headerCell, {flex: 1.5}]}>Remark</Text>
+            <Text style={[styles.headerCell, {flex: 1.4}]}>Remark</Text>
           </View>
 
           {trackList.length === 0 ? (
             <Text style={styles.empty}>ไม่พบข้อมูล</Text>
           ) : (
             trackList.map((track, index) => {
-              //เช็คว่าสถานะคือ "การจัดส่งสำเร็จ" ถึงจะอนุญาตให้แสดงลายเซ็น
-              const isDeliverySuccess = track.status_name === 'การจัดส่งสำเร็จ';
-              const showSignatureIcon =
-                getImageUri(track.esig_cus) && isDeliverySuccess;
+              const hasPicture  = !!getImageUri(track.picture);
+              const hasSignature =
+                !!getImageUri(track.esig_cus) &&
+                track.status_name === 'การจัดส่งสำเร็จ';
 
               return (
                 <TouchableOpacity
                   key={index}
                   style={[
-                    styles.row,
+                    styles.tableRow,
                     index % 2 === 0 ? styles.rowEven : styles.rowOdd,
                   ]}
                   onPress={() => setSelectedTrack(track)}
-                  activeOpacity={0.7}>
-                  <Text style={[styles.cell, {flex: 1.3}]}>{track.date}</Text>
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.cell, {flex: 1.4}]}>{track.date}</Text>
                   <Text style={[styles.cell, {flex: 1.1}]}>{track.time}</Text>
-                  <Text
-                    style={[
-                      styles.cell,
-                      {flex: 2},
-                      !!(track.picture || showSignatureIcon) &&
-                        styles.cellHighlight,
-                    ]}>
-                    {track.status_name}
-                    {getImageUri(track.picture) ? ' 🖼' : ''}
-                    {showSignatureIcon ? ' ✍️' : ''}
+
+                  {/* Status + icons */}
+                  <View style={[styles.cellRow, {flex: 2}]}>
+                    <Text
+                      style={[
+                        styles.cell,
+                        (hasPicture || hasSignature) && {color},
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {track.status_name}
+                    </Text>
+                    {hasPicture && (
+                      <Icon
+                        name="image"
+                        size={13}
+                        color={color}
+                        style={styles.cellIcon}
+                      />
+                    )}
+                    {hasSignature && (
+                      <Icon
+                        name="signature"
+                        size={13}
+                        color={color}
+                        style={styles.cellIcon}
+                      />
+                    )}
+                  </View>
+
+                  <Text style={[styles.cell, {flex: 1.4}]} numberOfLines={0}>
+                    {track.detail}
                   </Text>
-                  <Text style={[styles.cell, {flex: 1.5}]}>{track.detail}</Text>
                 </TouchableOpacity>
               );
             })
           )}
         </View>
 
-        <TouchableOpacity
-          style={styles.closeBtn}
-          onPress={() => navigation.goBack()}>
-          <Text style={styles.closeBtnText}>Close</Text>
-        </TouchableOpacity>
-
+        {/* Close Button */}
+        <View style={styles.closebt}>
+          <TouchableOpacity
+            style={[styles.closeBtn, {backgroundColor: color}]}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.closeBtnText}>Close</Text>
+          </TouchableOpacity>
+        </View>
         <View style={{height: 40}} />
       </ScrollView>
-
-      {/* Modal */}
+      
+      {/* Detail Modal */}
       <Modal
         visible={!!selectedTrack}
         transparent
         animationType="slide"
-        onRequestClose={() => setSelectedTrack(null)}>
+        onRequestClose={() => setSelectedTrack(null)}
+      >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setSelectedTrack(null)}>
+          onPress={() => setSelectedTrack(null)}
+        >
           <TouchableOpacity
             style={styles.modalContainer}
             activeOpacity={1}
-            onPress={e => e.stopPropagation()}>
+            onPress={e => e.stopPropagation()}
+          >
             <SafeAreaView style={styles.modalInner}>
-              {/* Header */}
+              {/* Modal Header */}
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>รายละเอียด</Text>
+                <Text style={[styles.modalTitle, {color}]}>รายละเอียด</Text>
                 <TouchableOpacity
                   onPress={() => setSelectedTrack(null)}
-                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                >
                   <Text style={styles.modalXBtn}>✕</Text>
                 </TouchableOpacity>
               </View>
 
               <ScrollView
+            
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.modalScrollContent}>
-                <DetailRow label="วันที่" value={selectedTrack?.date ?? ''} />
-                <DetailRow label="เวลา" value={selectedTrack?.time ?? ''} />
-                <DetailRow
-                  label="สถานะ"
-                  value={selectedTrack?.status_name ?? ''}
-                />
-                <DetailRow
-                  label="รายละเอียด"
-                  value={selectedTrack?.detail ?? ''}
-                />
+                contentContainerStyle={styles.modalScrollContent}
+              >
+                <DetailRow label="วันที่"      value={selectedTrack?.date ?? ''} />
+                <DetailRow label="เวลา"        value={selectedTrack?.time ?? ''} />
+                <DetailRow label="สถานะ"       value={selectedTrack?.status_name ?? ''} />
+                <DetailRow label="รายละเอียด"  value={selectedTrack?.detail ?? ''} />
 
                 {/* รูปภาพ */}
                 {!!getImageUri(selectedTrack?.picture) && (
                   <View style={styles.imageSection}>
-                    <Text style={styles.detailLabel}>รูปภาพ :</Text>
+                    <View style={styles.imageLabelRow}>
+                      <Icon name="image" size={14} color={color} />
+                      <Text style={[styles.detailLabel, {color, marginLeft: 6}]}>
+                        รูปภาพ :
+                      </Text>
+                    </View>
                     <Image
                       source={{uri: getImageUri(selectedTrack!.picture)!}}
                       style={styles.trackImage}
                       resizeMode="contain"
-                      onError={e =>
-                        console.log('picture error:', e.nativeEvent.error)
-                      }
                     />
                   </View>
                 )}
 
-                {/*ลายเซ็นผู้รับสินค้า (แสดงเฉพาะสถานะ 'การจัดส่งสำเร็จ') */}
+                {/* ลายเซ็นผู้รับสินค้า */}
                 {!!getImageUri(selectedTrack?.esig_cus) &&
                   selectedTrack?.status_name === 'การจัดส่งสำเร็จ' && (
-                    <View style={styles.imageSection}>
-                      <Text style={styles.detailLabel}>
+                  <View style={styles.imageSection}>
+                    <View style={styles.imageLabelRow}>
+                      <Icon name="signature" size={14} color={color} />
+                      <Text style={[styles.detailLabel, {color, marginLeft: 6}]}>
                         ลายเซ็นผู้รับสินค้า :
                       </Text>
-                      <Image
-                        source={{uri: getImageUri(selectedTrack!.esig_cus)!}}
-                        style={styles.signatureImage}
-                        resizeMode="contain"
-                      />
                     </View>
-                  )}
+                    <Image
+                      source={{uri: getImageUri(selectedTrack!.esig_cus)!}}
+                      style={styles.signatureImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                )}
 
-                {/* ลายเซ็นผู้ส่ง (แสดงเฉพาะสถานะ 'การจัดส่งสำเร็จ') */}
+                {/* ลายเซ็นผู้ส่ง */}
                 {!!getImageUri(selectedTrack?.esig_req) &&
                   selectedTrack?.status_name === 'การจัดส่งสำเร็จ' && (
-                    <View style={styles.imageSection}>
-                      <Text style={styles.detailLabel}>ลายเซ็นผู้ส่ง :</Text>
-                      <Image
-                        source={{uri: getImageUri(selectedTrack!.esig_req)!}}
-                        style={styles.signatureImage}
-                        resizeMode="contain"
-                      />
+                  <View style={styles.imageSection}>
+                    <View style={styles.imageLabelRow}>
+                      <Icon name="signature" size={14} color={color} />
+                      <Text style={[styles.detailLabel, {color, marginLeft: 6}]}>
+                        ลายเซ็นผู้ส่ง :
+                      </Text>
                     </View>
-                  )}
-
+                    <Image
+                      source={{uri: getImageUri(selectedTrack!.esig_req)!}}
+                      style={styles.signatureImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                )}
+                <View style={styles.closebt}>
                 <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setSelectedTrack(null)}>
+                  style={[styles.modalClose, {backgroundColor: color}]}
+                  onPress={() => setSelectedTrack(null)}
+                >
                   <Text style={styles.modalCloseText}>ปิด</Text>
                 </TouchableOpacity>
-
+                </View>
                 <View style={{height: 20}} />
               </ScrollView>
             </SafeAreaView>
@@ -258,108 +278,118 @@ const DetailRow = ({label, value}: {label: string; value: string}) => (
 );
 
 const styles = StyleSheet.create({
-  wrapper: {flex: 1, backgroundColor: '#f0f0f0'},
-  container: {flex: 1},
-  content: {padding: 12},
-  center: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  wrapper:     {flex: 1, backgroundColor: '#f0f0f0'},
+  container:   {flex: 1,backgroundColor: '#fff',borderRadius:    8,},
+  content:     {padding: 12},
+  center:      {flex: 1, justifyContent: 'center', alignItems: 'center'},
   loadingText: {marginTop: 12, color: '#666'},
+
+  scrollview:{
+    fontFamily: 'Quicksand-Bold',
+    fontSize:   16,
+    color:'#666'
+  },
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    elevation: 1,
+    borderRadius:    8,
+    padding:         12,
+    marginBottom:    10,
+    borderWidth:     1,
+    borderColor:     '#ddd',
+    elevation:       1,
   },
-  requestId: { fontSize: 15, color: '#333', fontFamily: '500' },
+  requestId: {fontSize: 15, fontFamily: 'Quicksand-Bold', color: '#333'},
 
-  row: {
-    flexDirection: 'row',
-    paddingVertical: 9,
+  // Table
+  tableRow: {
+    flexDirection:     'row',
+    paddingVertical:   9,
     paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    alignItems:        'center',
   },
   headerRow: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor:   '#f8f9fa',
     borderBottomWidth: 2,
     borderBottomColor: '#dee2e6',
   },
-  headerCell: { fontSize: 12, fontFamily: 'bold', color: '#333', textAlign: 'center' },
-  rowEven: { backgroundColor: '#fff' },
-  rowOdd: { backgroundColor: '#f8f9fa' },
-  cell: { fontSize: 11, color: '#444', textAlign: 'center' },
-  cellHighlight: { color: '#2bbbad', fontFamily: '600' },
-  empty: { textAlign: 'center', color: '#aaa', paddingVertical: 20 },
+  headerCell: {fontSize: 12, fontFamily: 'Quicksand-Bold', color: '#333', textAlign: 'center'},
+  rowEven:    {backgroundColor: '#fff'},
+  rowOdd:     {backgroundColor: '#93D5001A'},
+  cell:       {fontSize: 11, color: '#444', textAlign: 'center'},
+  cellRow:    {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap'},
+  cellIcon:   {marginLeft: 4},
+  empty:      {textAlign: 'center', color: '#aaa', paddingVertical: 20},
 
   closeBtn: {
-    backgroundColor: '#2bbbad',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
+     flexDirection:  'row',
+    padding:        12,
+    borderRadius:   12,
+    width:          '70%',
+    alignItems:     'center',
+    justifyContent: 'center',
+    
   },
-  closeBtnText: { color: '#fff', fontSize: 15, fontFamily: 'bold' },
-
+  closeBtnText: {color: '#fff', fontSize: 16, fontFamily: 'Quicksand-Bold'},
+  closebt:    {marginVertical: 12, alignItems: 'center'},
   // Modal
   modalOverlay: {
-    flex: 1,
+    flex:            1,
     backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
+    justifyContent:  'flex-end',
   },
   modalContainer: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
+    backgroundColor:     '#fff',
+    borderTopLeftRadius:  20,
     borderTopRightRadius: 20,
-    height: '92%',
-    overflow: 'hidden',
+    height:              '90%',
+    overflow:            'hidden',
   },
-  modalInner: {
-    flex: 1,
-    padding: 20,
-  },
+  modalInner:        {flex: 1, padding: 20},
+  modalScrollContent: {paddingBottom: 20},
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
+    flexDirection:     'row',
+    justifyContent:    'space-between',
+    alignItems:        'center',
+    marginBottom:      16,
+    paddingBottom:     12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  modalTitle: { fontSize: 17, fontFamily: 'bold', color: '#2bbbad' },
-  modalXBtn: { fontSize: 20, color: '#999' },
-  modalScrollContent: { paddingBottom: 20 },
+  modalTitle: {fontSize: 16, fontFamily: 'Quicksand-Bold'},
+  modalXBtn:  {fontSize: 20, color: '#999'},
 
-  detailRow: { flexDirection: 'row', marginBottom: 10 },
-  detailLabel: { fontFamily: 'bold', fontSize: 13, color: '#555', width: 130 },
-  detailValue: { fontSize: 13, color: '#333', flex: 1 },
+  detailRow:   {flexDirection: 'row', marginBottom: 10},
+  detailLabel: {fontFamily: 'Quicksand-Bold', fontSize: 14, color: '#555', width: 130},
+  detailValue: {fontSize: 14, color: '#333', flex: 1},
 
-  imageSection: {marginTop: 12},
+  imageLabelRow: {flexDirection: 'row', alignItems: 'center', marginBottom: 4},
+  imageSection:  {marginTop: 12},
   trackImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: 10,
-    marginTop: 8,
+    width:           '100%',
+    height:          220,
+    borderRadius:    10,
+    marginTop:       8,
     backgroundColor: '#f0f0f0',
   },
   signatureImage: {
-    width: '100%',
-    height: 140,
-    borderRadius: 10,
-    marginTop: 8,
+    width:           '100%',
+    height:          140,
+    borderRadius:    10,
+    marginTop:       8,
     backgroundColor: '#f9f9f9',
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderWidth:     1,
+    borderColor:     '#eee',
   },
 
   modalClose: {
-    backgroundColor: '#2bbbad',
-    borderRadius: 10,
+    borderRadius:    10,
     paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 20,
+    alignItems:      'center',
+    marginTop:       20,
+    width:        '70%',
   },
-  modalCloseText: { color: '#fff', fontFamily: 'bold', fontSize: 15 },
+  modalCloseText: {color: '#fff', fontFamily: 'Quicksand-Bold', fontSize: 16},
 });

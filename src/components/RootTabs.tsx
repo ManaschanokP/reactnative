@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   navButtonText: {
     fontSize:   11,
-    fontFamily: 'Quicksand-Medium',
+    fontFamily: 'Quicksand-Bold',
   },
 });
 
