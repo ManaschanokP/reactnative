@@ -15,6 +15,8 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {getCompanyColor} from '../context/AuthProvider';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Icon6 from 'react-native-vector-icons/FontAwesome6';
+import Icons from 'react-native-vector-icons/Ionicons';
+import IconO from 'react-native-vector-icons/Octicons';
 
 
 type RootStackParamList = {
@@ -185,6 +187,12 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 <TouchableOpacity
                   style={styles.startButton}
                   onPress={handleStartWork}>
+                  <Icons
+                  name="play-skip-back-circle-sharp"
+                  size={24}
+                  color="#ffffff"
+                  style={styles.iconbottom}
+                />
                   <Text style={styles.buttonText}>เริ่มงาน</Text>
                 </TouchableOpacity>
               )}
@@ -192,6 +200,12 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => navigation.goBack()}>
+                  <IconO
+                  name="x-circle-fill"
+                  size={20}
+                  color="#ffffff"
+                  style={styles.iconbottom}
+                />
                 <Text style={styles.buttonText}>ปิด</Text>
               </TouchableOpacity>
             </View>
@@ -259,11 +273,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 20,
-    marginTop: 45,
+    marginTop: 35,
+    marginBottom: 45,
   },
 
   startButton: {
-    backgroundColor: '#97d700',
+    flexDirection: 'row',
+    backgroundColor: '#93D500',
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 10,
@@ -272,7 +288,8 @@ const styles = StyleSheet.create({
   },
 
   closeButton: {
-    backgroundColor: '#d90000',
+    flexDirection: 'row',
+    backgroundColor: '#D00000',
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 10,
@@ -280,10 +297,15 @@ const styles = StyleSheet.create({
     minWidth: 120,
   },
 
+  iconbottom:{
+    alignItems:'center',
+    paddingRight: 10,
+  },
+
   buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontFamily: 'bold',
+    fontSize: 14,
+    fontFamily: 'Quicksand-Bold',
   },
 
   //request ID
@@ -302,16 +324,16 @@ const styles = StyleSheet.create({
   },
 
   requestLabel: {
-    fontSize: 15,
-    color: '#333',
+    fontSize: 12,
+    color: '#373737',
     marginBottom: 4,
-    fontFamily: 'regular',
+    fontFamily: 'Quicksand-SemiBold',
   },
 
   requestId: {
-    fontSize: 28,
+    fontSize: 24,
     color: '#93D500',
-    fontFamily: 'bold',
+    fontFamily: 'Quicksand-Bold',
     marginBottom: 10,
   },
 
@@ -327,22 +349,22 @@ const styles = StyleSheet.create({
   },
 
   statusBadgeText: {
-    fontSize: 14,
-    color: '#333',
-    fontFamily: 'bold',
+    fontSize: 12,
+    color: '#373737',
+    fontFamily: 'Quicksand-Bold',
   },
 
   statusDot: {
-    width: 12,
-    height: 12,
+    width: 10,
+    height: 10,
     borderRadius: 10,
-    backgroundColor: '#333',
+    backgroundColor: '#373737',
     marginLeft: 10,
   },
 
   document: {
     width: 30,
-    height: 25,
+    height: 30,
     paddingRight: 50,
   },
 
@@ -365,15 +387,15 @@ icon: {
 },
 
 label: {
-  fontSize: 14,
-  color: '#9E9E9E',
+  fontSize: 12,
+  color: '#37373780',
   marginBottom: 4,
-  fontFamily: 'Kanit-Regular',
+  fontFamily: 'Quicksand-SemiBold',
 },
 
 value: {
-  fontSize: 18,
-  color: '#333',
-  fontFamily: 'Kanit-SemiBold',
+  fontSize: 16,
+  color: '#373737',
+  fontFamily: 'Quicksand-Bold',
 },
 });
