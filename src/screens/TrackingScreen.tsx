@@ -155,7 +155,7 @@ export default function TrackingScreen({route, navigation}: Props) {
             style={[styles.closeBtn, {backgroundColor: color}]}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.closeBtnText}>Close</Text>
+            <Text style={styles.closeBtnText}>ปิด</Text>
           </TouchableOpacity>
         </View>
         <View style={{height: 40}} />
