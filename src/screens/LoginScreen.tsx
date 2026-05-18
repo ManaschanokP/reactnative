@@ -279,8 +279,8 @@ const styles = StyleSheet.create({
     fontSize: width * 0.075,
     fontWeight: '700',
     color: '#2D2D2D',
-
     textAlign: 'center',
+    fontFamily: 'Quicksand-Bold',
   },
 
   inputGroup: {
@@ -290,11 +290,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     color: '#6C7278',
-
     marginBottom: 10,
     marginLeft: 4,
-
     fontWeight: '500',
+    fontFamily: 'Quicksand-Medium',
   },
 
   inputContainer: {
