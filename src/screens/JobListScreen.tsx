@@ -7,7 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,Image,
-  useWindowDimensions,
+  useWindowDimensions,Dimensions,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DatePicker, { DateType } from 'react-native-ui-datepicker';
@@ -81,6 +81,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
 
   const { width } = useWindowDimensions();
   const numColumns = width >= 600 ? 2 : 1;
+  const { height} = Dimensions.get('window');
 
   useFocusEffect(
     useCallback(() => {
@@ -339,7 +340,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
            <View style={styles.centered}>
               <Image
                 source={require('../../assets/NoJob3.png')}
-                style={[styles.delivery, {width: width * 0.82}]}
+                style={[styles.delivery, ]}
                 resizeMode="contain"
               />
               <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
@@ -585,9 +586,9 @@ footerItemRight: {
   },
   delivery: {
     
-    height: 278,
-    
-    marginBottom: 24,
+    height: 182,
+    alignSelf: 'center',
+    marginBottom: 35,
   },
 });
 

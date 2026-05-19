@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
   flexGrow: 1,
 },
 delivery: {
+   height: 278,
     marginBottom: 24,
   },
 

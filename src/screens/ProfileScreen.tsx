@@ -125,7 +125,7 @@ const doSubmit = async () => {
   <Modal transparent visible={showConfirmLogout} animationType="fade">
     <View style={modalStyles.overlay}>
       <View style={modalStyles.box}>
-        <View style={[modalStyles.iconCircle, {backgroundColor:  '#FBC900'}]}>
+        <View style={[modalStyles.iconCircle, {backgroundColor:  '#F5A800'}]}>
           <Text style={modalStyles.iconText}>!</Text>
         </View>
         <Text style={modalStyles.title}>ออกจากระบบ</Text>
