@@ -567,7 +567,7 @@ const modalStyles = StyleSheet.create({
   },
 
   singleButton: {
-    width: '100%',
+    width: '70%',
     height: 48,
     borderRadius: 12,
     justifyContent: 'center',
@@ -575,7 +575,7 @@ const modalStyles = StyleSheet.create({
   },
 
   fullBtn: {
-    width: '100%',
+    width: '70%',
     height: 48,
     borderRadius: 12,
     justifyContent: 'center',
@@ -584,7 +584,7 @@ const modalStyles = StyleSheet.create({
 
   cancelText: {
     color: '#333',
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Quicksand-Bold',
   },
 

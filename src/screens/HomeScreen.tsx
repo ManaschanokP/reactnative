@@ -8,6 +8,8 @@ import {
   Alert,
   Image,
   Dimensions,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native'; // เพิ่ม TextInput, Alert
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -57,72 +59,76 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <>
-      <SafeAreaView style={{flex: 1}}>
-        <View style={styles.hello1}>
-          <Text style={styles.hello}>สวัสดี , {user?.name?.split(' ')[0]}</Text>
-        </View>
-        <View style={styles.container}>
-          <Image
-            source={require('../../assets/Delivery3.png')}
-            style={styles.delivery}
-            resizeMode="contain"
-          />
-          <View style={styles.searchBox}>
-            <TextInput
-              placeholder="ป้อนหมายเลขติดตาม"
-              value={searchId}
-              onChangeText={text => {
-                const formatted = formatRequestId(text);
-                setSearchId(formatted);
-              }}
-              style={styles.input}
-              onSubmitEditing={handleSearch}
-            />
-
-            <TouchableOpacity
-              style={[styles.searchButton, {backgroundColor: companyColor}]}
-              onPress={handleSearch}>
-              <Icon name="search" size={26} color="#fff" />
-            </TouchableOpacity>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={{flex: 1}}>
+          <View style={styles.hello1}>
+            <Text style={styles.hello}>
+              สวัสดี , {user?.name?.split(' ')[0]}
+            </Text>
           </View>
-
-          <View style={styles.orContainer}>
-            <View style={styles.line} />
-
-            <Text style={styles.orText}>Or</Text>
-
-            <View style={styles.line} />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button]}
-            onPress={() => {
-              console.log('Scan QR-Code Pressed');
-              navigation.navigate('Scan');
-            }}>
-            <Icon
-              name="qr-code-scanner"
-              size={28}
-              color="#373737"
-              style={styles.leftIcon}
+          <View style={styles.container}>
+            <Image
+              source={require('../../assets/Delivery3.png')}
+              style={styles.delivery}
+              resizeMode="contain"
             />
-            <Text style={styles.buttonText}>Scan QR-Code</Text>
-          </TouchableOpacity>
+            <View style={styles.searchBox}>
+              <TextInput
+                placeholder="ป้อนหมายเลขติดตาม"
+                value={searchId}
+                onChangeText={text => {
+                  const formatted = formatRequestId(text);
+                  setSearchId(formatted);
+                }}
+                style={styles.input}
+                onSubmitEditing={handleSearch}
+              />
 
-          {isDriverOrMessenger && (
+              <TouchableOpacity
+                style={[styles.searchButton, {backgroundColor: companyColor}]}
+                onPress={handleSearch}>
+                <Icon name="search" size={26} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.orContainer}>
+              <View style={styles.line} />
+
+              <Text style={styles.orText}>Or</Text>
+
+              <View style={styles.line} />
+            </View>
+
             <TouchableOpacity
               style={[styles.button]}
-              onPress={() => navigation.navigate('FuelEntry')}>
-              <Image
-                source={require('../../assets/fuel.png')}
-                style={styles.vectoricon}
-                resizeMode="contain"
+              onPress={() => {
+                console.log('Scan QR-Code Pressed');
+                navigation.navigate('Scan');
+              }}>
+              <Icon
+                name="qr-code-scanner"
+                size={28}
+                color="#373737"
+                style={styles.leftIcon}
               />
-              <Text style={styles.buttonText}>น้ำมัน</Text>
+              <Text style={styles.buttonText}>Scan QR-Code</Text>
             </TouchableOpacity>
-          )}
-        </View>
-      </SafeAreaView>
+
+            {isDriverOrMessenger && (
+              <TouchableOpacity
+                style={[styles.button]}
+                onPress={() => navigation.navigate('FuelEntry')}>
+                <Image
+                  source={require('../../assets/fuel.png')}
+                  style={styles.vectoricon}
+                  resizeMode="contain"
+                />
+                <Text style={styles.buttonText}>น้ำมัน</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
     </>
   );
 };
@@ -166,7 +172,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
-  vectoricon:{
+  vectoricon: {
     width: 25,
     height: 25,
     paddingRight: 50,
