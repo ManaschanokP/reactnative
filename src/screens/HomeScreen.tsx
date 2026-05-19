@@ -10,6 +10,7 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
+  Modal,
 } from 'react-native'; // เพิ่ม TextInput, Alert
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -22,6 +23,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen: React.FC<Props> = ({navigation}) => {
   const {user, companyColor} = useContext(AuthContext)!;
+
   //เพิ่ม state สำหรับค้นหา
   const [searchId, setSearchId] = useState('');
   console.log('User Home Screen:', user);
@@ -30,13 +32,15 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   //เพิ่ม function ค้นหา
   const handleSearch = () => {
     if (!searchId.trim()) {
-      Alert.alert('แจ้งเตือน', 'กรุณากรอก Request ID');
+      setShowWarning(true);
       return;
     }
     navigation.navigate('Tracking', {
       requestId: searchId,
     });
   };
+
+  const [showWarning, setShowWarning] = useState(false);
 
   const isDriverOrMessenger = user?.status === 'U04' || user?.status === 'U05';
   //format function
@@ -129,6 +133,31 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           </View>
         </SafeAreaView>
       </TouchableWithoutFeedback>
+
+      {/* WARNING MODAL */}
+      <Modal transparent visible={showWarning} animationType="fade">
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.box}>
+            <View
+              style={[modalStyles.iconCircle, {backgroundColor: '#F5A800'}]}>
+              <Text style={modalStyles.iconText}>!</Text>
+            </View>
+
+            <Text style={modalStyles.title}>แจ้งเตือน</Text>
+
+            <Text style={modalStyles.message}>กรุณากรอก Request ID</Text>
+
+            <TouchableOpacity
+              style={[
+                modalStyles.singleButton,
+                {backgroundColor: companyColor},
+              ]}
+              onPress={() => setShowWarning(false)}>
+              <Text style={modalStyles.confirmText}>ตกลง</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -250,6 +279,68 @@ const styles = StyleSheet.create({
     paddingLeft: '8%',
     paddingTop: '10%',
     paddingBottom: 0,
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+
+  box: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+  },
+
+  iconCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+
+  iconText: {
+    fontSize: 38,
+    color: '#fff',
+    fontFamily: 'Quicksand-Bold',
+  },
+
+  title: {
+    fontSize: 28,
+    color: '#222',
+    fontFamily: 'Quicksand-Bold',
+    marginBottom: 10,
+  },
+
+  message: {
+    fontSize: 14,
+    color: '#373737',
+    textAlign: 'center',
+    fontFamily: 'Quicksand-Medium',
+    marginBottom: 24,
+  },
+
+  singleButton: {
+    width: '70%',
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  confirmText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Quicksand-Bold',
   },
 });
 
