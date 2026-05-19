@@ -196,7 +196,7 @@ const doSubmit = async () => {
           <Text style={modalStyles.iconCheck}>✓</Text>
         </View>
         <Text style={modalStyles.title}>สำเร็จ</Text>
-        <Text style={modalStyles.message}>{successMessage}</Text>
+        <Text style={modalStyles.message}>บันทึกข้อมูลสำเร็จ</Text>
         <TouchableOpacity
           style={[modalStyles.fullBtn, {backgroundColor: companyColor ?? '#a7cc43'}]}
           onPress={async () => {

@@ -7,7 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,Image,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DatePicker, { DateType } from 'react-native-ui-datepicker';
@@ -79,6 +79,8 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
 
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
+  const { width } = useWindowDimensions();
+  const numColumns = width >= 600 ? 2 : 1;
 
   useFocusEffect(
     useCallback(() => {
@@ -101,39 +103,48 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const fetchJobs = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await getMyJobs({
-        driver: user.id,
-        start: toApiDate(startDate),
-        end: toApiDate(endDate),
-        status,
-      });
-      if (response.error) {
-        setJobs([]);
-        setError(response.message ?? 'ไม่พบข้อมูล');
-        return;
-      }
-      const sorted = [...response.MyJobs].sort((a, b) => {
-        const parseDate = (date: string, time: string) => {
-          if (date.includes('/')) {
-            const [d, m, y] = date.split('/');
-            return new Date(`${y}-${m}-${d} ${time}`).getTime();
-          }
-          return new Date(`${date} ${time}`).getTime();
-        };
-        return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
-      });
-      setJobs(sorted);
-    } catch (err) {
-      setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
-      console.error(err);
-    } finally {
-      setLoading(false);
+ const fetchJobs = async (currentStatus = status) => {  // ✅ รับค่าตรงๆ ไม่ใช้ closure
+  try {
+    setLoading(true);
+    setError(null);
+    const response = await getMyJobs({
+      driver: user.id,
+      start:  toApiDate(startDate),
+      end:    toApiDate(endDate),
+      status: '01',
+    });
+    if (response.error) {
+      setJobs([]);
+      setError(response.message ?? 'ไม่พบข้อมูล');
+      return;
     }
-  };
+    const sorted = [...response.MyJobs].sort((a, b) => {
+      const parseDate = (date: string, time: string) => {
+        if (date.includes('/')) {
+          const [d, m, y] = date.split('/');
+          return new Date(`${y}-${m}-${d} ${time}`).getTime();
+        }
+        return new Date(`${date} ${time}`).getTime();
+      };
+      return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
+    });
+
+    const filtered = sorted.filter(job => {
+      if (currentStatus === '01') return true;
+      if (currentStatus === '02') return job.status_id !== 'SD09' && job.status_id !== 'SD04';
+      if (currentStatus === '03') return job.status_id === 'SD09' || job.status_name === 'ดำเนินการสำเร็จ';
+      if (currentStatus === '04') return job.status_id === 'SD04' || job.status_name === 'พบปัญหา';
+      return true;
+    });
+
+    setJobs(filtered);
+  } catch (err) {
+    setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const renderItem = ({ item }: { item: JobItem }) => {
     const statusStyle = getStatusStyle(item.status_id, item.status_name);
@@ -309,11 +320,11 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
   </View>
 
   <TouchableOpacity
-    style={[styles.searchBtn, {backgroundColor: companyColor}]}
-    onPress={fetchJobs}
-  >
-    <Icon name="search" size={22} color="#fff" />
-  </TouchableOpacity>
+  style={[styles.searchBtn, {backgroundColor: companyColor}]}
+  onPress={() => fetchJobs(status)}  // ✅ ส่ง status ตรงๆ
+>
+  <Icon name="search" size={22} color="#fff" />
+</TouchableOpacity>
 </View>
       </View>
 
@@ -327,10 +338,10 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           
            <View style={styles.centered}>
               <Image
-            source={require('../../assets/NoJob3.png')}
-            style={styles.delivery}
-            resizeMode="contain"
-          />
+                source={require('../../assets/NoJob3.png')}
+                style={[styles.delivery, {width: width * 0.82}]}
+                resizeMode="contain"
+              />
               <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
             </View>
         </View>
@@ -339,7 +350,10 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           data={jobs}
           keyExtractor={item => item.request_id}
           renderItem={renderItem}
+          key={numColumns}                          // ✅ force re-render
+          numColumns={numColumns}
           contentContainerStyle={styles.listContent}
+          columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
           onRefresh={fetchJobs}
           refreshing={loading}
           ListEmptyComponent={
@@ -359,11 +373,15 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
     </View>
   );
 };
-const {width, height} = Dimensions.get('window');
+
 
 const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: '#f4f6f8' },
-  listContent:  { padding: 12, gap: 10 },
+  listContent: {
+    padding:  12,
+    gap:      10,
+    flexGrow: 1,
+},
 
   // Filter bar
   filterBar: {
@@ -465,7 +483,10 @@ dropdownItemText: {
     alignItems:   'center',
     elevation:    2,
   },
-
+columnWrapper: {
+  gap: 10,
+  paddingHorizontal: 12,
+},
   // Job card
   jobCard: {
     backgroundColor: '#fff',
@@ -473,6 +494,7 @@ dropdownItemText: {
     padding:         14,
     elevation:       2,
     gap:             8,
+    flex:            1,
   },
   cardHeader: {
     flexDirection:  'row',
