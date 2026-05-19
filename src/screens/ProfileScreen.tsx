@@ -18,6 +18,7 @@ import {AuthContext} from '../context/AuthProvider';
 import {ProfileForm} from '../types/authTypes';
 import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
@@ -215,9 +216,14 @@ const doSubmit = async () => {
       keyboardShouldPersistTaps="handled"
     >
       {/* ── Title ── */}
-      <Text style={styles.pageTitle}>Profile</Text>
-      <View style={styles.line} />
-      <View style={styles.empty} />
+      <SafeAreaView edges={['top']}>
+             
+        <Text style={styles.pageTitle}>Profile</Text>
+        <View style={styles.line} />
+        <View style={styles.empty} />
+      </SafeAreaView>
+      
+      
       <Field
         label="Name ( ชื่อ - นามสกุล ) :"
         value={form.name}
@@ -285,7 +291,7 @@ const doSubmit = async () => {
         <Text style={styles.logoutText}>ออกจากระบบ</Text>
       </TouchableOpacity>
 
-      <View style={{height: 40}} />
+      <View style={{height: 90}} />
     </ScrollView>
     </>
   );

@@ -1,7 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Dimensions, StatusBar,
+  Dimensions, StatusBar, Modal, TextInput, Alert,
+  useWindowDimensions, PixelRatio,
 } from 'react-native';
 import {
   Camera, useCameraDevice, useCameraPermission,
@@ -13,19 +14,35 @@ import {Worklets} from 'react-native-worklets-core';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
 import {launchImageLibrary} from 'react-native-image-picker';
+import BarcodeScanning , {BarcodeFormat} from '@react-native-ml-kit/barcode-scanning';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Ionicon from 'react-native-vector-icons/Ionicons'
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Scan'>;
 
-const {width, height} = Dimensions.get('window');
-const FRAME_SIZE = width * 0.65;
-const FRAME_TOP  = (height - FRAME_SIZE) / 2 - 40;
+
+
 
 export default function ScanScreen({navigation}: Props) {
+  const {width, height, fontScale} = useWindowDimensions();
   const device         = useCameraDevice('back');
   const {hasPermission, requestPermission} = useCameraPermission();
   const isNavigating   = useRef(false);
-  const [flash, setFlash] = useState<'off' | 'on'>('off');
+  const [flash,        setFlash]        = useState<'off' | 'on'>('off');
+  const [showManual,   setShowManual]   = useState(false);
+  const [manualInput,  setManualInput]  = useState('');
+  const [scanning,     setScanning]     = useState(false); // loading ขณะ scan รูป
+
+  const FRAME_SIZE = width * 0.65;
+  const FRAME_TOP  = (height - FRAME_SIZE) / 2 - height * 0.05;
+  const ICON_SIZE  = Math.round(width * 0.07);  // ~28px บนจอ 400px
+  const FONT_SM    = Math.round(width * 0.03);  // ~12px
+  const FONT_MD    = Math.round(width * 0.04);  // ~16px
+  const CORNER     = Math.round(width * 0.055); // ~22px
+  const BORDER     = Math.round(PixelRatio.roundToNearestPixel(3));
+
 
   useEffect(() => {
     if (!hasPermission) requestPermission();
@@ -50,19 +67,57 @@ export default function ScanScreen({navigation}: Props) {
     },
   });
 
-  // เปิด Gallery แล้ว scan barcode จากรูป
+  // ✅ เปิดอัลบั้ม + scan ด้วย ML Kit
   const handleOpenGallery = () => {
-    launchImageLibrary({mediaType: 'photo'}, response => {
+    launchImageLibrary({mediaType: 'photo'}, async response => {
       if (response.didCancel || response.errorCode) return;
-      // react-native-vision-camera ไม่ scan จากไฟล์ได้ตรงๆ
-      // แจ้ง user ให้ใส่ request ID เอง หรือใช้ library เพิ่มเติม
       const uri = response.assets?.[0]?.uri;
-      if (uri) {
-        // TODO: ถ้าต้องการ scan จากรูปจริงๆ ใช้ react-native-qrcode-scanner หรือ @zxing
-        // ตอนนี้ navigate ไปหน้า Tracking พร้อม placeholder
-        navigation.navigate('Tracking', {requestId: ''});
+      if (!uri) return;
+
+       console.log('📸 uri:', uri);
+
+      try {
+        setScanning(true);
+        console.log('🔍 scanning...');
+
+
+        const barcodes = await BarcodeScanning.scan(uri, //{
+          //barcodeFormats.ALL,
+         // }
+         );
+       // console.log('BarcodeScanning:', Object.keys(BarcodeScanning));
+         console.log('📦 barcodes:', JSON.stringify(barcodes)); // ✅ ดู result
+
+        if (barcodes.length > 0) {
+          const value = barcodes[0].value;
+          console.log('✅ value:', value);
+
+          if (value) {
+            navigation.navigate('Tracking', {requestId: value});
+          } else {
+            Alert.alert('ไม่พบบาร์โค้ด', 'ไม่สามารถอ่านค่าจากบาร์โค้ดนี้ได้');
+          }
+        } else {
+          Alert.alert('ไม่พบบาร์โค้ด', 'ไม่พบบาร์โค้ดในรูปที่เลือก\nลองถ่ายรูปให้ชัดขึ้นแล้วลองใหม่');
+        }
+      } catch (err) {
+        console.error('❌ scan error:', err?.message, err); // ✅ ดู error จริง
+        Alert.alert('ข้อผิดพลาด', 'ไม่สามารถอ่านบาร์โค้ดได้');
+        console.error(err);
+      } finally {
+        setScanning(false);
       }
     });
+  };
+
+  const handleManualSearch = () => {
+    if (!manualInput.trim()) {
+      Alert.alert('แจ้งเตือน', 'กรุณากรอก Request ID');
+      return;
+    }
+    setShowManual(false);
+    setManualInput('');
+    navigation.navigate('Tracking', {requestId: manualInput.trim()});
   };
 
   if (!hasPermission) {
@@ -94,7 +149,7 @@ export default function ScanScreen({navigation}: Props) {
       <Camera
         style={StyleSheet.absoluteFill}
         device={device}
-        isActive={true}
+        isActive={!showManual && !scanning}
         torch={flash}
         {...cameraProps}
       />
@@ -104,19 +159,16 @@ export default function ScanScreen({navigation}: Props) {
       <View style={[styles.overlay, {top: 0, height: FRAME_TOP}]} />
 
       {/* Dark overlay — bottom */}
-      <View style={[styles.overlay, {
-        top: FRAME_TOP + FRAME_SIZE,
-        bottom: 0,
-      }]} />
+      <View style={[styles.overlay, {top: FRAME_TOP + FRAME_SIZE, bottom: 0}]} />
 
       {/* Dark overlay — left */}
-      <View style={[styles.overlay, {
+      <View style={[styles.overlaylr, {
         top: FRAME_TOP, height: FRAME_SIZE,
         left: 0, width: (width - FRAME_SIZE) / 2,
       }]} />
 
       {/* Dark overlay — right */}
-      <View style={[styles.overlay, {
+      <View style={[styles.overlaylr, {
         top: FRAME_TOP, height: FRAME_SIZE,
         right: 0, width: (width - FRAME_SIZE) / 2,
       }]} />
@@ -126,52 +178,109 @@ export default function ScanScreen({navigation}: Props) {
         top: FRAME_TOP, left: (width - FRAME_SIZE) / 2,
         width: FRAME_SIZE, height: FRAME_SIZE,
       }]}>
-        {/* Corners */}
-        <View style={[styles.corner, styles.cornerTL]} />
-        <View style={[styles.corner, styles.cornerTR]} />
-        <View style={[styles.corner, styles.cornerBL]} />
-        <View style={[styles.corner, styles.cornerBR]} />
-
-        {/* Scan line */}
+        <View style={[styles.corner, {width: CORNER, height: CORNER,
+          top: 0, left: 0, borderTopWidth: BORDER, borderLeftWidth: BORDER,
+          borderColor: '#fff', borderTopLeftRadius: 4}]} />
+        <View style={[styles.corner, {width: CORNER, height: CORNER,
+          top: 0, right: 0, borderTopWidth: BORDER, borderRightWidth: BORDER,
+          borderColor: '#fff', borderTopRightRadius: 4}]} />
+        <View style={[styles.corner, {width: CORNER, height: CORNER,
+          bottom: 0, left: 0, borderBottomWidth: BORDER, borderLeftWidth: BORDER,
+          borderColor: '#fff', borderBottomLeftRadius: 4}]} />
+        <View style={[styles.corner, {width: CORNER, height: CORNER,
+          bottom: 0, right: 0, borderBottomWidth: BORDER, borderRightWidth: BORDER,
+          borderColor: '#fff', borderBottomRightRadius: 4}]} />
         <View style={styles.scanLine} />
       </View>
 
       {/* Label */}
-      <Text style={[styles.scanLabel, {top: FRAME_TOP - 40}]}>
+      <Text style={[styles.scanLabel, {top: FRAME_TOP -  height * 0.05, fontSize: FONT_SM}]}>
         วางบาร์โค้ดหรือ QR Code ในกรอบ
       </Text>
 
-      {/* Bottom controls */}
-      <View style={[styles.controls, {top: FRAME_TOP + FRAME_SIZE + 40}]}>
-        {/* Flash */}
-        <TouchableOpacity
-          style={styles.controlBtn}
-          onPress={() => setFlash(f => f === 'off' ? 'on' : 'off')}
-        >
-          <Icon
-            name={flash === 'on' ? 'flash' : 'flash-off'}
-            size={28}
-            color={flash === 'on' ? '#FFD700' : '#fff'}
-          />
-          <Text style={styles.controlLabel}>
-            {flash === 'on' ? 'ปิดไฟ' : 'เปิดไฟ'}
-          </Text>
-        </TouchableOpacity>
+      {/* Scanning overlay */}
+      {scanning && (
+        <View style={styles.scanningOverlay}>
+          <Icon name="line-scan" size={40} color="#fff" />
+          <Text style={styles.scanningText}>กำลังอ่านบาร์โค้ด...</Text>
+        </View>
+      )}
 
-        {/* Gallery */}
-        <TouchableOpacity style={styles.controlBtn} onPress={handleOpenGallery}>
-          <Icon name="image-multiple" size={28} color="#fff" />
-          <Text style={styles.controlLabel}>อัลบั้ม</Text>
-        </TouchableOpacity>
+      {/* Bottom controls */}
+      <View style={[styles.controls, {top: FRAME_TOP + FRAME_SIZE + height * 0.05}]}>
+        {/* Flash button */}
+          <TouchableOpacity style={styles.controlBtn}
+            onPress={() => setFlash(f => f === 'off' ? 'on' : 'off')}>
+            {flash === 'on'
+              ? <Ionicon   name="flash" size={ICON_SIZE + 8} color="#fff" />
+              : <Ionicon name="flash-off-outline" size={ICON_SIZE + 8} color="#fff"/>}
+          </TouchableOpacity>
+
+          {/* Gallery button */}
+          <TouchableOpacity style={styles.controlBtn}
+            onPress={handleOpenGallery} disabled={scanning}>
+            <MaterialIcons name="image"
+              size={ICON_SIZE + 10}
+              color="#fff"
+              opacity={scanning ? 0.4 : 1}
+            />
+          </TouchableOpacity>
       </View>
 
       {/* Back button */}
       <TouchableOpacity
-        style={styles.backBtn}
-        onPress={() => navigation.goBack()}
-      >
-        <Icon name="arrow-left" size={24} color="#fff" />
+        style={[styles.backBtn, {top: height * 0.06, padding: width * 0.02}]}
+        onPress={() => navigation.goBack()}>
+        <Icon name="arrow-left" size={ICON_SIZE} color="#fff" />
       </TouchableOpacity>
+
+      {/* Manual Input Modal */}
+      <Modal transparent visible={showManual} animationType="slide">
+        <View style={styles.manualOverlay}>
+          <View style={styles.manualBox}>
+            
+              <TouchableOpacity onPress={() => {
+                setShowManual(false);
+                setManualInput('');
+              }}>
+                <Icon name="close" size={22} color="#999" />
+              </TouchableOpacity>
+            
+
+            <TextInput
+              style={styles.manualInput}
+              value={manualInput}
+              onChangeText={setManualInput}
+              placeholder="เช่น DV-26-09233"
+              placeholderTextColor="#bbb"
+              autoFocus
+              autoCapitalize="characters"
+              returnKeyType="search"
+              onSubmitEditing={handleManualSearch}
+            />
+
+            <View style={styles.manualButtons}>
+              <TouchableOpacity
+                style={styles.manualCancel}
+                onPress={() => {
+                  setShowManual(false);
+                  setManualInput('');
+                }}
+              >
+                <Text style={styles.manualCancelText}>ยกเลิก</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.manualConfirm}
+                onPress={handleManualSearch}
+              >
+                <Icon name="magnify" size={18} color="#fff" />
+                <Text style={styles.manualConfirmText}> ค้นหา</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -184,89 +293,101 @@ const styles = StyleSheet.create({
     flex: 1, justifyContent: 'center',
     alignItems: 'center', backgroundColor: '#000',
   },
-  text: {color: '#fff', marginTop: 16, marginBottom: 16, fontSize: 15},
-  permBtn: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8,
-  },
+  text:        {color: '#fff', marginTop: 16, marginBottom: 16, fontSize: 15},
+  permBtn:     {backgroundColor: '#007AFF', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8},
   permBtnText: {color: '#fff', fontWeight: 'bold'},
 
   overlay: {
-    position: 'absolute', left: 0, right: 0,
+    position: 'absolute',  
+    left: 0,
+    right: 0,
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
-
-  frame: {
-    position: 'absolute',
+  overlaylr: {
+    position: 'absolute',  
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
+  
+  frame: {position: 'absolute'},
 
-  // Scan line
   scanLine: {
-    position:        'absolute',
-    top:             '50%',
-    left:            8,
-    right:           8,
-    height:          2,
+    position: 'absolute', top: '50%',
+    left: 8, right: 8, height: 2,
     backgroundColor: 'rgba(255,255,255,0.6)',
   },
 
-  // Corners
-  corner: {
-    position: 'absolute',
-    width: CORNER, height: CORNER,
-  },
-  cornerTL: {
-    top: 0, left: 0,
-    borderTopWidth: BORDER, borderLeftWidth: BORDER,
-    borderColor: '#fff', borderTopLeftRadius: 4,
-  },
-  cornerTR: {
-    top: 0, right: 0,
-    borderTopWidth: BORDER, borderRightWidth: BORDER,
-    borderColor: '#fff', borderTopRightRadius: 4,
-  },
-  cornerBL: {
-    bottom: 0, left: 0,
-    borderBottomWidth: BORDER, borderLeftWidth: BORDER,
-    borderColor: '#fff', borderBottomLeftRadius: 4,
-  },
-  cornerBR: {
-    bottom: 0, right: 0,
-    borderBottomWidth: BORDER, borderRightWidth: BORDER,
-    borderColor: '#fff', borderBottomRightRadius: 4,
+  corner:   {position: 'absolute', width: CORNER, height: CORNER},
+  
+  scanLabel: {
+    position: 'absolute', width: '100%',
+    textAlign: 'center', color: '#fff', fontSize: 13,
   },
 
-  scanLabel: {
-    position:  'absolute',
-    width:     '100%',
-    textAlign: 'center',
-    color:     '#fff',
-    fontSize:  13,
+  // Scanning loading overlay
+  scanningOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
   },
+  scanningText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
 
   controls: {
-    position:       'absolute',
-    left:           0,
-    right:          0,
-    flexDirection:  'row',
-    justifyContent: 'center',
-    gap:            60,
+    position: 'absolute',
+    left: 0, right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',  // จาก center → space-between
+    paddingVertical: 84,
+    paddingHorizontal: 30,            // เพิ่ม padding ขอบ
   },
-  controlBtn: {
-    alignItems: 'center',
-    gap:        6,
+  controlBtn:   {
+    alignItems: 'center', 
+    
+    gap: 0, top: 48, left: 0,
+    
+    borderRadius: 20,
   },
-  controlLabel: {
-    color:    '#fff',
-    fontSize: 12,
-  },
+  controlLabel: {color: '#fff', fontSize: 12},
 
   backBtn: {
-    position:        'absolute',
-    top:             48,
-    left:            16,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    borderRadius:    20,
-    padding:         8,
+    position: 'absolute', top: 48, left: 16,
+   
+    borderRadius: 20, padding: 8,
   },
+
+  // Manual Modal
+  manualOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  manualBox: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    padding: 24, paddingBottom: 40,
+  },
+  manualHeader: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 16,
+  },
+  manualTitle:       {fontSize: 16, fontWeight: 'bold', color: '#333'},
+  manualInput: {
+    borderWidth: 1, borderColor: '#ddd',
+    borderRadius: 10, padding: 14,
+    fontSize: 15, color: '#333',
+    marginBottom: 16, letterSpacing: 1,
+  },
+  manualButtons:     {flexDirection: 'row', gap: 12},
+  manualCancel: {
+    flex: 1, padding: 14, borderRadius: 10,
+    borderWidth: 1, borderColor: '#ccc', alignItems: 'center',
+  },
+  manualCancelText:  {color: '#666', fontWeight: 'bold'},
+  manualConfirm: {
+    flex: 2, padding: 14, borderRadius: 10,
+    backgroundColor: '#a7cc43',
+    flexDirection: 'row',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  manualConfirmText: {color: '#fff', fontWeight: 'bold', fontSize: 15},
 });

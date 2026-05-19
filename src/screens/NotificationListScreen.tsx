@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback } from 'react';
 import {
   View, FlatList, Text, TouchableOpacity,
-  StyleSheet, ActivityIndicator,Image,
+  StyleSheet, ActivityIndicator,Image,Dimensions,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -47,6 +47,8 @@ const NotificationListScreen: React.FC = () => {
   const [data,    setData]    = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
+
+  const ICON_SIZE  = Math.round(width * 0.07); 
 
   useFocusEffect(
     useCallback(() => {
@@ -193,16 +195,27 @@ const NotificationListScreen: React.FC = () => {
         onRefresh={fetchNotifications}
         refreshing={loading}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="notifications-none" size={48} color="#ddd" />
-            <Text style={styles.emptyText}>ไม่มีการแจ้งเตือน</Text>
-          </View>
+          
+          <View style={styles.centered}>
+                    
+                     <View style={styles.centered}>
+                        <Image
+                      source={require('../../assets/image2.png')}
+                      style={styles.delivery}
+                      size={"ICON_SIZE"}
+                      resizeMode="contain"
+                    />
+                        <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
+                      </View>
+                  </View>
         }
       />
       <View style={{ height: insets.bottom + 60 }} />
     </View>
   );
 };
+
+const {width, height} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: '#f4f6f8' },
@@ -213,6 +226,11 @@ const styles = StyleSheet.create({
   alignItems: 'stretch', 
   paddingTop: 8,
 },
+delivery: {
+    
+    
+    marginBottom: 24,
+  },
 
 emptyContainer: {
   alignItems:  'top',
