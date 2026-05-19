@@ -11,30 +11,44 @@ import {
   Alert,
   SafeAreaView,
 } from 'react-native';
+
 import {Picker} from '@react-native-picker/picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {Button} from 'react-native-elements';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import DatePicker, {DateType} from 'react-native-ui-datepicker';
 import {RootStackParamList} from '../types/navigationTypes';
-// นำเข้า Context และ API Config
+
 import {AuthContext} from '../context/AuthProvider';
 import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
+
 import Icon from 'react-native-vector-icons/Feather';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
 
 const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
-  const {user} = useContext(AuthContext)!; // ดึงข้อมูล user ที่ล็อกอินอยู่
+  const {user} = useContext(AuthContext)!;
 
   const [license_no, setlicense_no] = useState('');
   const [date, setDate] = useState(new Date());
   const [mile, setMile] = useState('');
   const [liter, setliter] = useState('');
   const [price, setprice] = useState('');
+
   const [showDatePicker, setShowDatePicker] = useState(false);
-  // เพิ่ม State สำหรับสถานะ Loading ตอนกด Submit
+
   const [loading, setLoading] = useState(false);
+
+  // Confirm Modal
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Warning Modal
+  const [showWarning, setShowWarning] = useState(false);
+
+  // Success Modal
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
   const handleDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
       setDate(params.date);
@@ -42,59 +56,45 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
     }
   };
 
-  // ฟังก์ชันแปลงวันที่ส่ง API เป็น Format YYYY-MM-DD
   const toApiDate = (dateObj: Date): string => {
     const y = dateObj.getFullYear();
     const m = String(dateObj.getMonth() + 1).padStart(2, '0');
     const d = String(dateObj.getDate()).padStart(2, '0');
+
     return `${y}-${m}-${d}`;
   };
 
-  // ฟังก์ชันสำหรับ Submit ข้อมูล
   const handleSubmit = async () => {
-    // 1. ตรวจสอบว่ากรอกข้อมูลครบหรือไม่
-    if (!license_no || !mile || !liter || !price) {
-      Alert.alert('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ครบถ้วน');
-      return;
-    }
-
     try {
       setLoading(true);
+
       const baseUrl = await getBaseUrlByCompany();
-      const url = `${baseUrl}${API_ENDPOINTS.FUEL}`; // เรียกใช้ Endpoint
 
-      const payloadLog = {
-        user_id: user.id,
-        date: toApiDate(date),
-        license_no: license_no,
-        mile: mile,
-        liter: liter,
-        price: price,
-      };
+      const url = `${baseUrl}${API_ENDPOINTS.FUEL}`;
 
-      // 2. เตรียมข้อมูล FormData ส่งให้ API
       const formData = new FormData();
-      formData.append('user_id', user.id); // รหัสพนักงานขับรถ
-      formData.append('date', toApiDate(date)); // วันที่
-      formData.append('license_no', license_no); // ทะเบียนรถ
-      formData.append('mile', mile); // เลขไมล์
-      formData.append('liter', liter); // จำนวนลิตร
-      formData.append('price', price); // จำนวนเงินบาท
+
+      formData.append('user_id', user.id);
+      formData.append('date', toApiDate(date));
+      formData.append('license_no', license_no);
+      formData.append('mile', mile);
+      formData.append('liter', liter);
+      formData.append('price', price);
 
       console.log('กำลังส่งข้อมูล Fuel:', formData);
 
-      // 3. ยิง API
       const res = await fetch(url, {
         method: 'POST',
         body: formData,
       });
+
       const obj = await res.json();
+
       console.log('obj:', res);
-      // 4. เช็คผลลัพธ์
+
       if (!obj.error) {
-        Alert.alert('สำเร็จ', 'บันทึกข้อมูลการเติมน้ำมันเรียบร้อยแล้ว', [
-          {text: 'ตกลง', onPress: () => navigation.goBack()}, // บันทึกเสร็จให้เด้งกลับหน้าเดิม
-        ]);
+        setSuccessMessage('บันทึกข้อมูลการเติมน้ำมันเรียบร้อยแล้ว');
+        setShowSuccess(true);
       } else {
         Alert.alert(
           'เกิดข้อผิดพลาด',
@@ -103,6 +103,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
       }
     } catch (error) {
       console.error('Submit Fuel Error:', error);
+
       Alert.alert('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
     } finally {
       setLoading(false);
@@ -117,6 +118,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>{'‹'}</Text>
           </TouchableOpacity>
+
           <Text style={styles.headerTitle}>Fuel Entry</Text>
         </View>
 
@@ -137,10 +139,10 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
                 />
 
                 <MaterialIcons
-                  name="date-range"
-                  size={28}
+                  name="calendar-month"
+                  size={35}
                   color="#93D500"
-                  style={styles.iconButton}
+                  style={styles.iconcalender}
                 />
               </View>
             </TouchableOpacity>
@@ -219,7 +221,16 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
                 styles.submitButton,
                 loading && styles.submitButtonDisabled,
               ]}
-              onPress={handleSubmit}
+              onPress={() => {
+                // เช็คข้อมูลก่อน
+                if (!license_no || !mile || !liter || !price) {
+                  setShowWarning(true);
+                  return;
+                }
+
+                // ถ้ากรอกครบ ค่อยเปิด Confirm
+                setShowConfirm(true);
+              }}
               disabled={loading}>
               <Icon
                 name="download"
@@ -227,6 +238,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
                 color="#ffffff"
                 style={styles.iconbottom}
               />
+
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -237,6 +249,91 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
             <View style={{height: 90}} />
           </ScrollView>
         </View>
+
+        {/* ── Confirm Modal ── */}
+        <Modal transparent visible={showConfirm} animationType="fade">
+          <View style={modalStyles.overlay}>
+            <View style={modalStyles.box}>
+              <View
+                style={[modalStyles.iconCircle, {backgroundColor: '#93D500'}]}>
+                <Text style={modalStyles.iconText}>!</Text>
+              </View>
+
+              <Text style={modalStyles.title}>บันทึก</Text>
+
+              <Text style={modalStyles.message}>
+                ต้องการบันทึก "ข้อมูล" ใช่ไหม ?
+              </Text>
+
+              <View style={modalStyles.buttons}>
+                <TouchableOpacity
+                  style={modalStyles.cancelBtn}
+                  onPress={() => setShowConfirm(false)}>
+                  <Text style={modalStyles.cancelText}>ยกเลิก</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[modalStyles.confirmBtn, {backgroundColor: '#93D500'}]}
+                  onPress={() => {
+                    setShowConfirm(false);
+
+                    setTimeout(() => {
+                      handleSubmit();
+                    }, 100);
+                  }}>
+                  <Text style={modalStyles.confirmText}>ยืนยัน</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* ── Warning Modal ── */}
+        <Modal transparent visible={showWarning} animationType="fade">
+          <View style={modalStyles.overlay}>
+            <View style={modalStyles.box}>
+              <View
+                style={[modalStyles.iconCircle, {backgroundColor: '#F5A800'}]}>
+                <Text style={modalStyles.iconText}>!</Text>
+              </View>
+
+              <Text style={modalStyles.title}>แจ้งเตือน</Text>
+
+              <Text style={modalStyles.message}>กรุณากรอกข้อมูลให้ครบถ้วน</Text>
+
+              <TouchableOpacity
+                style={[modalStyles.singleButton, {backgroundColor: '#93D500'}]}
+                onPress={() => setShowWarning(false)}>
+                <Text style={modalStyles.confirmText}>ตกลง</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* ── Success Modal ── */}
+        <Modal transparent visible={showSuccess} animationType="fade">
+          <View style={modalStyles.overlay}>
+            <View style={modalStyles.box}>
+              <View
+                style={[modalStyles.iconCircle, {backgroundColor: '#93D500'}]}>
+                <Text style={modalStyles.iconCheck}>✓</Text>
+              </View>
+
+              <Text style={modalStyles.title}>สำเร็จ</Text>
+
+              <Text style={modalStyles.message}>บันทึกข้อมูลสำเร็จ</Text>
+
+              <TouchableOpacity
+                style={[modalStyles.fullBtn, {backgroundColor: '#93D500'}]}
+                onPress={() => {
+                  setShowSuccess(false);
+                  navigation.goBack();
+                }}>
+                <Text style={modalStyles.confirmText}>ตกลง</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -246,6 +343,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
+
   safeArea: {
     flex: 1,
     backgroundColor: '#93D500',
@@ -292,7 +390,6 @@ const styles = StyleSheet.create({
     width: '100%',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-
     paddingHorizontal: 24,
     paddingTop: 24,
   },
@@ -318,14 +415,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 14,
     backgroundColor: '#FAFAFA',
-    color: '#37373780',
+    color: '#000',
     fontSize: 14,
     fontFamily: 'Quicksand-Medium',
-  },
-
-  iconButton: {
-    position: 'absolute',
-    right: 14,
   },
 
   pickerContainer: {
@@ -338,7 +430,7 @@ const styles = StyleSheet.create({
 
   picker: {
     height: 52,
-    color: '#37373780',
+    color: '#00000080',
     fontFamily: 'Quicksand-Medium',
     fontSize: 14,
   },
@@ -388,8 +480,118 @@ const styles = StyleSheet.create({
   },
 
   iconbottom: {
-    alignItems: 'center',
     paddingRight: 10,
+  },
+
+  iconcalender: {
+    marginLeft: 10,
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+
+  box: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+  },
+
+  iconCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+
+  iconText: {
+    fontSize: 38,
+    color: '#fff',
+    fontFamily: 'Quicksand-Bold',
+  },
+
+  iconCheck: {
+    fontSize: 34,
+    color: '#fff',
+    fontFamily: 'Quicksand-Bold',
+  },
+
+  title: {
+    fontSize: 32,
+    color: '#222',
+    fontFamily: 'Quicksand-Bold',
+    marginBottom: 10,
+  },
+
+  message: {
+    fontSize: 14,
+    color: '#373737',
+    textAlign: 'center',
+    fontFamily: 'Quicksand-Medium',
+    marginBottom: 24,
+  },
+
+  buttons: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+
+  cancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#EAEAEA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+
+  confirmBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+
+  singleButton: {
+    width: '100%',
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  fullBtn: {
+    width: '100%',
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  cancelText: {
+    color: '#333',
+    fontSize: 16,
+    fontFamily: 'Quicksand-Bold',
+  },
+
+  confirmText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Quicksand-Bold',
   },
 });
 
