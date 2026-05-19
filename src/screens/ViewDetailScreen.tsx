@@ -284,7 +284,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
             <Text style={modalStyles.title}>
               {isOfflineSuccess ? 'บันทึกแล้ว' : 'สำเร็จ'}
             </Text>
-            <Text style={modalStyles.message}>{successMessage}</Text>
+            <Text style={modalStyles.message}>บันทึกข้อมูลสำเร็จ</Text>
             <TouchableOpacity
               style={[modalStyles.fullBtn, {backgroundColor: isOfflineSuccess ? '#e67e22' : (companyColor ?? '#a7cc43')}]}
               onPress={() => {
