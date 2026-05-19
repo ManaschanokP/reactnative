@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import {
   SafeAreaView,
 } from 'react-native';
 
-import {Picker} from '@react-native-picker/picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {Button} from 'react-native-elements';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -23,13 +22,18 @@ import {AuthContext} from '../context/AuthProvider';
 import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
 
 import Icon from 'react-native-vector-icons/Feather';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
 
 const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
   const {user} = useContext(AuthContext)!;
 
+  // STATE
   const [license_no, setlicense_no] = useState('');
+  const [licenseList, setLicenseList] = useState<any[]>([]);
+  const [showLicenseDropdown, setShowLicenseDropdown] = useState(false);
+
   const [date, setDate] = useState(new Date());
   const [mile, setMile] = useState('');
   const [liter, setliter] = useState('');
@@ -39,16 +43,52 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
 
   const [loading, setLoading] = useState(false);
 
-  // Confirm Modal
+  // Modal
   const [showConfirm, setShowConfirm] = useState(false);
-
-  // Warning Modal
   const [showWarning, setShowWarning] = useState(false);
 
-  // Success Modal
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  //FETCH LICENSE
+  const fetchLicenseList = async () => {
+    try {
+      const baseUrl = await getBaseUrlByCompany();
+
+      const url = `${baseUrl}${API_ENDPOINTS.LIST_LICENSE}`;
+
+      console.log('URL:', url);
+      console.log('STATUS:', user.status);
+
+      const body = `user_status=${user.status}`;
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body,
+      });
+
+      const json = await res.json();
+
+      console.log('ทะเบียนรถ:', JSON.stringify(json, null, 2));
+
+      if (!json.error && Array.isArray(json.listlicense)) {
+        setLicenseList(json.listlicense);
+      } else {
+        setLicenseList([]);
+      }
+    } catch (error) {
+      console.log('โหลดทะเบียนรถไม่สำเร็จ', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLicenseList();
+  }, []);
+
+  // DATE
   const handleDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
       setDate(params.date);
@@ -64,6 +104,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
     return `${y}-${m}-${d}`;
   };
 
+  // SUBMIT
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -90,7 +131,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
 
       const obj = await res.json();
 
-      console.log('obj:', res);
+      console.log('obj:', obj);
 
       if (!obj.error) {
         setSuccessMessage('บันทึกข้อมูลการเติมน้ำมันเรียบร้อยแล้ว');
@@ -113,7 +154,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Header */}
+        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>{'‹'}</Text>
@@ -122,11 +163,15 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
           <Text style={styles.headerTitle}>Fuel Entry</Text>
         </View>
 
+        {/* CONTENT */}
         <View style={styles.card}>
-          <ScrollView
+          <KeyboardAwareScrollView
             style={{flex: 1}}
             contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}>
+            showsVerticalScrollIndicator={false}
+            enableOnAndroid={true}
+            extraScrollHeight={20}
+            keyboardShouldPersistTaps="handled">
             {/* วันที่ */}
             <Text style={styles.label}>วันที่ :</Text>
 
@@ -147,7 +192,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
               </View>
             </TouchableOpacity>
 
-            {/* Modal Date Picker */}
+            {/* Date Picker */}
             <Modal visible={showDatePicker} transparent animationType="slide">
               <View style={styles.modalContainer}>
                 <View style={styles.modalContent}>
@@ -165,18 +210,59 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
               </View>
             </Modal>
 
-            {/* ทะเบียน */}
+            {/* ทะเบียนรถ */}
             <Text style={styles.label}>ทะเบียน :</Text>
 
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={license_no}
-                onValueChange={itemValue => setlicense_no(itemValue)}
-                style={styles.picker}>
-                <Picker.Item label="เลือกทะเบียน" value="" />
-                <Picker.Item label="ABC-1234" value="ABC-1234" />
-                <Picker.Item label="XYZ-5678" value="XYZ-5678" />
-              </Picker>
+            <View>
+              <TouchableOpacity
+                style={styles.dropdownBtn}
+                onPress={() => setShowLicenseDropdown(prev => !prev)}>
+                <Text
+                  style={[
+                    styles.dropdownBtnText,
+                    license_no && styles.dropdownBtnTextSelected, // ถ้ามีค่าแล้วใช้สีดำ
+                  ]}>
+                  {license_no || 'เลือกทะเบียนรถ'}
+                </Text>
+
+                <MaterialIcons
+                  name={
+                    showLicenseDropdown
+                      ? 'keyboard-arrow-up'
+                      : 'keyboard-arrow-down'
+                  }
+                  size={24}
+                  color="#555"
+                />
+              </TouchableOpacity>
+
+              {showLicenseDropdown && (
+                <View style={styles.dropdownList}>
+                  <ScrollView nestedScrollEnabled style={{maxHeight: 220}}>
+                    {Array.isArray(licenseList) &&
+                      licenseList.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.dropdownItem}
+                          onPress={() => {
+                            setlicense_no(item.license_no);
+                            setShowLicenseDropdown(false);
+                          }}>
+                          <Text
+                            style={[
+                              styles.dropdownItemText,
+                              license_no === item.license_no && {
+                                color: '#93D500',
+                                fontFamily: 'Quicksand-Bold',
+                              },
+                            ]}>
+                            {item.license_no}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                  </ScrollView>
+                </View>
+              )}
             </View>
 
             {/* เลขไมล์ */}
@@ -222,13 +308,11 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
                 loading && styles.submitButtonDisabled,
               ]}
               onPress={() => {
-                // เช็คข้อมูลก่อน
                 if (!license_no || !mile || !liter || !price) {
                   setShowWarning(true);
                   return;
                 }
 
-                // ถ้ากรอกครบ ค่อยเปิด Confirm
                 setShowConfirm(true);
               }}
               disabled={loading}>
@@ -247,10 +331,10 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
             </TouchableOpacity>
 
             <View style={{height: 90}} />
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </View>
 
-        {/* ── Confirm Modal ── */}
+        {/* CONFIRM MODAL */}
         <Modal transparent visible={showConfirm} animationType="fade">
           <View style={modalStyles.overlay}>
             <View style={modalStyles.box}>
@@ -288,7 +372,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
           </View>
         </Modal>
 
-        {/* ── Warning Modal ── */}
+        {/* WARNING MODAL */}
         <Modal transparent visible={showWarning} animationType="fade">
           <View style={modalStyles.overlay}>
             <View style={modalStyles.box}>
@@ -310,7 +394,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
           </View>
         </Modal>
 
-        {/* ── Success Modal ── */}
+        {/* SUCCESS MODAL */}
         <Modal transparent visible={showSuccess} animationType="fade">
           <View style={modalStyles.overlay}>
             <View style={modalStyles.box}>
@@ -321,10 +405,10 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
 
               <Text style={modalStyles.title}>สำเร็จ</Text>
 
-              <Text style={modalStyles.message}>บันทึกข้อมูลสำเร็จ</Text>
+              <Text style={modalStyles.message}>{successMessage}</Text>
 
               <TouchableOpacity
-                style={[modalStyles.fullBtn, {backgroundColor: '#93D500'}]}
+                style={[modalStyles.singleButton, {backgroundColor: '#93D500'}]}
                 onPress={() => {
                   setShowSuccess(false);
                   navigation.goBack();
@@ -352,11 +436,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#93D500',
-  },
-
-  contentContainer: {
-    flexGrow: 1,
-    paddingTop: 20,
   },
 
   header: {
@@ -420,19 +499,48 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand-Medium',
   },
 
-  pickerContainer: {
+  dropdownBtn: {
+    height: 52,
     borderWidth: 1,
     borderColor: '#DADADA',
     borderRadius: 10,
     backgroundColor: '#FAFAFA',
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  dropdownBtnText: {
+    color: '#999',
+    fontSize: 14,
+    fontFamily: 'Quicksand-Medium',
+  },
+
+  dropdownBtnTextSelected: {
+    color: '#000', // สีดำเมื่อเลือกแล้ว
+  },
+
+  dropdownList: {
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: '#DADADA',
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
   },
 
-  picker: {
-    height: 52,
-    color: '#00000080',
-    fontFamily: 'Quicksand-Medium',
+  dropdownItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F1F1',
+  },
+
+  dropdownItemText: {
     fontSize: 14,
+    color: '#333',
+    fontFamily: 'Quicksand-Medium',
   },
 
   modalContainer: {
@@ -567,14 +675,6 @@ const modalStyles = StyleSheet.create({
   },
 
   singleButton: {
-    width: '70%',
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  fullBtn: {
     width: '70%',
     height: 48,
     borderRadius: 12,
