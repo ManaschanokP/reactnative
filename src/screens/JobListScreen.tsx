@@ -53,13 +53,15 @@ const STATUS_OPTIONS = [
 ];
 
 // ✅ สีและข้อความตาม status
-const getStatusStyle = (statusId: string) => {
-  switch (statusId) {
-    case 'SD09': return { bg: '#e4e4e4', text: '#373737', dot: '#373737', label: 'ดำเนินการสำเร็จ' };
-    case 'SD04': return { bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c', label: 'พบปัญหา' };
-    default:     return { bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60', label: 'กำลังดำเนินการ' };
-  }
+const getStatusStyle = (statusId: string, statusName?: string) => {
+  if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ') 
+    return { bg: '#e4e4e4', text: '#373737', dot: '#373737' };
+  if (statusId === 'SD04' || statusName === 'พบปัญหา')         
+    return { bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c' };
+  return { bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60' };
 };
+
+
 
 const JobListScreen: React.FC<Props> = ({ navigation }) => {
   const { user, companyColor } = useContext(AuthContext)!;
@@ -74,6 +76,9 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+
 
   useFocusEffect(
     useCallback(() => {
@@ -131,13 +136,17 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const renderItem = ({ item }: { item: JobItem }) => {
-    const statusStyle = getStatusStyle(item.status_id);
+    const statusStyle = getStatusStyle(item.status_id, item.status_name);
     return (
       <TouchableOpacity
-        style={styles.jobCard}
-        onPress={() => navigation.navigate('ViewDetail', { item })}
-        activeOpacity={0.8}
-      >
+          style={styles.jobCard}
+          onPress={() => {
+            if (item.status_id !== 'SD09' && item.status_name !== 'ดำเนินการสำเร็จ') {
+              navigation.navigate('ViewDetail', { item });
+            }
+          }}
+          activeOpacity={item.status_id === 'SD09' || item.status_name === 'ดำเนินการสำเร็จ' ? 1 : 0.8}
+        >
         {/* ── Header row ── */}
         <View style={styles.cardHeader}>
           <View style={styles.idRow}>
@@ -187,7 +196,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
             <StatusCar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>สถานะ</Text>
-              <Text style={styles.footerStatus}>{item.status_name}</Text>
+              <Text style={[styles.statusText, item.status_id === 'SD04' && { color: '#e74c3c' }]}>{item.status_name}</Text>
             </View>
           </View>
         </View>
@@ -261,27 +270,51 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Status + Search Row */}
-        <View style={styles.statusRow}>
-          <Text style={styles.filterLabel}>สถานะ</Text>
-          <View style={styles.pickerWrap}>
-            <Picker
-              selectedValue={status}
-              onValueChange={setStatus}
-              style={styles.picker}
-            >
-              {STATUS_OPTIONS.map(opt => (
-                <Picker.Item key={opt.value} label={opt.label} value={opt.value} style={styles.infoValue} />
-              ))}
-            </Picker>
-          </View>
+      {/* Status + Search Row */}
+<View style={styles.statusRow}>
+  <Text style={styles.filterLabel}>สถานะ</Text>
+
+  <View style={{flex: 1}}>
+    <TouchableOpacity
+      style={styles.dropdownBtn}
+      onPress={() => setShowStatusDropdown(p => !p)}
+    >
+      <Text style={styles.dropdownBtnText}>
+        {STATUS_OPTIONS.find(o => o.value === status)?.label ?? 'ทั้งหมด'}
+      </Text>
+      <Icon name={showStatusDropdown ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={22} color="#555" />
+    </TouchableOpacity>
+
+    {showStatusDropdown && (
+      <View style={styles.dropdownList}>
+        {STATUS_OPTIONS.map(opt => (
           <TouchableOpacity
-            style={[styles.searchBtn, { backgroundColor: companyColor }]}
-            onPress={fetchJobs}
+            key={opt.value}
+            style={styles.dropdownItem}
+            onPress={() => {
+              setStatus(opt.value);
+              setShowStatusDropdown(false);
+            }}
           >
-            <Icon name="search" size={22} color="#fff" />
+            <Text style={[
+              styles.dropdownItemText,
+              status === opt.value && {color: companyColor ?? '#a7cc43', fontFamily: 'Quicksand-Bold'},
+            ]}>
+              {opt.label}
+            </Text>
           </TouchableOpacity>
-        </View>
+        ))}
+      </View>
+    )}
+  </View>
+
+  <TouchableOpacity
+    style={[styles.searchBtn, {backgroundColor: companyColor}]}
+    onPress={fetchJobs}
+  >
+    <Icon name="search" size={22} color="#fff" />
+  </TouchableOpacity>
+</View>
       </View>
 
       {/* ── Results ── */}
@@ -338,6 +371,8 @@ const styles = StyleSheet.create({
     padding:         12,
     elevation:       2,
     gap:             8,
+    zIndex:          1,        // ✅ เพิ่ม
+    overflow:        'visible', 
   },
   filterLabel:  { fontSize: 12, color: '#888', marginBottom: 4, fontFamily: 'Quicksand-Medium' },
   dateRow:      { flexDirection: 'row', gap: 10 },
@@ -368,6 +403,60 @@ const styles = StyleSheet.create({
     height: 22 ,
     flex:   1,
   },
+  dropdownBtn: {
+  
+  flexDirection:  'row',
+  justifyContent: 'space-between',
+  alignItems:     'center',
+  borderWidth:    1,
+  borderColor:    '#e0e0e0',
+  borderRadius:   8,
+  paddingHorizontal: 10,
+  paddingVertical: 10,
+  backgroundColor: '#fafafa',
+},
+dropdownBtnText: {
+  fontSize:   14,
+  color:      '#333',
+  fontFamily: 'Quicksand-Medium',
+},
+dropdownOverlay: {
+  flex:            1,
+  backgroundColor: 'rgba(0,0,0,0.3)',
+  justifyContent:  'center',
+  padding:         24,
+},
+dropdownBox: {
+  backgroundColor: '#fff',
+  borderRadius:    12,
+  overflow:        'hidden',
+  elevation:       5,
+},
+dropdownList: {
+  position:        'absolute',
+  top:             44,          // ความสูงของปุ่ม
+  left:            0,
+  right:           0,
+  backgroundColor: '#fff',
+  borderWidth:     1,
+  borderColor:     '#e0e0e0',
+  borderRadius:    8,
+  elevation:       5,
+  zIndex:          999,
+},
+dropdownItem: {
+  padding:           14,
+  borderBottomWidth: 1,
+  borderBottomColor: '#f0f0f0',
+},
+dropdownItemSelected: {
+  backgroundColor: '#f8fff0',
+},
+dropdownItemText: {
+  fontSize:   14,
+  color:      '#333',
+  fontFamily: 'Quicksand-Medium',
+},
   searchBtn: {
     width:        44,
     height:       44,
