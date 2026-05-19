@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  useWindowDimensions,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -39,6 +40,8 @@ const ProfileScreen: React.FC<Props> = ({navigation}) => {
     phone:      user?.phone      ?? '',
     company:    user?.company    ?? '',
   });
+
+  const { width } = useWindowDimensions();
 
   const [loading, setLoading] = useState(false);
 
@@ -210,19 +213,20 @@ const doSubmit = async () => {
       </View>
     </View>
   </Modal>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
+    <View style={styles.container}>
       {/* ── Title ── */}
       <SafeAreaView edges={['top']}>
              
         <Text style={styles.pageTitle}>Profile</Text>
-        <View style={styles.line} />
+        <View style={[styles.line, { marginHorizontal: width * 0.085 }]} />
         <View style={styles.empty} />
       </SafeAreaView>
-      
+    
+      <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       
       <Field
         label="Name ( ชื่อ - นามสกุล ) :"
@@ -293,6 +297,7 @@ const doSubmit = async () => {
 
       <View style={{height: 90}} />
     </ScrollView>
+    </View>
     </>
   );
 };
@@ -343,15 +348,14 @@ const styles = StyleSheet.create({
     fontSize:   22,
     fontFamily: 'Quicksand-Bold',
     color:      '#222',
-    paddingHorizontal: 2,
-    paddingTop:        30,  
+    paddingVertical: 22,
+    paddingHorizontal: 34,
+    paddingTop:        15,  
     paddingBottom:     15,
   },
    line: {
     height: 1,
     backgroundColor: '#CFCFCF',
-    width: '95%',
-    paddingHorizontal: 2,
   },
   empty:{
     paddingHorizontal: 2,
