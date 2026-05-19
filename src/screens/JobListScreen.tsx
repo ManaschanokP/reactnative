@@ -294,7 +294,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           
            <View style={styles.centered}>
               <Image
-            source={require('../../assets/image2.png')}
+            source={require('../../assets/NoJob3.png')}
             style={styles.delivery}
             resizeMode="contain"
           />
@@ -312,7 +312,7 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
           ListEmptyComponent={
             <View style={styles.centered}>
               <Image
-            source={require('../../assets/image2.png')}
+            source={require('../../assets/NoJob3.png')}
             style={styles.delivery}
             resizeMode="contain"
           />

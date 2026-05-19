@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback } from 'react';
 import {
   View, FlatList, Text, TouchableOpacity,
-  StyleSheet, ActivityIndicator,Image,Dimensions,
+  StyleSheet, ActivityIndicator,Image,useWindowDimensions,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -48,7 +48,8 @@ const NotificationListScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
 
-  const ICON_SIZE  = Math.round(width * 0.07); 
+  const { width } = useWindowDimensions();
+  const ICON_SIZE = Math.round(width * 0.08);
 
   useFocusEffect(
     useCallback(() => {
@@ -196,13 +197,12 @@ const NotificationListScreen: React.FC = () => {
         refreshing={loading}
         ListEmptyComponent={
           
-          <View style={styles.centered}>
+          <View style={styles.emptyCon}>
                     
-                     <View style={styles.centered}>
+                     <View style={styles.emptyCon}>
                         <Image
-                      source={require('../../assets/image2.png')}
-                      style={styles.delivery}
-                      size={"ICON_SIZE"}
+                      source={require('../../assets/NoJob3.png')}
+                      style={[styles.delivery, {width: width * 0.4, height: width * 0.4}]}
                       resizeMode="contain"
                     />
                         <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
@@ -215,7 +215,7 @@ const NotificationListScreen: React.FC = () => {
   );
 };
 
-const {width, height} = Dimensions.get('window');
+
 
 const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: '#f4f6f8' },
@@ -335,6 +335,7 @@ footerItemRight: {
   retryButton: { paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
   retryText:   { color: '#fff', fontSize: 15, fontFamily: 'Quicksand-Medium' },
   emptyText:   { color: '#bbb', fontSize: 14, marginTop: 12, fontFamily: 'Quicksand-Regular' },
+  emptyCon:    { flex: 1, justifyContent: 'center', alignItems: 'center',  },
 });
 
 export default NotificationListScreen;
