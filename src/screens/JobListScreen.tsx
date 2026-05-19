@@ -584,7 +584,7 @@ footerItemRight: {
     width:           '90%',
   },
   delivery: {
-    width: width * 0.82,
+    
     height: 278,
     
     marginBottom: 24,
