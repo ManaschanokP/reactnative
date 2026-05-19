@@ -212,7 +212,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
             <View
               style={{
-                height: insets.bottom + 20,
+                height: insets.bottom + 30,
               }}
             />
           </ScrollView>
@@ -280,21 +280,25 @@ const styles = StyleSheet.create({
   startButton: {
     flexDirection: 'row',
     backgroundColor: '#93D500',
-    paddingVertical: 14,
+    //paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 10,
     alignItems: 'center',
     minWidth: 120,
+    width: 100,
+    height: 40,
   },
 
   closeButton: {
     flexDirection: 'row',
     backgroundColor: '#D00000',
-    paddingVertical: 14,
+    //paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 10,
     alignItems: 'center',
     minWidth: 120,
+    width: 100,
+    height: 40,
   },
 
   iconbottom:{

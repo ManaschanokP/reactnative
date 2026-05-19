@@ -623,7 +623,7 @@ inlineInput: {
     marginTop:    20,
     elevation:    2,
     alignSelf:    'center',
-    width:          '50%',
+    width:          '70%',
   },
   buttonDisabled: {backgroundColor: '#ccc'},
   confirmText:    {color: '#fff', fontSize: 16, fontFamily: 'Quicksand-Bold'},
