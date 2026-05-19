@@ -220,6 +220,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const needsBox             = REQUIRES_BOX.includes(selectedStatus);
   const needsMile            = REQUIRES_MILE.includes(selectedStatus);
   const signatureHeight      = Math.round(width * 0.4);
+  
+  // เพิ่ม state
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const isSubmitDisabled =
     updating ||
@@ -324,25 +327,44 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           <Text style={styles.cardTitle}>อัปเดตสถานะ</Text>
 
           {loadingStatus ? (
-            <ActivityIndicator color={companyColor} style={{marginVertical: 12}} />
+  <ActivityIndicator color={companyColor} style={{marginVertical: 12}} />
           ) : (
-            <View style={styles.pickerWrap}>
-              <Picker
-                selectedValue={selectedStatus}
-                onValueChange={val => {
-                  setSelectedStatus(val);
-                  setPhoto(null);
-                  setBox('');
-                  setMile('');
-                  handleClearSignature();
-                }}
-                style={styles.picker}
+            <View style={{zIndex: 999}}>
+              <TouchableOpacity
+                style={styles.dropdownBtn}
+                onPress={() => setShowDropdown(p => !p)}
               >
-                {statusList.map(s => <Picker.Item key={s} label={s} value={s} />)}
-              </Picker>
+                <Text style={styles.dropdownBtnText}>{selectedStatus}</Text>
+                <Icon name={showDropdown ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={22} color="#555" />
+              </TouchableOpacity>
+
+              {showDropdown && (
+                <View style={styles.dropdownList}>
+                  {statusList.map(s => (
+                    <TouchableOpacity
+                      key={s}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setSelectedStatus(s);
+                        setPhoto(null);
+                        setBox('');
+                        setMile('');
+                        handleClearSignature();
+                        setShowDropdown(false);
+                      }}
+                    >
+                      <Text style={[
+                        styles.dropdownItemText,
+                        selectedStatus === s && {color: companyColor ?? '#a7cc43', fontFamily: 'Quicksand-Bold'},
+                      ]}>
+                        {s}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           )}
-
           {/* ── Rating & Signature ── */}
           {needsSignatureRating && (
             <View style={styles.specialSection}>
@@ -352,6 +374,8 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 onFinishRating={setRating}
                 imageSize={Math.round(width * 0.07)}
                 style={{paddingVertical: 10}}
+                tintColor="#fff9f0" 
+                ratingBackgroundColor="transparent"
               />
               <Text style={styles.fieldLabel}>ลายเซ็นผู้รับสินค้า :</Text>
               <View style={[styles.signatureBox, {height: signatureHeight}]}>
@@ -502,6 +526,8 @@ const styles = StyleSheet.create({
     padding:         16,
     marginBottom:    12,
     elevation:       2,
+    zIndex:          1,      // ✅ เพิ่ม
+    overflow:        'visible', // ✅ เพิ่ม
   },
   cardTitle: {
     fontSize:          16,
@@ -555,15 +581,59 @@ inlineInput: {
   },
   trackingBannerText: {fontFamily: 'Quicksand-Bold', fontSize: 12},
 
-  pickerWrap: {
-    borderWidth:     1,
-    borderColor:     '#e0e0e0',
-    borderRadius:    8,
-    backgroundColor: '#fafafa',
-    overflow:        'hidden',
-    marginBottom:    8,
-  },
-  picker: {height: 50},
+  dropdownBtn: {
+  flexDirection:  'row',
+  justifyContent: 'space-between',
+  alignItems:     'center',
+  borderWidth:    1,
+  borderColor:    '#e0e0e0',
+  borderRadius:   8,
+  padding:        12,
+  backgroundColor: '#fafafa',
+  marginBottom:   8,
+},
+dropdownBtnText: {
+  fontSize:   14,
+  color:      '#333',
+  fontFamily: 'Quicksand-Medium',
+},
+dropdownOverlay: {
+  flex:            1,
+  backgroundColor: 'rgba(0,0,0,0.3)',
+  justifyContent:  'center',
+  padding:         24,
+},
+dropdownBox: {
+  backgroundColor: '#fff',
+  borderRadius:    12,
+  overflow:        'hidden',
+  elevation:       5,
+},
+dropdownItem: {
+  padding:           14,
+  borderBottomWidth: 1,
+  borderBottomColor: '#f0f0f0',
+},
+dropdownItemSelected: {
+  backgroundColor: '#f8fff0',
+},
+dropdownList: {
+  position:        'absolute',
+  top:             48,
+  left:            0,
+  right:           0,
+  backgroundColor: '#fff',
+  borderWidth:     1,
+  borderColor:     '#e0e0e0',
+  borderRadius:    8,
+  elevation:       10,
+  zIndex:          999,
+},
+dropdownItemText: {
+  fontSize:   14,
+  color:      '#333',
+  fontFamily: 'Quicksand-Medium',
+},
 
   photoSection:    {marginVertical: 12, alignItems: 'center'},
   photoButton: {
