@@ -101,39 +101,48 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const fetchJobs = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await getMyJobs({
-        driver: user.id,
-        start: toApiDate(startDate),
-        end: toApiDate(endDate),
-        status,
-      });
-      if (response.error) {
-        setJobs([]);
-        setError(response.message ?? 'ไม่พบข้อมูล');
-        return;
-      }
-      const sorted = [...response.MyJobs].sort((a, b) => {
-        const parseDate = (date: string, time: string) => {
-          if (date.includes('/')) {
-            const [d, m, y] = date.split('/');
-            return new Date(`${y}-${m}-${d} ${time}`).getTime();
-          }
-          return new Date(`${date} ${time}`).getTime();
-        };
-        return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
-      });
-      setJobs(sorted);
-    } catch (err) {
-      setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
-      console.error(err);
-    } finally {
-      setLoading(false);
+ const fetchJobs = async (currentStatus = status) => {  // ✅ รับค่าตรงๆ ไม่ใช้ closure
+  try {
+    setLoading(true);
+    setError(null);
+    const response = await getMyJobs({
+      driver: user.id,
+      start:  toApiDate(startDate),
+      end:    toApiDate(endDate),
+      status: '01',
+    });
+    if (response.error) {
+      setJobs([]);
+      setError(response.message ?? 'ไม่พบข้อมูล');
+      return;
     }
-  };
+    const sorted = [...response.MyJobs].sort((a, b) => {
+      const parseDate = (date: string, time: string) => {
+        if (date.includes('/')) {
+          const [d, m, y] = date.split('/');
+          return new Date(`${y}-${m}-${d} ${time}`).getTime();
+        }
+        return new Date(`${date} ${time}`).getTime();
+      };
+      return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
+    });
+
+    const filtered = sorted.filter(job => {
+      if (currentStatus === '01') return true;
+      if (currentStatus === '02') return job.status_id !== 'SD09' && job.status_id !== 'SD04';
+      if (currentStatus === '03') return job.status_id === 'SD09' || job.status_name === 'ดำเนินการสำเร็จ';
+      if (currentStatus === '04') return job.status_id === 'SD04' || job.status_name === 'พบปัญหา';
+      return true;
+    });
+
+    setJobs(filtered);
+  } catch (err) {
+    setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const renderItem = ({ item }: { item: JobItem }) => {
     const statusStyle = getStatusStyle(item.status_id, item.status_name);
@@ -309,11 +318,11 @@ const JobListScreen: React.FC<Props> = ({ navigation }) => {
   </View>
 
   <TouchableOpacity
-    style={[styles.searchBtn, {backgroundColor: companyColor}]}
-    onPress={fetchJobs}
-  >
-    <Icon name="search" size={22} color="#fff" />
-  </TouchableOpacity>
+  style={[styles.searchBtn, {backgroundColor: companyColor}]}
+  onPress={() => fetchJobs(status)}  // ✅ ส่ง status ตรงๆ
+>
+  <Icon name="search" size={22} color="#fff" />
+</TouchableOpacity>
 </View>
       </View>
 

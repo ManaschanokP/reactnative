@@ -52,6 +52,7 @@ const NotificationListScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { width } = useWindowDimensions();
+  const numColumns = width >= 600 ? 2 : 1;  // tablet = 2 col, phone = 1 col
   const ICON_SIZE = Math.round(width * 0.08);
 
   useFocusEffect(
@@ -195,7 +196,10 @@ const NotificationListScreen: React.FC = () => {
         data={data}
         keyExtractor={item => item.request_id}
         renderItem={renderItem}
+        key={numColumns}  
+        numColumns={numColumns}
         contentContainerStyle={styles.listContent}
+        columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
         onRefresh={fetchNotifications}
         refreshing={loading}
         ListEmptyComponent={
@@ -205,7 +209,7 @@ const NotificationListScreen: React.FC = () => {
                      <View style={styles.emptyCon}>
                         <Image
                       source={require('../../assets/NoJob3.png')}
-                      style={[styles.delivery, {width: width * 0.4, height: width * 0.4}]}
+                      style={[styles.delivery , {width: width * 0.4, height: width * 0.4}]}
                       resizeMode="contain"
                     />
                         <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
@@ -223,15 +227,11 @@ const NotificationListScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#f4f6f8'},
   listContent: {
-  padding:    12,
-  gap:        12,
-  flexGrow:   1,        
-  alignItems: 'stretch', 
-  paddingTop: 8,
+  padding:  12,
+  gap:      12,
+  flexGrow: 1,
 },
 delivery: {
-    
-    
     marginBottom: 24,
   },
 
@@ -257,15 +257,20 @@ delivery: {
     paddingTop: 12,
     paddingBottom: 12,
   },
+  columnWrapper: {
+  gap: 12,
+  paddingHorizontal: 12,
+},
 
   // Card
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
-    elevation: 2,
-    gap: 8,
-  },
+  backgroundColor: '#fff',
+  borderRadius:    12,
+  padding:         24,
+  elevation:       2,
+  gap:             8,
+  flex:            1,   // ✅ เพิ่ม — ทำให้ card ยืดเต็ม column
+},
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
