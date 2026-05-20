@@ -232,13 +232,13 @@ const styles = StyleSheet.create({
   flexGrow: 1,
 },
 delivery: {
-   height: 278,
+   height: 195,
     marginBottom: 24,
   },
 
   emptyContainer: {
     alignItems: 'top',
-    marginTop: 10, // ✅ ชิดบน ไม่ใช่ตรงกลาง
+    marginTop: 10, // ชิดบน ไม่ใช่ตรงกลาง
   },
 
   // Title bar
