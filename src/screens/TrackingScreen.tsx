@@ -8,6 +8,7 @@ import {RootStackParamList} from '../types/navigationTypes';
 import {AuthContext} from '../context/AuthProvider';
 import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Tracking'>;
 
@@ -27,10 +28,14 @@ export default function TrackingScreen({route, navigation}: Props) {
   const {requestId} = route.params;
   const {companyColor} = useContext(AuthContext)!;
   const color = companyColor ?? '#a7cc43';
+  const insets = useSafeAreaInsets();
 
   const [trackList,     setTrackList]     = useState<Track[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert,    setShowAlert]    = useState(false);
 
   useEffect(() => { fetchTracking(); }, []);
 
@@ -46,10 +51,12 @@ export default function TrackingScreen({route, navigation}: Props) {
       if (!obj.error) {
         setTrackList(obj.Track ?? []);
       } else {
-        Alert.alert('แจ้งเตือน', obj.message);
+          setAlertMessage(obj.message);
+          setShowAlert(true);
       }
     } catch (e) {
-      Alert.alert('ข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลได้');
+        setAlertMessage('ไม่สามารถโหลดข้อมูลได้');
+        setShowAlert(true);
     } finally {
       setLoading(false);
     }
@@ -71,6 +78,27 @@ export default function TrackingScreen({route, navigation}: Props) {
   }
 
   return (
+    <>
+      {/* ── Alert Modal ── */}
+      <Modal transparent visible={showAlert} animationType="fade">
+        <View style={styles.modalAlertOverlay}>
+          <View style={styles.modalAlertBox}>
+            <View style={[styles.modalAlertIcon, {backgroundColor: '#FBC900'}]}>
+              <Text style={styles.modalAlertIconText}>!</Text>
+            </View>
+            <Text style={styles.modalAlertTitle}>แจ้งเตือน</Text>
+            <Text style={styles.modalAlertMessage}>{alertMessage}</Text>
+            <TouchableOpacity
+              style={[styles.modalAlertBtn, {backgroundColor: color}]}
+              onPress={() => setShowAlert(false)}
+            >
+              <Text style={styles.modalAlertBtnText}>ตกลง</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+  
     <View style={styles.wrapper}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
@@ -237,6 +265,7 @@ export default function TrackingScreen({route, navigation}: Props) {
                 >
                   <Text style={styles.modalCloseText}>ปิด</Text>
                 </TouchableOpacity>
+                <View style={{ height: insets.bottom + 60 }} />
               </View>
             </ScrollView>
 
@@ -244,6 +273,7 @@ export default function TrackingScreen({route, navigation}: Props) {
         </View>
       </Modal>
     </View>
+    </>
   );
 }
 
@@ -300,7 +330,7 @@ const styles = StyleSheet.create({
     width:          '70%',
     alignItems:     'center',
     justifyContent: 'center',
-    paddingBottom: 10,
+    paddingBottom: 10, 
   },
   closeBtnText: {color: '#fff', fontSize: 16, fontFamily: 'Quicksand-Bold'},
   closebt:      {marginVertical: 12, alignItems: 'center'},
@@ -372,4 +402,32 @@ const styles = StyleSheet.create({
     width:           '70%',
   },
   modalCloseText: {color: '#fff', fontFamily: 'Quicksand-Bold', fontSize: 16},
+
+  modalAlertOverlay: {
+  flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+  justifyContent: 'center', alignItems: 'center',
+},
+modalAlertBox: {
+  backgroundColor: '#fff', borderRadius: 16,
+  padding: 24, width: '80%',
+  alignItems: 'center', elevation: 5,
+},
+modalAlertIcon: {
+  width: 60, height: 60, borderRadius: 30,
+  justifyContent: 'center', alignItems: 'center', marginBottom: 16,
+},
+modalAlertIconText: {color: '#fff', fontSize: 30, fontFamily: 'Quicksand-Bold'},
+modalAlertTitle: {
+  fontSize: 20, fontFamily: 'Quicksand-Bold',
+  color: '#333', marginBottom: 8,
+},
+modalAlertMessage: {
+  fontSize: 14, color: '#555',
+  textAlign: 'center', marginBottom: 24, lineHeight: 22,
+},
+modalAlertBtn: {
+  width: '100%', padding: 12,
+  borderRadius: 8, alignItems: 'center',
+},
+modalAlertBtnText: {color: '#fff', fontSize: 15, fontFamily: 'Quicksand-Bold'},
 });
