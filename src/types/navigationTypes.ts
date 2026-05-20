@@ -11,7 +11,7 @@ export type RootStackParamList = {
   NotificationList: undefined;
   NotificationDetail: undefined;
   JobList: undefined;
-  ViewDetail: {item: JobItem};
+  ViewDetail: {item: JobItem; fromScreen?: string};
   Scan: undefined; //เพิ่มไปหน้าสแกน
   Tracking: {requestId: string};
   Signature: {request_id: string; status_id: string};

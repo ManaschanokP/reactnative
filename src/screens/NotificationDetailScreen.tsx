@@ -35,6 +35,8 @@ type RootStackParamList = {
       d_date: string;
       d_time: string;
     };
+
+    fromScreen?: string;
   };
 };
 
@@ -60,6 +62,8 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
         d_date: item.d_date ?? '',
         d_time: item.d_time ?? '',
       },
+
+      fromScreen: 'NotificationList',
     });
   };
 
