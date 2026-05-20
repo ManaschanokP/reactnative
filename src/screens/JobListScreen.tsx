@@ -238,9 +238,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView>
-        <View></View>
-      </SafeAreaView>
+      <SafeAreaView edges={['top']}></SafeAreaView>
       {/* Start Date Modal */}
       <Modal visible={showStartPicker} transparent animationType="slide">
         <View style={styles.modalContainer}>
@@ -280,7 +278,9 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
               <TouchableOpacity
                 style={styles.dateBtn}
                 onPress={() => setShowStartPicker(true)}>
-                <Text style={styles.dateBtnText}>{toDisplayDate(startDate)}</Text>
+                <Text style={styles.dateBtnText}>
+                  {toDisplayDate(startDate)}
+                </Text>
               </TouchableOpacity>
               <Icon name="calendar-month" size={22} color={companyColor} />
             </View>
@@ -307,10 +307,15 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
               style={styles.dropdownBtn}
               onPress={() => setShowStatusDropdown(p => !p)}>
               <Text style={styles.dropdownBtnText}>
-                {STATUS_OPTIONS.find(o => o.value === status)?.label ?? 'ทั้งหมด'}
+                {STATUS_OPTIONS.find(o => o.value === status)?.label ??
+                  'ทั้งหมด'}
               </Text>
               <Icon
-                name={showStatusDropdown ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+                name={
+                  showStatusDropdown
+                    ? 'keyboard-arrow-up'
+                    : 'keyboard-arrow-down'
+                }
                 size={22}
                 color="#555"
               />
@@ -325,10 +330,14 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
                       setStatus(opt.value);
                       setShowStatusDropdown(false);
                     }}>
-                    <Text style={[
-                      styles.dropdownItemText,
-                      status === opt.value && {color: companyColor ?? '#a7cc43', fontFamily: 'Quicksand-Bold'},
-                    ]}>
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        status === opt.value && {
+                          color: companyColor ?? '#a7cc43',
+                          fontFamily: 'Quicksand-Bold',
+                        },
+                      ]}>
                       {opt.label}
                     </Text>
                   </TouchableOpacity>
@@ -417,13 +426,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     alignItems: 'flex-end', // ✅ จัดแนวกับ label
-},
+  },
   dateBtnRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  dateBlock: {flex: 1 },
+  dateBlock: {flex: 1},
   dateBtn: {
     flex: 1,
     borderWidth: 1,
@@ -432,13 +441,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     backgroundColor: '#fafafa',
-},
+  },
   dateBtnText: {fontSize: 12, color: '#333', fontFamily: 'Quicksand-Medium'},
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center', // ✅ ให้ทุกอย่างชิดล่างเดียวกัน
     gap: 10,
-},
+  },
   pickerWrap: {
     flex: 1,
     height: 52,

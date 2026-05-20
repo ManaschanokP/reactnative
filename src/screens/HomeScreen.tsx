@@ -145,7 +145,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
             <Text style={modalStyles.title}>แจ้งเตือน</Text>
 
-            <Text style={modalStyles.message}>กรุณากรอกป้อนหมายเลขติดตาม</Text>
+            <Text style={modalStyles.message}>กรุณาป้อนหมายเลขติดตาม</Text>
 
             <TouchableOpacity
               style={[

@@ -18,7 +18,6 @@ import Icon6 from 'react-native-vector-icons/FontAwesome6';
 import Icons from 'react-native-vector-icons/Ionicons';
 import IconO from 'react-native-vector-icons/Octicons';
 
-
 type RootStackParamList = {
   NotificationList: undefined;
 
@@ -111,75 +110,70 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
             <View style={styles.divider} />
 
             {/* Detail List */}
-              <View style={styles.detailItem}>
-                <Icon
-                  name="flag"
-                  size={24}
-                  color="#8BC400"
-                  style={styles.icon}
-                />
+            <View style={styles.detailItem}>
+              <Icon name="flag" size={24} color="#8BC400" style={styles.icon} />
 
-                <View>
-                  <Text style={styles.label}>สถานะ</Text>
-                  <Text style={styles.value}>{item.status_name}</Text>
-                </View>
+              <View>
+                <Text style={styles.label}>สถานะ</Text>
+                <Text style={styles.value}>{item.status_name}</Text>
               </View>
+            </View>
 
-              <View style={styles.detailItem}>
-                <Icon6
-                  name="location-dot"
-                  size={24}
-                  color="#8BC400"
-                  style={styles.icon}
-                />
+            <View style={styles.detailItem}>
+              <Icon6
+                name="location-dot"
+                size={24}
+                color="#8BC400"
+                style={styles.icon}
+              />
 
-                <View>
-                  <Text style={styles.label}>ปลายทาง</Text>
-                  <Text style={styles.value}>{item.t_com}</Text>
-                </View>
+              <View>
+                <Text style={styles.label}>ปลายทาง</Text>
+                <Text style={styles.value}>{item.t_com}</Text>
               </View>
+            </View>
 
-              <View style={styles.detailItem}>
-                <Icon
-                  name="calendar-month"
-                  size={24}
-                  color="#8BC400"
-                  style={styles.icon}
-                />
+            <View style={styles.detailItem}>
+              <Icon
+                name="calendar-month"
+                size={24}
+                color="#8BC400"
+                style={styles.icon}
+              />
 
-                <View>
-                  <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
-                  <Text style={styles.value}>{item.d_date}</Text>
-                </View>
+              <View>
+                <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
+                <Text style={styles.value}>{item.d_date}</Text>
               </View>
+            </View>
 
-              <View style={styles.detailItem}>
-                <Icon6
-                  name="clock"
-                  size={24}
-                  color="#8BC400"
-                  style={styles.icon}
-                />
+            <View style={styles.detailItem}>
+              <Icon6
+                name="clock"
+                size={24}
+                color="#8BC400"
+                style={styles.icon}
+              />
 
-                <View>
-                  <Text style={styles.label}>เวลาที่ถึงปลายทาง</Text>
-                  <Text style={styles.value}>{item.d_time}</Text>
-                </View>
+              <View>
+                <Text style={styles.label}>เวลาที่ถึงปลายทาง</Text>
+                <Text style={styles.value}>{item.d_time}</Text>
               </View>
+            </View>
 
-              <View style={styles.detailItem}>
-                <Icon
-                  name="format-list-bulleted"
-                  size={24}
-                  color="#8BC400"
-                  style={styles.icon}
-                />
+            <View style={styles.detailItem}>
+              <Icon
+                name="format-list-bulleted"
+                size={24}
+                color="#8BC400"
+                style={styles.icon}
+              />
 
-                <View style={{flex: 1}}>
-                  <Text style={styles.label}>รายละเอียด</Text>
-                  <Text style={styles.value}>{item.remake}</Text>
-                </View>
+              <View style={{flex: 1}}>
+                <Text style={styles.label}>รายละเอียด</Text>
+                <Text style={styles.value}>{item.remake}</Text>
               </View>
+            </View>
 
             {/* Buttons */}
             <View style={styles.buttonContainer}>
@@ -188,11 +182,11 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
                   style={styles.startButton}
                   onPress={handleStartWork}>
                   <Icons
-                  name="play-skip-back-circle-sharp"
-                  size={24}
-                  color="#ffffff"
-                  style={styles.iconbottom}
-                />
+                    name="play-skip-back-circle-sharp"
+                    size={24}
+                    color="#ffffff"
+                    style={styles.iconbottom}
+                  />
                   <Text style={styles.buttonText}>เริ่มงาน</Text>
                 </TouchableOpacity>
               )}
@@ -200,7 +194,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => navigation.goBack()}>
-                  <IconO
+                <IconO
                   name="x-circle-fill"
                   size={20}
                   color="#ffffff"
@@ -301,8 +295,8 @@ const styles = StyleSheet.create({
     height: 40,
   },
 
-  iconbottom:{
-    alignItems:'center',
+  iconbottom: {
+    alignItems: 'center',
     paddingRight: 10,
   },
 
@@ -373,33 +367,33 @@ const styles = StyleSheet.create({
   },
 
   detailContainer: {
-  backgroundColor: '#F3F3F3',
-  borderRadius: 12,
-  padding: 20,
-},
+    backgroundColor: '#F3F3F3',
+    borderRadius: 12,
+    padding: 20,
+  },
 
-detailItem: {
-  flexDirection: 'row',
-  alignItems: 'flex-start',
-  marginBottom: 24,
-},
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
 
-icon: {
-  marginRight: 16,
-  marginTop: 15,
-  marginLeft: 15,
-},
+  icon: {
+    marginRight: 16,
+    marginTop: 15,
+    marginLeft: 15,
+  },
 
-label: {
-  fontSize: 12,
-  color: '#37373780',
-  marginBottom: 4,
-  fontFamily: 'Quicksand-SemiBold',
-},
+  label: {
+    fontSize: 12,
+    color: '#37373780',
+    marginBottom: 4,
+    fontFamily: 'Quicksand-SemiBold',
+  },
 
-value: {
-  fontSize: 16,
-  color: '#373737',
-  fontFamily: 'Quicksand-Bold',
-},
+  value: {
+    fontSize: 16,
+    color: '#373737',
+    fontFamily: 'Quicksand-Bold',
+  },
 });
