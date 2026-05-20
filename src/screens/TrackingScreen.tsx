@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     width:          '70%',
     alignItems:     'center',
     justifyContent: 'center',
-    paddingBottom: 30,
+    paddingBottom: 10,
   },
   closeBtnText: {color: '#fff', fontSize: 16, fontFamily: 'Quicksand-Bold'},
   closebt:      {marginVertical: 12, alignItems: 'center'},
