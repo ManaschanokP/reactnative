@@ -238,7 +238,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView>
+      <SafeAreaView edges={['top']}>
         <View></View>
       </SafeAreaView>
       {/* Start Date Modal */}
