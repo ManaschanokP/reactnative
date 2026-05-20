@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TextInput,
-  Alert,
   StyleSheet,
   BackHandler,
   ActivityIndicator,
@@ -31,6 +30,17 @@ const ProfileScreen: React.FC<Props> = ({navigation}) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [alertModal, setAlertModal] = useState<{visible: boolean; title: string; message: string}>({
+  visible: false,
+  title: '',
+  message: '',
+});
+
+const [showBackConfirm, setShowBackConfirm] = useState(false);
+
+const showAlert = (title: string, message: string) => {
+  setAlertModal({visible: true, title, message});
+};
 
   const [form, setForm] = useState<ProfileForm>({
     id:         user?.id         ?? '',
@@ -46,17 +56,14 @@ const ProfileScreen: React.FC<Props> = ({navigation}) => {
   const [loading, setLoading] = useState(false);
 
   // Hardware back button
-  useEffect(() => {
-    const backAction = () => {
-      Alert.alert('Hold on!', 'Are you sure you want to go back?', [
-        {text: 'Cancel', style: 'cancel'},
-        {text: 'YES', onPress: () => BackHandler.exitApp()},
-      ]);
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => backHandler.remove();
-  }, []);
+    useEffect(() => {
+      const backAction = () => {
+        setShowBackConfirm(true);
+        return true;
+      };
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+      return () => backHandler.remove();
+    }, []);
 
   // Sync form เมื่อ user context เปลี่ยน
   useEffect(() => {
@@ -84,7 +91,7 @@ const ProfileScreen: React.FC<Props> = ({navigation}) => {
 
   const handleSubmit = () => {
   if (!form.tel.trim() && !form.phone.trim()) {
-    Alert.alert('แจ้งเตือน', 'กรุณากรอกเบอร์ภายในหรือเบอร์มือถืออย่างน้อย 1 ช่อง');
+    showAlert('แจ้งเตือน', 'กรุณากรอกเบอร์ภายในหรือเบอร์มือถืออย่างน้อย 1 ช่อง');
     return;
   }
   setShowConfirm(true);
@@ -111,16 +118,61 @@ const doSubmit = async () => {
       setSuccessMessage(obj.message || 'บันทึกข้อมูลสำเร็จ');
       setShowSuccess(true);
     } else {
-      Alert.alert('ผิดพลาด', obj.message || 'ไม่สามารถอัปเดตข้อมูลได้');
+      showAlert('ผิดพลาด', obj.message || 'ไม่สามารถอัปเดตข้อมูลได้');
     }
   } catch (error: any) {
-    Alert.alert('ผิดพลาด', error.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+   showAlert('ผิดพลาด', error.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
   } finally {
     setLoading(false);
   }
 };
   return (
     <>
+    {/* ── Back Confirm Modal ── */}
+    <Modal transparent visible={showBackConfirm} animationType="fade">
+      <View style={modalStyles.overlay}>
+        <View style={modalStyles.box}>
+          <View style={[modalStyles.iconCircle, {backgroundColor: '#F5A800'}]}>
+            <Text style={modalStyles.iconText}>!</Text>
+          </View>
+          <Text style={modalStyles.title}>ออกจากแอป</Text>
+          <Text style={modalStyles.message}>ต้องการ "ออกจากแอป" ใช่ไหม ?</Text>
+          <View style={modalStyles.buttons}>
+            <TouchableOpacity
+              style={modalStyles.cancelBtn}
+              onPress={() => setShowBackConfirm(false)}>
+              <Text style={modalStyles.cancelText}>ยกเลิก</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[modalStyles.confirmBtn, {backgroundColor: companyColor ?? '#a7cc43'}]}
+              onPress={() => {
+                setShowBackConfirm(false);
+                setTimeout(() => BackHandler.exitApp(), 100);
+              }}>
+              <Text style={modalStyles.confirmText}>ออกจากแอป</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+    {/* ── Alert Modal ── */}
+    <Modal transparent visible={alertModal.visible} animationType="fade">
+      <View style={modalStyles.overlay}>
+        <View style={modalStyles.box}>
+          <View style={[modalStyles.iconCircle, {backgroundColor: '#e74c3c'}]}>
+            <Text style={modalStyles.iconText}>!</Text>
+          </View>
+          <Text style={modalStyles.title}>{alertModal.title}</Text>
+          <Text style={modalStyles.message}>{alertModal.message}</Text>
+          <TouchableOpacity
+            style={[modalStyles.fullBtn, {backgroundColor: companyColor ?? '#a7cc43'}]}
+            onPress={() => setAlertModal(prev => ({...prev, visible: false}))}
+          >
+            <Text style={modalStyles.confirmText}>ตกลง</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
      {/* ── ConfirmLogout Modal ── */}
   <Modal transparent visible={showConfirmLogout} animationType="fade">
     <View style={modalStyles.overlay}>
