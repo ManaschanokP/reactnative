@@ -275,49 +275,46 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
         {/* Date Row */}
         <View style={styles.dateRow}>
           <View style={styles.dateBlock}>
-            <Text style={styles.filterLabel}>วันที่เริ่ม</Text>
-            <TouchableOpacity
-              style={styles.dateBtn}
-              onPress={() => setShowStartPicker(true)}>
-              <Text style={styles.dateBtnText}>{toDisplayDate(startDate)}</Text>
-              <Icon name="calendar-month" size={18} color={companyColor} />
-            </TouchableOpacity>
+            <View style={styles.dateBtnRow}>
+              <Text style={styles.filterLabel}>วันที่เริ่ม : </Text>
+              <TouchableOpacity
+                style={styles.dateBtn}
+                onPress={() => setShowStartPicker(true)}>
+                <Text style={styles.dateBtnText}>{toDisplayDate(startDate)}</Text>
+              </TouchableOpacity>
+              <Icon name="calendar-month" size={22} color={companyColor} />
+            </View>
           </View>
 
           <View style={styles.dateBlock}>
-            <Text style={styles.filterLabel}>วันที่สิ้นสุด</Text>
-            <TouchableOpacity
-              style={styles.dateBtn}
-              onPress={() => setShowEndPicker(true)}>
-              <Text style={styles.dateBtnText}>{toDisplayDate(endDate)}</Text>
-              <Icon name="calendar-month" size={18} color={companyColor} />
-            </TouchableOpacity>
+            <View style={styles.dateBtnRow}>
+              <Text style={styles.filterLabel}>วันที่สิ้นสุด : </Text>
+              <TouchableOpacity
+                style={styles.dateBtn}
+                onPress={() => setShowEndPicker(true)}>
+                <Text style={styles.dateBtnText}>{toDisplayDate(endDate)}</Text>
+              </TouchableOpacity>
+              <Icon name="calendar-month" size={22} color={companyColor} />
+            </View>
           </View>
         </View>
 
         {/* Status + Search Row */}
         <View style={styles.statusRow}>
-          <Text style={styles.filterLabel}>สถานะ</Text>
-
+          <Text style={styles.filterLabel}>สถานะ :</Text>
           <View style={{flex: 1}}>
             <TouchableOpacity
               style={styles.dropdownBtn}
               onPress={() => setShowStatusDropdown(p => !p)}>
               <Text style={styles.dropdownBtnText}>
-                {STATUS_OPTIONS.find(o => o.value === status)?.label ??
-                  'ทั้งหมด'}
+                {STATUS_OPTIONS.find(o => o.value === status)?.label ?? 'ทั้งหมด'}
               </Text>
               <Icon
-                name={
-                  showStatusDropdown
-                    ? 'keyboard-arrow-up'
-                    : 'keyboard-arrow-down'
-                }
+                name={showStatusDropdown ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
                 size={22}
                 color="#555"
               />
             </TouchableOpacity>
-
             {showStatusDropdown && (
               <View style={styles.dropdownList}>
                 {STATUS_OPTIONS.map(opt => (
@@ -328,14 +325,10 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
                       setStatus(opt.value);
                       setShowStatusDropdown(false);
                     }}>
-                    <Text
-                      style={[
-                        styles.dropdownItemText,
-                        status === opt.value && {
-                          color: companyColor ?? '#a7cc43',
-                          fontFamily: 'Quicksand-Bold',
-                        },
-                      ]}>
+                    <Text style={[
+                      styles.dropdownItemText,
+                      status === opt.value && {color: companyColor ?? '#a7cc43', fontFamily: 'Quicksand-Bold'},
+                    ]}>
                       {opt.label}
                     </Text>
                   </TouchableOpacity>
@@ -346,9 +339,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
 
           <TouchableOpacity
             style={[styles.searchBtn, {backgroundColor: companyColor}]}
-            onPress={() => fetchJobs(status)} // ✅ ส่ง status ตรงๆ
-          >
-            <Icon name="search" size={22} color="#fff" />
+            onPress={() => fetchJobs(status)}>
+            <Icon name="search" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -409,7 +401,7 @@ const styles = StyleSheet.create({
   // Filter bar
   filterBar: {
     //backgroundColor: '#F9F9F9',
-    padding: 12,
+    padding: 16,
     elevation: 2,
     gap: 8,
     zIndex: 1, // ✅ เพิ่ม
@@ -417,25 +409,36 @@ const styles = StyleSheet.create({
   },
   filterLabel: {
     fontSize: 12,
-    color: '#888',
+    color: '#373737',
     marginBottom: 4,
     fontFamily: 'Quicksand-ฺBold',
   },
-  dateRow: {flexDirection: 'row', gap: 10},
-  dateBlock: {flex: 1},
-  dateBtn: {
+  dateRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 10,
+    alignItems: 'flex-end', // ✅ จัดแนวกับ label
+},
+  dateBtnRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+  },
+  dateBlock: {flex: 1 },
+  dateBtn: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
     backgroundColor: '#fafafa',
-  },
-  dateBtnText: {fontSize: 16, color: '#333', fontFamily: 'Quicksand-Medium'},
-  statusRow: {flexDirection: 'row', alignItems: 'center', gap: 10, height: 64},
+},
+  dateBtnText: {fontSize: 12, color: '#333', fontFamily: 'Quicksand-Medium'},
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center', // ✅ ให้ทุกอย่างชิดล่างเดียวกัน
+    gap: 10,
+},
   pickerWrap: {
     flex: 1,
     height: 52,
@@ -461,7 +464,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
   },
   dropdownBtnText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#333',
     fontFamily: 'Quicksand-Medium',
   },
@@ -503,8 +506,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand-Medium',
   },
   searchBtn: {
-    width: 44,
-    height: 44,
+    width: 34,
+    height: 34,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
