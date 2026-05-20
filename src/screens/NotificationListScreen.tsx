@@ -209,7 +209,7 @@ const NotificationListScreen: React.FC = () => {
                      <View style={styles.emptyCon}>
                         <Image
                       source={require('../../assets/NoJob3.png')}
-                      style={[styles.delivery , {width: width * 0.4, height: width * 0.4}]}
+                      style={[styles.delivery ]}
                       resizeMode="contain"
                     />
                         <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
