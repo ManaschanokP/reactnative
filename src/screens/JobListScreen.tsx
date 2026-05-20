@@ -275,8 +275,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
         {/* Date Row */}
         <View style={styles.dateRow}>
           <View style={styles.dateBlock}>
+            <Text style={styles.filterLabel}>วันที่เริ่ม :</Text>
             <View style={styles.dateBtnRow}>
-              <Text style={styles.filterLabel}>วันที่เริ่ม : </Text>
               <TouchableOpacity
                 style={styles.dateBtn}
                 onPress={() => setShowStartPicker(true)}>
@@ -287,8 +287,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
           </View>
 
           <View style={styles.dateBlock}>
+            <Text style={styles.filterLabel}>วันที่สิ้นสุด :</Text>
             <View style={styles.dateBtnRow}>
-              <Text style={styles.filterLabel}>วันที่สิ้นสุด : </Text>
               <TouchableOpacity
                 style={styles.dateBtn}
                 onPress={() => setShowEndPicker(true)}>
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
   // Filter bar
   filterBar: {
     //backgroundColor: '#F9F9F9',
-    padding: 16,
+    padding: 12,
     elevation: 2,
     gap: 8,
     zIndex: 1, // ✅ เพิ่ม
@@ -506,8 +506,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand-Medium',
   },
   searchBtn: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
