@@ -44,7 +44,7 @@ export default function ScanScreen({navigation}: Props) {
   const CORNER     = Math.round(width * 0.055);
   const BORDER     = Math.round(PixelRatio.roundToNearestPixel(3));
   const BACK_SIZE  = Math.round(width * 0.09);
-  const CTRL_BOTTOM = height * 0.2;
+  const CTRL_BOTTOM = height * 0.18;
   const SIDE_PAD   = width * 0.08;
 
   useEffect(() => {
