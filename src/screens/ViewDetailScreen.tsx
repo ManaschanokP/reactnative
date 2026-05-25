@@ -97,6 +97,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const [isOfflineSuccess, setIsOfflineSuccess] = useState(false);
 
   const signatureRef = useRef<SignatureViewRef>(null);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
 
   useEffect(() => {
     const checkTracking = async () => {
@@ -401,6 +402,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       </Modal>
 
       <ScrollView
+        scrollEnabled={scrollEnabled}
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
@@ -492,6 +494,8 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
               <Text style={styles.fieldLabel}>ลายเซ็นผู้รับสินค้า :</Text>
               <View style={[styles.signatureBox, {height: signatureHeight}]}>
                 <SignatureScreen
+                  onBegin={() => setScrollEnabled(false)}
+                  onEnd={() => setScrollEnabled(true)}
                   key={signatureKey}
                   ref={signatureRef}
                   onOK={handleSignatureOK}
