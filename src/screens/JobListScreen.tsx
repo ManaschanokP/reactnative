@@ -278,7 +278,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
 
             <TouchableOpacity style={styles.dateBtnRow}  onPress={() => setShowStartPicker(true)}>
               <TouchableOpacity
-                style={styles.dateBtn}
+                style={styles.dateBtn} onPress={() => setShowStartPicker(true)}
                 >
                 <Text style={styles.dateBtnText}>
                   {toDisplayDate(startDate)}
@@ -293,7 +293,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
             <Text style={styles.filterLabel}>วันที่สิ้นสุด :</Text>
             <TouchableOpacity style={styles.dateBtnRow} onPress={() => setShowEndPicker(true)}>
               <TouchableOpacity
-                style={styles.dateBtn}
+                style={styles.dateBtn} onPress={() => setShowEndPicker(true)}
                 >
                 <Text style={styles.dateBtnText}>{toDisplayDate(endDate)}</Text>
                 
