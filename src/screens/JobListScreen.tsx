@@ -30,6 +30,7 @@ import StatusMask from '../../assets/Status-Mark.svg';
 import StatusCalendar from '../../assets/Status-Calendar.svg';
 import StatusPackage from '../../assets/Status-Package.svg';
 import StatusCar from '../../assets/Status-Car.svg';
+import CalenderTGL from '../../assets/CalendarThaiGL.svg';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobList'>;
 
@@ -274,28 +275,31 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
         <View style={styles.dateRow}>
           <View style={styles.dateBlock}>
             <Text style={styles.filterLabel}>วันที่เริ่ม :</Text>
-            <View style={styles.dateBtnRow}>
+
+            <TouchableOpacity style={styles.dateBtnRow}  onPress={() => setShowStartPicker(true)}>
               <TouchableOpacity
                 style={styles.dateBtn}
-                onPress={() => setShowStartPicker(true)}>
+                >
                 <Text style={styles.dateBtnText}>
                   {toDisplayDate(startDate)}
                 </Text>
+
               </TouchableOpacity>
-              <Icon name="calendar-month" size={22} color={companyColor} />
-            </View>
+              <CalenderTGL  width={22} height={22} color={companyColor} />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.dateBlock}>
             <Text style={styles.filterLabel}>วันที่สิ้นสุด :</Text>
-            <View style={styles.dateBtnRow}>
+            <TouchableOpacity style={styles.dateBtnRow} onPress={() => setShowEndPicker(true)}>
               <TouchableOpacity
                 style={styles.dateBtn}
-                onPress={() => setShowEndPicker(true)}>
+                >
                 <Text style={styles.dateBtnText}>{toDisplayDate(endDate)}</Text>
+                
               </TouchableOpacity>
-              <Icon name="calendar-month" size={22} color={companyColor} />
-            </View>
+               <CalenderTGL  width={22} height={22} style={styles.iconcalender} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -560,6 +564,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
     gap: 6,
+  },
+   iconcalender: {
+    marginLeft: 10,
   },
   statusText: {fontSize: 12, fontFamily: 'Quicksand-Bold'},
   statusDot: {width: 7, height: 7, borderRadius: 4},

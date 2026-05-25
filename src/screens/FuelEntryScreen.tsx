@@ -23,6 +23,7 @@ import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
 
 import Icon from 'react-native-vector-icons/Feather';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import CalenderTGL from '../../assets/CalendarThaiGL.svg';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
 
@@ -183,12 +184,8 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
                   editable={false}
                 />
 
-                <MaterialIcons
-                  name="calendar-month"
-                  size={35}
-                  color="#93D500"
-                  style={styles.iconcalender}
-                />
+                 <CalenderTGL  width={36} height={36} style={styles.iconcalender} />
+                
               </View>
             </TouchableOpacity>
 
