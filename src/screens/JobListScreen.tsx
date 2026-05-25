@@ -1,4 +1,4 @@
-import React, {useState, useContext, useCallback} from 'react';
+import React, {useState, useContext, useCallback, useRef} from 'react';
 import {
   View,
   Text,
@@ -84,11 +84,15 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
   const numColumns = width >= 600 ? 2 : 1;
   const {height} = Dimensions.get('window');
 
+  const hasFetchedRef = useRef(false);
+
   useFocusEffect(
-    useCallback(() => {
-      if (jobs.length > 0) fetchJobs();
-    }, [startDate, endDate, status]),
-  );
+  useCallback(() => {
+    if (hasFetchedRef.current) {
+      fetchJobs(status);
+    }
+  }, [startDate, endDate, status]),
+);
 
   const handleStartDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
@@ -146,6 +150,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
       });
 
       setJobs(filtered);
+      hasFetchedRef.current = true;
     } catch (err) {
       setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
       console.error(err);
