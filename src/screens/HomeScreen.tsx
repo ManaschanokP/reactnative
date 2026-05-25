@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
   Alert,
   Image,
   Dimensions,
@@ -15,6 +16,7 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
 import {AuthContext, getCompanyColor} from '../context/AuthProvider';
+import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import IonIcon from 'react-native-vector-icons/Ionicons';
@@ -29,40 +31,86 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   console.log('User Home Screen:', user);
   console.log('User Status Home Screen:', user?.status);
 
+  const [searching, setSearching] = useState(false);
+
   //เพิ่ม function ค้นหา
-  const handleSearch = () => {
+  const handleSearch = async() => {
     if (!searchId.trim()) {
       setShowWarning(true);
+      
+
       return;
     }
-    navigation.navigate('Tracking', {
-      requestId: searchId,
-    });
+    try {
+    setSearching(true);
+    const baseUrl = await getBaseUrlByCompany();
+    const url = `${baseUrl}${API_ENDPOINTS.TRACK}`;
+    const formData = new FormData();
+    formData.append('request_id', searchId);
+    const res = await fetch(url, {method: 'POST', body: formData});
+    const obj = await res.json();
+    
+
+    if (!obj.error && obj.Track && obj.Track.length > 0) {
+      navigation.navigate('Tracking', {requestId: searchId});
+    } else {
+      setAlertMessage(obj.message || 'ไม่พบข้อมูลหมายเลขนี้');
+      setShowAlert(true);
+    }
+    } catch (e) {
+      setAlertMessage('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
+      setShowAlert(true);
+    } finally {
+      setSearching(false);
+    }
   };
 
   const [showWarning, setShowWarning] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  
 
   const isDriverOrMessenger = user?.status === 'U04' || user?.status === 'U05';
   //format function
   const formatRequestId = (value: string) => {
-    let cleaned = value.toUpperCase().replace(/-/g, '');
-    cleaned = cleaned.replace(/[^A-Z0-9]/g, '');
-    cleaned = cleaned.slice(0, 9);
-    let result = '';
-    if (cleaned.length <= 2) {
-      result = cleaned;
-    } else if (cleaned.length <= 4) {
-      result = `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
-    } else {
-      result = `${cleaned.slice(0, 2)}-${cleaned.slice(2, 4)}-${cleaned.slice(
-        4,
-      )}`;
-    }
-    return result;
+  // แยก raw ออกก่อน (ลบ - ออก)
+    let cleaned = value.replace(/-/g, '');
+
+    // 2 ตัวแรก = ตัวอักษรเท่านั้น (A-Z)
+    const letters = cleaned.slice(0, 2).replace(/[^A-Za-z]/g, '').toUpperCase();
+
+    // ที่เหลือ = ตัวเลขเท่านั้น (0-9)
+    const digits = cleaned.slice(2).replace(/[^0-9]/g, '');
+
+    // รวมกัน จำกัด 9 ตัว (2 ตัวอักษร + 7 ตัวเลข)
+    const raw = (letters + digits).slice(0, 9);
+
+    // ใส่ - คั่น format XX-XX-XXXXX
+    if (raw.length <= 2) return raw;
+    if (raw.length <= 4) return `${raw.slice(0, 2)}-${raw.slice(2)}`;
+    return `${raw.slice(0, 2)}-${raw.slice(2, 4)}-${raw.slice(4)}`;
   };
 
   return (
     <>
+    {/* ── Alert Modal ── */}
+          <Modal transparent visible={showAlert} animationType="fade">
+            <View style={styles.modalAlertOverlay}>
+              <View style={styles.modalAlertBox}>
+                <View style={[styles.modalAlertIcon, {backgroundColor: '#FBC900'}]}>
+                  <Text style={styles.modalAlertIconText}>!</Text>
+                </View>
+                <Text style={styles.modalAlertTitle}>แจ้งเตือน</Text>
+                <Text style={styles.modalAlertMessage}>{alertMessage}</Text>
+                <TouchableOpacity
+                  style={[styles.modalAlertBtn, {backgroundColor: companyColor}]}
+                  onPress={() => setShowAlert(false)}>
+                  <Text style={styles.modalAlertBtnText}>ตกลง</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+    
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView style={{flex: 1}}>
           <View style={styles.hello1}>
@@ -90,8 +138,11 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
               <TouchableOpacity
                 style={[styles.searchButton, {backgroundColor: companyColor}]}
-                onPress={handleSearch}>
-                <Icon name="search" size={26} color="#fff" />
+                onPress={handleSearch}
+                disabled={searching}>
+                {searching
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Icon name="search" size={26} color="#fff" />}
               </TouchableOpacity>
             </View>
 
@@ -145,7 +196,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
             <Text style={modalStyles.title}>แจ้งเตือน</Text>
 
-            <Text style={modalStyles.message}>กรุณาป้อนหมายเลขติดตาม</Text>
+            <Text style={modalStyles.message}>ป้อนหมายเลขติดตาม</Text>
 
             <TouchableOpacity
               style={[
@@ -279,6 +330,57 @@ const styles = StyleSheet.create({
     paddingLeft: '8%',
     paddingTop: '10%',
     paddingBottom: 0,
+  },
+  modalAlertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalAlertBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '80%',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalAlertIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalAlertIconText: {
+    color: '#fff',
+    fontSize: 30,
+    fontFamily: 'Quicksand-Bold',
+  },
+  modalAlertTitle: {
+    fontSize: 20,
+    fontFamily: 'Quicksand-Bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  modalAlertMessage: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  modalAlertBtn: {
+    width: '100%',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalAlertBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontFamily: 'Quicksand-Bold',
   },
 });
 
