@@ -298,7 +298,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
                 <Text style={styles.dateBtnText}>{toDisplayDate(endDate)}</Text>
                 
               </TouchableOpacity>
-               <CalenderTGL  width={22} height={22} style={styles.iconcalender} />
+               <CalenderTGL  width={22} height={22}  />
             </TouchableOpacity>
           </View>
         </View>
