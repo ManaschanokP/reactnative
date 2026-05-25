@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Icon6 from 'react-native-vector-icons/FontAwesome6';
 import Icons from 'react-native-vector-icons/Ionicons';
 import IconO from 'react-native-vector-icons/Octicons';
+import CalenderTGL from '../../assets/CalendarThaiGL.svg';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -132,18 +133,13 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
               />
 
               <View>
-                <Text style={styles.label}>ปลายทาง</Text>
-                <Text style={styles.value}>{item.t_com}</Text>
+                <Text style={styles.label1}>ปลายทาง</Text>
+                <Text style={styles.value1}>{item.t_com}</Text>
               </View>
             </View>
 
             <View style={styles.detailItem}>
-              <Icon
-                name="calendar-month"
-                size={24}
-                color="#8BC400"
-                style={styles.icon}
-              />
+              <CalenderTGL  width={24} height={30} style={styles.icon} />
 
               <View>
                 <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
@@ -399,5 +395,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#373737',
     fontFamily: 'Quicksand-Bold',
+  },
+
+  label1: {
+    fontSize: 12,
+    color: '#37373780',
+    marginBottom: 4,
+    fontFamily: 'Quicksand-SemiBold',
+    paddingLeft: 4,
+  },
+
+  value1: {
+    fontSize: 16,
+    color: '#373737',
+    fontFamily: 'Quicksand-Bold',
+    paddingLeft: 4,
   },
 });
