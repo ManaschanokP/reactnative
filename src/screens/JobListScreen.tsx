@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
    iconcalender: {
     marginLeft: 10,
   },
-  statusText: {fontSize: 12, fontFamily: 'Quicksand-Bold'},
+  statusText: {fontSize: 12, fontFamily: 'Quicksand-Bold' ,marginBottom: 3,},
   statusDot: {width: 7, height: 7, borderRadius: 4},
   divider: {height: 1, backgroundColor: '#f0f0f0'},
 

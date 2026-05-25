@@ -289,11 +289,11 @@ delivery: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 20,
     gap: 6,
   },
-  statusText: {fontSize: 12, fontFamily: 'Quicksand-Bold'},
+  statusText: {  fontSize: 12, fontFamily: 'Quicksand-Bold' , marginBottom: 3,},
   statusDot: {width: 7, height: 7, borderRadius: 4},
   divider: {height: 1, backgroundColor: '#f0f0f0'},
 
