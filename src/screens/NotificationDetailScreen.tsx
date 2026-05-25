@@ -139,7 +139,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
             </View>
 
             <View style={styles.detailItem}>
-              <CalenderTGL  width={24} height={30} style={styles.icon} />
+              <CalenderTGL width={24} height={30} style={styles.icon} />
 
               <View>
                 <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
@@ -275,12 +275,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#93D500',
     //paddingVertical: 14,
-    paddingHorizontal: 28,
+    paddingHorizontal: 18,
     borderRadius: 10,
     alignItems: 'center',
     minWidth: 120,
     width: 100,
     height: 40,
+    justifyContent:'space-between',
   },
 
   closeButton: {
@@ -293,6 +294,7 @@ const styles = StyleSheet.create({
     minWidth: 120,
     width: 100,
     height: 40,
+    justifyContent:'space-between',
   },
 
   iconbottom: {
