@@ -12,7 +12,7 @@ import FoundationIcon from 'react-native-vector-icons/Foundation';
 const ICON_COLOR = '#6C7278';
 
 const RootTabs: React.FC = () => {
-  const { user, companyColor } = useContext(AuthContext)!;
+  const { user, companyColor , hasUnreadNoti} = useContext(AuthContext)!;
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const insets     = useSafeAreaInsets();
 
@@ -50,9 +50,22 @@ const RootTabs: React.FC = () => {
 
       {/* ── Notifications ── */}
       {isDriverOrMessenger && (
-        <TouchableOpacity style={styles.navButton} onPress={() => handleNavigation('NotificationList')}>
-          <OctiIcon name={isActive('NotificationList') ? 'bell-fill' : 'bell'} size={26} color={getIconColor('NotificationList')} />
-          <Text style={[styles.navButtonText, { color: getTextColor('NotificationList') }]}>Notifications</Text>
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => handleNavigation('NotificationList')}>
+          <View>
+            <OctiIcon
+              name={isActive('NotificationList') ? 'bell-fill' : 'bell'}
+              size={26}
+              color={getIconColor('NotificationList')}
+            />
+            {hasUnreadNoti && (
+              <View style={styles.badge} />
+            )}
+          </View>
+          <Text style={[styles.navButtonText, {color: getTextColor('NotificationList')}]}>
+            Notifications
+          </Text>
         </TouchableOpacity>
       )}
 
@@ -100,6 +113,17 @@ const styles = StyleSheet.create({
   navButtonText: {
     fontSize:   11,
     fontFamily: 'Quicksand-Bold',
+  },
+  badge: {
+    position:        'absolute',
+    top:             -2,
+    right:           -4,
+    width:           9,
+    height:          9,
+    borderRadius:    5,
+    backgroundColor: '#e74c3c',
+    borderWidth:     1.5,
+    borderColor:     '#fff',
   },
 });
 

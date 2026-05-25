@@ -41,7 +41,7 @@ const getStatusStyle = (statusName: string) => {
 
 const NotificationListScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const {user, companyColor} = useContext(AuthContext)!;
+  const {user, companyColor, setHasUnreadNoti} = useContext(AuthContext)!;
   const insets = useSafeAreaInsets();
 
   const [data, setData] = useState<NotificationItem[]>([]);
@@ -88,6 +88,7 @@ const NotificationListScreen: React.FC = () => {
       });
 
       setData(sorted);
+      setHasUnreadNoti(sorted.length > 0); 
     } catch (err) {
       setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
       console.error(err);

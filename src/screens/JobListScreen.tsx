@@ -167,7 +167,9 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
         onPress={() => {
           if (
             item.status_id !== 'SD09' &&
-            item.status_name !== 'ดำเนินการสำเร็จ'
+            item.status_name !== 'ดำเนินการสำเร็จ' &&
+            item.status_id !== 'SD04' &&
+            item.status_name !== 'พบปัญหา'
           ) {
             navigation.navigate('ViewDetail', {item});
           }
