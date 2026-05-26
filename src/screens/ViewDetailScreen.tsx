@@ -78,9 +78,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const [detail, setDetail] = useState('');
   const [box, setBox] = useState('');
   const [mile, setMile] = useState('');
-  const [photo, setPhoto] = useState<{uri: string; base64: string} | null>(
-    null,
-  );
+  const [photo, setPhoto] = useState<{uri: string; base64: string} | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [rating, setRating] = useState(5);
@@ -98,6 +96,20 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
   const signatureRef = useRef<SignatureViewRef>(null);
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const photoRef = useRef<{uri: string; base64: string} | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const needsPhoto = REQUIRES_PHOTO.includes(selectedStatus);
+  const needsSignatureRating = REQUIRES_SIGNATURE_RATING.includes(selectedStatus);
+  const needsBox = REQUIRES_BOX.includes(selectedStatus);
+  const needsMile = REQUIRES_MILE.includes(selectedStatus);
+  const signatureHeight = Math.round(width * 0.4);
+
+  const isSubmitDisabled =
+    updating ||
+    (needsPhoto && !photo) ||
+    (needsBox && !box.trim()) ||
+    (needsMile && !mile.trim());
 
   useEffect(() => {
     const checkTracking = async () => {
@@ -177,19 +189,24 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       response => {
         if (response.didCancel || response.errorCode) return;
         const asset = response.assets?.[0];
-        if (asset?.uri && asset?.base64)
-          setPhoto({uri: asset.uri, base64: asset.base64});
+        if (asset?.uri && asset?.base64) {
+          const photoData = {uri: asset.uri, base64: asset.base64};
+          setPhoto(photoData);
+          photoRef.current = photoData; // เก็บใน ref ด้วย
+        }
       },
     );
   };
 
-  const handleSignatureOK = (sig: string) => setSignature(sig);
+  const handleSignatureOK = (sig: string) => {
+    setSignature(sig);
+  };
+  
   const handleClearSignature = () => {
     setSignature(null);
     setSignatureKey(p => p + 1);
   };
 
-  // Validate แล้วเปิด confirm modal
   const handleUpdate = () => {
     const status_id = STATUS_ID_MAP[selectedStatus] ?? '';
     if (!status_id) {
@@ -198,10 +215,6 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     }
     if (needsPhoto && !photo) {
       Alert.alert('แจ้งเตือน', 'กรุณาถ่ายรูปก่อนอัปเดตสถานะนี้');
-      return;
-    }
-    if (needsSignatureRating && !signature) {
-      Alert.alert('แจ้งเตือน', 'กรุณาเซ็นชื่อยืนยันการจัดส่ง');
       return;
     }
     if (needsBox && !box.trim()) {
@@ -217,8 +230,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     setShowConfirm(true);
   };
 
-  // Logic update จริง
   const doUpdate = async (status_id: string) => {
+    const currentPhoto = photoRef.current;
+    
     try {
       setUpdating(true);
       const baseParams = {
@@ -234,14 +248,15 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       const netState = await NetInfo.fetch();
 
       if (!netState.isConnected) {
-        await addToQueue(
-          needsPhoto && photo
+        const endpoint = currentPhoto
             ? API_ENDPOINTS.UPDATE_PICTURE
-            : API_ENDPOINTS.UPDATE_STATUS,
-          needsPhoto && photo
-            ? {...baseParams, picture: photo.base64 ?? ''}
-            : baseParams,
-        );
+            : API_ENDPOINTS.UPDATE_STATUS;
+            
+        const payload = currentPhoto
+            ? {...baseParams, picture: currentPhoto.base64 ?? ''}
+            : baseParams;
+
+        await addToQueue(endpoint, payload);
         setIsOfflineSuccess(true);
         setSuccessMessage(
           'ไม่มีอินเทอร์เน็ต ข้อมูลถูกบันทึกไว้\nจะส่งอัตโนมัติเมื่อกลับมาออนไลน์',
@@ -250,30 +265,46 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         return;
       }
 
+      // ── online ──
       let response;
-      if (needsPhoto && photo) {
-        response = await updatePicture({...baseParams, picture: photo.base64});
+
+      if (needsSignatureRating) {
+        if (currentPhoto) {
+          response = await updatePicture({
+            ...baseParams,
+            picture: currentPhoto.base64,
+          });
+        } else {
+          response = await updateStatus(baseParams);
+        }
+      } else if (needsPhoto && currentPhoto) {
+        response = await updatePicture({...baseParams, picture: currentPhoto.base64});
       } else {
         response = await updateStatus(baseParams);
       }
 
       await syncQueue();
 
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // ── ส่งลายเซ็นแยก ──
       if (needsSignatureRating && signature) {
         const cleanSig = signature.replace(/^data:image\/\w+;base64,/, '');
-        await submitSignature({
+        const sigRes = await submitSignature({
           request_id: item.request_id,
           status_id,
-          picture: cleanSig,
+          picture: cleanSig, 
         });
       }
+
+      // ── ส่งคะแนนประเมิน ──
       if (needsSignatureRating) {
-        await submitEvaluation({
+        const evalRes = await submitEvaluation({
           request_id: item.request_id,
           status_id,
           eval: String(rating),
         });
       }
+
       if (selectedStatus === TRACKING_START_STATUS) {
         await startLocationTracking(item.request_id, status_id, user.id);
         setIsTracking(true);
@@ -287,7 +318,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       setIsOfflineSuccess(false);
       setSuccessMessage(response.message);
       setShowSuccess(true);
-    } catch (err) {
+    } catch (err: any) {
       Alert.alert('ข้อผิดพลาด', 'อัปเดตสถานะไม่สำเร็จ');
       console.error(err);
     } finally {
@@ -295,25 +326,8 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     }
   };
 
-  const needsPhoto = REQUIRES_PHOTO.includes(selectedStatus);
-  const needsSignatureRating =
-    REQUIRES_SIGNATURE_RATING.includes(selectedStatus);
-  const needsBox = REQUIRES_BOX.includes(selectedStatus);
-  const needsMile = REQUIRES_MILE.includes(selectedStatus);
-  const signatureHeight = Math.round(width * 0.4);
-
-  // เพิ่ม state
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  const isSubmitDisabled =
-    updating ||
-    (needsPhoto && !photo) ||
-    (needsSignatureRating && !signature) ||
-    (needsBox && !box.trim()) ||
-    (needsMile && !mile.trim());
-
   const getConfirmColor = () => {
-    if (selectedStatus === 'พบปัญหา') return '#f39c12'; // เหลือง
+    if (selectedStatus === 'พบปัญหา') return '#f39c12';
     return companyColor ?? '#a7cc43';
   };
 
@@ -376,7 +390,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
             <Text style={modalStyles.title}>
               {isOfflineSuccess ? 'บันทึกแล้ว' : 'สำเร็จ'}
             </Text>
-            <Text style={modalStyles.message}>บันทึกข้อมูลสำเร็จ</Text>
+            <Text style={modalStyles.message}>{successMessage || 'บันทึกข้อมูลสำเร็จ'}</Text>
             <TouchableOpacity
               style={[
                 modalStyles.fullBtn,
@@ -479,6 +493,29 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
               )}
             </View>
           )}
+          {/* ── ถ่ายรูป ── */}
+          {needsPhoto && (
+            <View style={styles.photoSection}>
+              <TouchableOpacity
+                style={[styles.photoButton, {backgroundColor: '#4E80FF'}]}
+                onPress={handleTakePhoto}>
+                <Icon name="camera-alt" size={18} color="#fff" />
+                <Text style={styles.photoButtonText}>
+                  {photo ? '  ถ่ายรูปใหม่' : '  ถ่ายรูป (จำเป็น)'}
+                </Text>
+              </TouchableOpacity>
+              {photo && (
+                <Image source={{uri: photo.uri}} style={styles.photoPreview} />
+              )}
+              {!photo && (
+                <Text style={styles.photoHint}>
+                  * สถานะนี้ต้องถ่ายรูปก่อนยืนยัน
+                </Text>
+              )}
+            </View>
+          )}
+
+
           {/* ── Rating & Signature ── */}
           {needsSignatureRating && (
             <View style={styles.specialSection}>
@@ -537,27 +574,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
             </View>
           )}
 
-          {/* ── ถ่ายรูป ── */}
-          {needsPhoto && (
-            <View style={styles.photoSection}>
-              <TouchableOpacity
-                style={[styles.photoButton, {backgroundColor: '#4E80FF'}]}
-                onPress={handleTakePhoto}>
-                <Icon name="camera-alt" size={18} color="#fff" />
-                <Text style={styles.photoButtonText}>
-                  {photo ? '  ถ่ายรูปใหม่' : '  ถ่ายรูป (จำเป็น)'}
-                </Text>
-              </TouchableOpacity>
-              {photo && (
-                <Image source={{uri: photo.uri}} style={styles.photoPreview} />
-              )}
-              {!photo && (
-                <Text style={styles.photoHint}>
-                  * สถานะนี้ต้องถ่ายรูปก่อนยืนยัน
-                </Text>
-              )}
-            </View>
-          )}
+         
 
           {/* ── จำนวนกล่อง ── */}
           {needsBox && (
@@ -670,8 +687,8 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     elevation: 2,
-    zIndex: 1, // ✅ เพิ่ม
-    overflow: 'visible', // ✅ เพิ่ม
+    zIndex: 1,
+    overflow: 'visible',
   },
   cardTitle: {
     fontSize: 16,
@@ -751,26 +768,6 @@ const styles = StyleSheet.create({
     color: '#333',
     fontFamily: 'Quicksand-Medium',
   },
-  dropdownOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  dropdownBox: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 5,
-  },
-  dropdownItem: {
-    padding: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  dropdownItemSelected: {
-    backgroundColor: '#f8fff0',
-  },
   dropdownList: {
     position: 'absolute',
     top: 48,
@@ -782,6 +779,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 10,
     zIndex: 999,
+  },
+  dropdownItem: {
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   dropdownItemText: {
     fontSize: 14,
@@ -814,16 +816,6 @@ const styles = StyleSheet.create({
     color: '#555',
     marginTop: 10,
     marginBottom: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    color: '#333',
-    backgroundColor: '#fafafa',
-    fontFamily: 'Quicksand-Regular',
   },
   inputMultiline: {height: 80, textAlignVertical: 'top'},
   required: {color: '#e74c3c', fontFamily: 'Quicksand-Bold'},
