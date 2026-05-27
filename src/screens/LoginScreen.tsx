@@ -24,6 +24,7 @@ import {loginUser, checkLogin, updateToken} from '../services/apiService';
 import {LoginRequest, UpdateTokenRequest} from '../types/authTypes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -121,129 +122,123 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{flex: 1, backgroundColor: '#F7F8FA'}}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView
-          style={{flex: 1, backgroundColor: '#F7F8FA'}}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={{flex: 1, backgroundColor: '#F7F8FA'}}>
+        <KeyboardAwareScrollView
+          style={{flex: 1}}
           contentContainerStyle={{
             flexGrow: 1,
           }}
+          enableOnAndroid={true}
+          extraScrollHeight={20}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <SafeAreaView style={{flex: 1}}>
-            <View style={styles.content}>
-              {/* Logo */}
-              <Image
-                source={require('../../assets/isl_name.png')}
-                style={styles.logoText}
-                resizeMode="contain"
-              />
+          showsVerticalScrollIndicator={false}
+          enableAutomaticScroll={true}>
+          <View style={styles.content}>
+            {/* Logo */}
+            <Image
+              source={require('../../assets/isl_name.png')}
+              style={styles.logoText}
+              resizeMode="contain"
+            />
 
-              {/* Heading */}
-              <View style={styles.headingContainer}>
-                <Text style={styles.heading}>เข้าสู่ระบบ</Text>
-              </View>
-
-              {/* Username */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>ชื่อผู้ใช้</Text>
-
-                <View style={styles.inputContainer}>
-                  <Icon
-                    name="person-outline"
-                    size={22}
-                    color="#8A8A8A"
-                    style={styles.leftIcon}
-                  />
-
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="Username"
-                    keyboardType="default"
-                    value={credentials.username}
-                    onChangeText={text =>
-                      setCredentials({
-                        ...credentials,
-                        username: text,
-                      })
-                    }
-                    autoCapitalize="none"
-                    placeholderTextColor="#B8B8B8"
-                  />
-                </View>
-              </View>
-
-              {/* Password */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>รหัสผ่าน</Text>
-
-                <View style={styles.inputContainer}>
-                  <Icon
-                    name="lock-closed-outline"
-                    size={22}
-                    color="#8A8A8A"
-                    style={styles.leftIcon}
-                  />
-
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="Password"
-                    secureTextEntry={!showPassword}
-                    value={credentials.password}
-                    onChangeText={text =>
-                      setCredentials({
-                        ...credentials,
-                        password: text,
-                      })
-                    }
-                    autoCapitalize="none"
-                    placeholderTextColor="#B8B8B8"
-                  />
-
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeButton}>
-                    <Icon
-                      name={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                      size={22}
-                      color="#999"
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Remember Me */}
-              <TouchableOpacity
-                style={styles.rememberContainer}
-                activeOpacity={0.8}
-                onPress={() => setRememberMe(!rememberMe)}>
-                <View
-                  style={[
-                    styles.checkbox,
-                    rememberMe && styles.checkboxActive,
-                  ]}>
-                  {rememberMe && (
-                    <Icon name="checkmark" size={13} color="#FFF" />
-                  )}
-                </View>
-
-                <Text style={styles.rememberText}>จดจำฉัน</Text>
-              </TouchableOpacity>
-
-              {/* Login Button */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                style={styles.loginButton}
-                onPress={handleLogin}>
-                <Text style={styles.loginText}>ล็อคอิน</Text>
-              </TouchableOpacity>
+            {/* Heading */}
+            <View style={styles.headingContainer}>
+              <Text style={styles.heading}>เข้าสู่ระบบ</Text>
             </View>
-          </SafeAreaView>
-        </ScrollView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+
+            {/* Username */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>ชื่อผู้ใช้</Text>
+
+              <View style={styles.inputContainer}>
+                <Icon
+                  name="person-outline"
+                  size={22}
+                  color="#8A8A8A"
+                  style={styles.leftIcon}
+                />
+
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Username"
+                  keyboardType="default"
+                  value={credentials.username}
+                  onChangeText={text =>
+                    setCredentials({
+                      ...credentials,
+                      username: text,
+                    })
+                  }
+                  autoCapitalize="none"
+                  placeholderTextColor="#B8B8B8"
+                />
+              </View>
+            </View>
+
+            {/* Password */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>รหัสผ่าน</Text>
+
+              <View style={styles.inputContainer}>
+                <Icon
+                  name="lock-closed-outline"
+                  size={22}
+                  color="#8A8A8A"
+                  style={styles.leftIcon}
+                />
+
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Password"
+                  secureTextEntry={!showPassword}
+                  value={credentials.password}
+                  onChangeText={text =>
+                    setCredentials({
+                      ...credentials,
+                      password: text,
+                    })
+                  }
+                  autoCapitalize="none"
+                  placeholderTextColor="#B8B8B8"
+                />
+
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeButton}>
+                  <Icon
+                    name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                    size={22}
+                    color="#999"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Remember Me */}
+            <TouchableOpacity
+              style={styles.rememberContainer}
+              activeOpacity={0.8}
+              onPress={() => setRememberMe(!rememberMe)}>
+              <View
+                style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                {rememberMe && <Icon name="checkmark" size={13} color="#FFF" />}
+              </View>
+
+              <Text style={styles.rememberText}>จดจำฉัน</Text>
+            </TouchableOpacity>
+
+            {/* Login Button */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.loginButton}
+              onPress={handleLogin}>
+              <Text style={styles.loginText}>ล็อคอิน</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -251,8 +246,8 @@ const {width} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
-  flex: 1,
-},
+    flex: 1,
+  },
 
   content: {
     flex: 1,
