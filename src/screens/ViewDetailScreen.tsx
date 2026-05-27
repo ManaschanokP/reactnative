@@ -539,67 +539,77 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
           {/* ── Rating & Signature ── */}
           {hasSignatureRating && (
-            <View style={styles.specialSection}>
-              <Text style={styles.fieldLabel}>ประเมินความพึงพอใจ :</Text>
-              <Rating
-                startingValue={rating}
-                onFinishRating={setRating}
-                imageSize={Math.round(width * 0.07)}
-                style={{paddingVertical: 10}}
-                tintColor="#fff9f0"
-                ratingBackgroundColor="transparent"
-              />
-              <Text style={styles.fieldLabel}>ลายเซ็นผู้รับสินค้า :</Text>
-              <View style={[styles.signatureBox, {height: signatureHeight}]}>
-                <SignatureScreen
-                  onBegin={() => setScrollEnabled(false)}
-                  onEnd={() => setScrollEnabled(true)}
-                  key={signatureKey}
-                  ref={signatureRef}
-                  onOK={handleSignatureOK}
-                  descriptionText="เซ็นชื่อลงในช่องว่าง"
-                  clearText="ล้าง"
-                  confirmText="บันทึกลายเซ็น"
-                  penColor="#000000"
-                  backgroundColor="#ffffff"
-                  imageType="image/png"
-                  webStyle={`
-                    .m-signature-pad { box-shadow: none; border: none; }
-                    .m-signature-pad--body { background-color: #ffffff; }
-                    .m-signature-pad--footer { display: none; }
-                    body { margin: 0; background-color: #ffffff; }
-                  `}
+            <>
+              {/* ── กล่องประเมิน ── */}
+              <View style={styles.specialSection}>
+                <Text style={styles.fieldLabel}>ประเมินความพึงพอใจ :</Text>
+                <Rating
+                  startingValue={rating}
+                  onFinishRating={setRating}
+                  imageSize={Math.round(width * 0.07)}
+                  style={{paddingVertical: 10}}
+                  tintColor="#fff9f0"
+                  ratingBackgroundColor="transparent"
                 />
               </View>
-              <View style={styles.signatureActions}>
-                <TouchableOpacity
-                  style={styles.signatureBtnClear}
-                  onPress={handleClearSignature}>
-                  <Text style={styles.clearText}>ล้างลายเซ็น</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.signatureBtnSave,
-                    {backgroundColor:  '#FBC900'},
-                  ]}
-                  onPress={() => signatureRef.current?.readSignature()}>
-                  <Text style={[styles.saveText]}>บันทึกลายเซ็น</Text>
-                </TouchableOpacity>
+
+              {/* ── กล่องลายเซ็น ── */}
+              <View style={styles.specialSection}>
+                <Text style={styles.fieldLabel}>ลายเซ็นผู้รับสินค้า :</Text>
+                <View style={[styles.signatureBox, {height: signatureHeight}]}>
+                  <SignatureScreen
+                    onBegin={() => setScrollEnabled(false)}
+                    onEnd={() => setScrollEnabled(true)}
+                    key={signatureKey}
+                    ref={signatureRef}
+                    onOK={handleSignatureOK}
+                    descriptionText="เซ็นชื่อลงในช่องว่าง"
+                    clearText="ล้าง"
+                    confirmText="บันทึกลายเซ็น"
+                    penColor="#000000"
+                    backgroundColor="#ffffff"
+                    imageType="image/png"
+                    webStyle={`
+            .m-signature-pad { box-shadow: none; border: none; }
+            .m-signature-pad--body { background-color: #ffffff; }
+            .m-signature-pad--footer { display: none; }
+            body { margin: 0; background-color: #ffffff; }
+          `}
+                  />
+                </View>
+                <View style={styles.signatureActions}>
+                  <TouchableOpacity
+                    style={styles.signatureBtnClear}
+                    onPress={handleClearSignature}>
+                    <Text style={styles.clearText}>ล้างลายเซ็น</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.signatureBtnSave,
+                      {backgroundColor: '#FBC900'},
+                    ]}
+                    onPress={() => signatureRef.current?.readSignature()}>
+                    <Text style={styles.saveText}>บันทึกลายเซ็น</Text>
+                  </TouchableOpacity>
+                </View>
+                {signature ? (
+                  <Text style={styles.signatureSuccess}>
+                    {' '}
+                    ได้รับลายเซ็นแล้ว
+                  </Text>
+                ) : (
+                  <Text
+                    style={[
+                      styles.signaturePending,
+                      needsSignatureRating && {color: '#e74c3c'},
+                    ]}>
+                    {needsSignatureRating
+                      ? '* จำเป็นต้องบันทึกลายเซ็น'
+                      : 'ยังไม่ได้บันทึกลายเซ็น'}
+                  </Text>
+                )}
               </View>
-              {signature ? (
-                <Text style={styles.signatureSuccess}> ได้รับลายเซ็นแล้ว</Text>
-              ) : (
-                <Text
-                  style={[
-                    styles.signaturePending,
-                    needsSignatureRating && {color: '#e74c3c'}, // ✅ แดงเมื่อบังคับ
-                  ]}>
-                  {needsSignatureRating
-                    ? '* จำเป็นต้องบันทึกลายเซ็น'
-                    : 'ยังไม่ได้บันทึกลายเซ็น'}
-                </Text>
-              )}
-            </View>
+            </>
           )}
 
           {/* ── จำนวนกล่อง ── */}
@@ -838,6 +848,7 @@ const styles = StyleSheet.create({
 
   fieldLabel: {
     fontFamily: 'Quicksand-Bold',
+    textAlign: 'center',
     fontSize: 12,
     color: '#555',
     marginTop: 10,
@@ -877,7 +888,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginVertical: 10,
     borderWidth: 1,
-    borderColor: '#ffeaa7',
+    borderColor: '#FBC900',
   },
   signatureBox: {
     width: '100%',
@@ -898,18 +909,22 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     borderRadius: 6,
-    
+
     alignItems: 'center',
   },
   signatureBtnSave: {
     flex: 1,
     paddingVertical: 8,
     borderRadius: 6,
-    
+
     alignItems: 'center',
-    
   },
-  clearText: {color: '#555', fontFamily: 'Quicksand-Bold', fontSize: 14 , textDecorationLine: 'underline',},
+  clearText: {
+    color: '#555',
+    fontFamily: 'Quicksand-Bold',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
   saveText: {color: '#fff', fontFamily: 'Quicksand-Bold', fontSize: 14},
   signatureSuccess: {
     color: '#27ae60',
