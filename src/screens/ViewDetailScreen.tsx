@@ -578,11 +578,12 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                   <Text style={styles.clearText}>ล้างลายเซ็น</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.signatureBtnSave, {borderColor: companyColor}]}
+                  style={[
+                    styles.signatureBtnSave,
+                    {backgroundColor:  '#FBC900'},
+                  ]}
                   onPress={() => signatureRef.current?.readSignature()}>
-                  <Text style={[styles.saveText, {color: companyColor}]}>
-                    บันทึกลายเซ็น
-                  </Text>
+                  <Text style={[styles.saveText]}>บันทึกลายเซ็น</Text>
                 </TouchableOpacity>
               </View>
               {signature ? (
@@ -897,19 +898,19 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#e74c3c',
+    
     alignItems: 'center',
   },
   signatureBtnSave: {
     flex: 1,
     paddingVertical: 8,
     borderRadius: 6,
-    borderWidth: 1,
+    
     alignItems: 'center',
+    
   },
-  clearText: {color: '#e74c3c', fontFamily: 'Quicksand-Bold', fontSize: 14},
-  saveText: {fontFamily: 'Quicksand-Bold', fontSize: 14},
+  clearText: {color: '#555', fontFamily: 'Quicksand-Bold', fontSize: 14 , textDecorationLine: 'underline',},
+  saveText: {color: '#fff', fontFamily: 'Quicksand-Bold', fontSize: 14},
   signatureSuccess: {
     color: '#27ae60',
     fontSize: 12,
