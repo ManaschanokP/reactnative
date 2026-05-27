@@ -53,13 +53,14 @@ const STATUS_OPTIONS = [
   {label: 'กำลังดำเนินการ', value: '02'},
   {label: 'ดำเนินการสำเร็จ', value: '03'},
   {label: 'พบปัญหา', value: '04'},
+  {label: 'ยกเลิก', value: '05'},
 ];
 
 // ✅ สีและข้อความตาม status
 const getStatusStyle = (statusId: string, statusName?: string) => {
   if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ')
     return {bg: '#e4e4e4', text: '#373737', dot: '#373737'};
-  if (statusId === 'SD04' || statusName === 'พบปัญหา')
+  if (statusId === 'SD04' || statusName === 'พบปัญหา' || statusId === 'SD05' || statusName === 'ยกเลิก')
     return {bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c'};
   return {bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60'};
 };
@@ -139,13 +140,15 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
       const filtered = sorted.filter(job => {
         if (currentStatus === '01') return true;
         if (currentStatus === '02')
-          return job.status_id !== 'SD09' && job.status_id !== 'SD04';
+          return job.status_id !== 'SD09' && job.status_id !== 'SD04' && job.status_id !== 'SD10';
         if (currentStatus === '03')
           return (
             job.status_id === 'SD09' || job.status_name === 'ดำเนินการสำเร็จ'
           );
         if (currentStatus === '04')
           return job.status_id === 'SD04' || job.status_name === 'พบปัญหา';
+        if (currentStatus === '05')
+          return job.status_id === 'SD10' || job.status_name === 'ยกเลิก';
         return true;
       });
 
@@ -168,8 +171,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
           if (
             item.status_id !== 'SD09' &&
             item.status_name !== 'ดำเนินการสำเร็จ' &&
-            item.status_id !== 'SD04' &&
-            item.status_name !== 'พบปัญหา'
+            item.status_id !== 'SD10' &&
+            item.status_name !== 'ยกเลิก'
           ) {
             navigation.navigate('ViewDetail', {item});
           }
@@ -233,7 +236,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
               <Text
                 style={[
                   styles.statusText,
-                  item.status_id === 'SD04' && {color: '#e74c3c'},
+                  item.status_id === 'SD04'  && {color: '#e74c3c'},
+                  item.status_id === 'SD10'  && {color: '#e74c3c'},
                 ]}>
                 {item.status_name}
               </Text>

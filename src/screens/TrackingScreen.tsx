@@ -34,7 +34,7 @@ const PICTURE_BASE_URL = 'http://172.16.1.230/logistics/';
 export default function TrackingScreen({route, navigation}: Props) {
   const {requestId} = route.params;
   const {user, companyColor} = useContext(AuthContext)!;
-  const color = companyColor || '#93D500';
+  //const color = companyColor || '#93D500';
   const insets = useSafeAreaInsets();
 
   const [trackList, setTrackList] = useState<Track[]>([]);
@@ -112,9 +112,9 @@ export default function TrackingScreen({route, navigation}: Props) {
         </View>
       </Modal>
 
-      <View style={[styles.wrapper, {backgroundColor: color}]}>
+      <View style={[styles.wrapper, {backgroundColor: companyColor}]}>
         {/* HEADER */}
-        <View style={[styles.header, {backgroundColor: color}]}>
+        <View style={[styles.header, {backgroundColor: companyColor}]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>{'‹'}</Text>
           </TouchableOpacity>
@@ -162,7 +162,7 @@ export default function TrackingScreen({route, navigation}: Props) {
                       <Text
                         style={[
                           styles.cell,
-                          (hasPicture || hasSignature) && {color},
+                           (hasPicture || hasSignature) && {color:' #333'},
                         ]}
                         numberOfLines={2}>
                         {track.status_name}
@@ -171,7 +171,7 @@ export default function TrackingScreen({route, navigation}: Props) {
                         <Icon
                           name="image"
                           size={13}
-                          color={color}
+                          color={companyColor}
                           style={styles.cellIcon}
                         />
                       )}
@@ -179,7 +179,7 @@ export default function TrackingScreen({route, navigation}: Props) {
                         <Icon
                           name="signature"
                           size={13}
-                          color={color}
+                          color={companyColor}
                           style={styles.cellIcon}
                         />
                       )}
@@ -195,7 +195,7 @@ export default function TrackingScreen({route, navigation}: Props) {
 
           <View style={styles.closebt}>
             <TouchableOpacity
-              style={[styles.closeBtn, {backgroundColor: color}]}
+              style={[styles.closeBtn, {backgroundColor: companyColor}]}
               onPress={() => navigation.goBack()}>
               <Text style={styles.closeBtnText}>ปิด</Text>
             </TouchableOpacity>
@@ -220,7 +220,7 @@ export default function TrackingScreen({route, navigation}: Props) {
             <View style={styles.modalContainer}>
               {/* Header */}
               <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, {color}]}>รายละเอียด</Text>
+                <Text style={[styles.modalTitle, ]}>รายละเอียด</Text>
                 <TouchableOpacity
                   onPress={() => setSelectedTrack(null)}
                   hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
@@ -249,9 +249,9 @@ export default function TrackingScreen({route, navigation}: Props) {
                 {!!getImageUri(selectedTrack?.picture) && (
                   <View style={styles.imageSection}>
                     <View style={styles.imageLabelRow}>
-                      <Icon name="image" size={14} color={color} />
+                      
                       <Text
-                        style={[styles.detailLabel, {color, marginLeft: 6}]}>
+                        style={[styles.detailLabel, { marginLeft: 6}]}>
                         รูปภาพ :
                       </Text>
                     </View>
@@ -268,9 +268,9 @@ export default function TrackingScreen({route, navigation}: Props) {
                   selectedTrack?.status_name === 'การจัดส่งสำเร็จ' && (
                     <View style={styles.imageSection}>
                       <View style={styles.imageLabelRow}>
-                        <Icon name="signature" size={14} color={color} />
+                        
                         <Text
-                          style={[styles.detailLabel, {color, marginLeft: 6}]}>
+                          style={[styles.detailLabel, {marginLeft: 6}]}>
                           ลายเซ็นผู้รับสินค้า :
                         </Text>
                       </View>
@@ -287,9 +287,9 @@ export default function TrackingScreen({route, navigation}: Props) {
                   selectedTrack?.status_name === 'การจัดส่งสำเร็จ' && (
                     <View style={styles.imageSection}>
                       <View style={styles.imageLabelRow}>
-                        <Icon name="signature" size={14} color={color} />
+                        <Icon name="signature" size={14} color={companyColor} />
                         <Text
-                          style={[styles.detailLabel, {color, marginLeft: 6}]}>
+                          style={[styles.detailLabel, { marginLeft: 6}]}>
                           ลายเซ็นผู้ส่ง :
                         </Text>
                       </View>
@@ -303,7 +303,7 @@ export default function TrackingScreen({route, navigation}: Props) {
 
                 <View style={styles.closebt}>
                   <TouchableOpacity
-                    style={[styles.modalClose, {backgroundColor: color}]}
+                    style={[styles.modalClose, {backgroundColor: companyColor}]}
                     onPress={() => setSelectedTrack(null)}>
                     <Text style={styles.modalCloseText}>ปิด</Text>
                   </TouchableOpacity>

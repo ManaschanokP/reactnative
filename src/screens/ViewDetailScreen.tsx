@@ -55,10 +55,12 @@ const STATUS_ID_MAP: Record<string, string> = {
   เช็คเอ้าท์: 'SD07',
   คลังสินค้า: 'SD08',
   การดำเนินการสำเร็จ: 'SD09',
+  ยกเลิก: 'SD10',
 };
 
 const REQUIRES_PHOTO = ['ขึ้นของ', 'เช็คอิน', 'พบปัญหา', 'การจัดส่งสำเร็จ'];
-const REQUIRES_SIGNATURE_RATING = ['การจัดส่งสำเร็จ'];
+const REQUIRES_SIGNATURE_RATING = ['ยกเลิก']; // บังคับ
+const OPTIONAL_SIGNATURE_RATING = ['การจัดส่งสำเร็จ']; // ไม่บังคับ
 const REQUIRES_BOX = ['ขึ้นของ'];
 const REQUIRES_MILE = ['กำลังจัดส่ง', 'การดำเนินการสำเร็จ'];
 const TRACKING_START_STATUS = 'กำลังจัดส่ง';
@@ -78,7 +80,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const [detail, setDetail] = useState('');
   const [box, setBox] = useState('');
   const [mile, setMile] = useState('');
-  const [photo, setPhoto] = useState<{uri: string; base64: string} | null>(null);
+  const [photo, setPhoto] = useState<{uri: string; base64: string} | null>(
+    null,
+  );
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [rating, setRating] = useState(5);
@@ -100,7 +104,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const needsPhoto = REQUIRES_PHOTO.includes(selectedStatus);
-  const needsSignatureRating = REQUIRES_SIGNATURE_RATING.includes(selectedStatus);
+  const needsSignatureRating =
+    REQUIRES_SIGNATURE_RATING.includes(selectedStatus); // บังคับ (ยกเลิก)
+  const hasSignatureRating =
+    needsSignatureRating || OPTIONAL_SIGNATURE_RATING.includes(selectedStatus); // แสดง section (ทั้งคู่)
   const needsBox = REQUIRES_BOX.includes(selectedStatus);
   const needsMile = REQUIRES_MILE.includes(selectedStatus);
   const signatureHeight = Math.round(width * 0.4);
@@ -109,7 +116,8 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     updating ||
     (needsPhoto && !photo) ||
     (needsBox && !box.trim()) ||
-    (needsMile && !mile.trim());
+    (needsMile && !mile.trim()) ||
+    (needsSignatureRating && !signature);
 
   useEffect(() => {
     const checkTracking = async () => {
@@ -165,6 +173,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         ];
         setStatusList(names);
         setSelectedStatus(names[0]);
+      } else if (item.status_id === 'SD04') {
+        const names = ['ยกเลิก'];
+        setStatusList(names);
+        setSelectedStatus(names[0]);
       }
     } catch (err) {
       console.error(err);
@@ -201,7 +213,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const handleSignatureOK = (sig: string) => {
     setSignature(sig);
   };
-  
+
   const handleClearSignature = () => {
     setSignature(null);
     setSignatureKey(p => p + 1);
@@ -232,7 +244,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
   const doUpdate = async (status_id: string) => {
     const currentPhoto = photoRef.current;
-    
+
     try {
       setUpdating(true);
       const baseParams = {
@@ -249,12 +261,12 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
       if (!netState.isConnected) {
         const endpoint = currentPhoto
-            ? API_ENDPOINTS.UPDATE_PICTURE
-            : API_ENDPOINTS.UPDATE_STATUS;
-            
+          ? API_ENDPOINTS.UPDATE_PICTURE
+          : API_ENDPOINTS.UPDATE_STATUS;
+
         const payload = currentPhoto
-            ? {...baseParams, picture: currentPhoto.base64 ?? ''}
-            : baseParams;
+          ? {...baseParams, picture: currentPhoto.base64 ?? ''}
+          : baseParams;
 
         await addToQueue(endpoint, payload);
         setIsOfflineSuccess(true);
@@ -278,7 +290,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           response = await updateStatus(baseParams);
         }
       } else if (needsPhoto && currentPhoto) {
-        response = await updatePicture({...baseParams, picture: currentPhoto.base64});
+        response = await updatePicture({
+          ...baseParams,
+          picture: currentPhoto.base64,
+        });
       } else {
         response = await updateStatus(baseParams);
       }
@@ -287,18 +302,18 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
       await new Promise(resolve => setTimeout(resolve, 1000));
       // ── ส่งลายเซ็นแยก ──
-      if (needsSignatureRating && signature) {
+      if (hasSignatureRating && signature) {
         const cleanSig = signature.replace(/^data:image\/\w+;base64,/, '');
-        const sigRes = await submitSignature({
+        await submitSignature({
           request_id: item.request_id,
           status_id,
-          picture: cleanSig, 
+          picture: cleanSig,
         });
       }
 
-      // ── ส่งคะแนนประเมิน ──
-      if (needsSignatureRating) {
-        const evalRes = await submitEvaluation({
+      // ส่งประเมิน — ส่งทั้งสองสถานะ
+      if (hasSignatureRating) {
+        await submitEvaluation({
           request_id: item.request_id,
           status_id,
           eval: String(rating),
@@ -327,8 +342,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   };
 
   const getConfirmColor = () => {
-    if (selectedStatus === 'พบปัญหา') return '#f39c12';
-    return companyColor ?? '#a7cc43';
+    if (selectedStatus === 'พบปัญหา') return '#f39c12'; // เหลือง
+    if (selectedStatus === 'ยกเลิก') return '#D00000'; // แดง
+    return companyColor ?? '#93D500';
   };
 
   return (
@@ -357,7 +373,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
               <TouchableOpacity
                 style={[
                   modalStyles.confirmBtn,
-                  {backgroundColor: companyColor ?? '#a7cc43'},
+                  {backgroundColor: companyColor ?? '#93D500'},
                 ]}
                 onPress={() => {
                   setShowConfirm(false);
@@ -380,7 +396,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 {
                   backgroundColor: isOfflineSuccess
                     ? '#e67e22'
-                    : companyColor ?? '#a7cc43',
+                    : companyColor ?? '#93D500',
                 },
               ]}>
               <Text style={modalStyles.iconCheck}>
@@ -390,14 +406,16 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
             <Text style={modalStyles.title}>
               {isOfflineSuccess ? 'บันทึกแล้ว' : 'สำเร็จ'}
             </Text>
-            <Text style={modalStyles.message}>{successMessage || 'บันทึกข้อมูลสำเร็จ'}</Text>
+            <Text style={modalStyles.message}>
+              {successMessage || 'บันทึกข้อมูลสำเร็จ'}
+            </Text>
             <TouchableOpacity
               style={[
                 modalStyles.fullBtn,
                 {
                   backgroundColor: isOfflineSuccess
                     ? '#e67e22'
-                    : companyColor ?? '#a7cc43',
+                    : companyColor ?? '#93D500',
                 },
               ]}
               onPress={() => {
@@ -422,7 +440,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         showsVerticalScrollIndicator={false}>
         {/* ── ข้อมูลงาน ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>ข้อมูลงาน</Text>
+          <Text style={[styles.cardTitle, {color: companyColor}]}>
+            ข้อมูลงาน
+          </Text>
           <InfoRow label="Request ID" value={item.request_id} />
           <InfoRow label="ประเภท" value={item.type_name} />
           <InfoRow label="ปลายทาง" value={item.to_company} />
@@ -441,7 +461,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
         {/* ── อัปเดตสถานะ ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>อัปเดตสถานะ</Text>
+          <Text style={[styles.cardTitle, {color: companyColor}]}>
+            อัปเดตสถานะ
+          </Text>
 
           {loadingStatus ? (
             <ActivityIndicator
@@ -481,7 +503,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                         style={[
                           styles.dropdownItemText,
                           selectedStatus === s && {
-                            color: companyColor ?? '#a7cc43',
+                            color: companyColor ?? '#93D500',
                             fontFamily: 'Quicksand-Bold',
                           },
                         ]}>
@@ -515,9 +537,8 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
             </View>
           )}
 
-
           {/* ── Rating & Signature ── */}
-          {needsSignatureRating && (
+          {hasSignatureRating && (
             <View style={styles.specialSection}>
               <Text style={styles.fieldLabel}>ประเมินความพึงพอใจ :</Text>
               <Rating
@@ -567,14 +588,18 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
               {signature ? (
                 <Text style={styles.signatureSuccess}> ได้รับลายเซ็นแล้ว</Text>
               ) : (
-                <Text style={styles.signaturePending}>
-                  ยังไม่ได้บันทึกลายเซ็น
+                <Text
+                  style={[
+                    styles.signaturePending,
+                    needsSignatureRating && {color: '#e74c3c'}, // ✅ แดงเมื่อบังคับ
+                  ]}>
+                  {needsSignatureRating
+                    ? '* จำเป็นต้องบันทึกลายเซ็น'
+                    : 'ยังไม่ได้บันทึกลายเซ็น'}
                 </Text>
               )}
             </View>
           )}
-
-         
 
           {/* ── จำนวนกล่อง ── */}
           {needsBox && (
@@ -640,7 +665,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         <TouchableOpacity
           style={[
             styles.confirmButton,
-            {backgroundColor: companyColor ?? '#a7cc43'},
+            {backgroundColor: companyColor ?? '#93D500'},
             isSubmitDisabled && styles.buttonDisabled,
           ]}
           onPress={handleUpdate}
