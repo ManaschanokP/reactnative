@@ -55,10 +55,11 @@ const STATUS_ID_MAP: Record<string, string> = {
   เช็คเอ้าท์: 'SD07',
   คลังสินค้า: 'SD08',
   การดำเนินการสำเร็จ: 'SD09',
+  ยกเลิก: 'SD10',
 };
 
 const REQUIRES_PHOTO = ['ขึ้นของ', 'เช็คอิน', 'พบปัญหา', 'การจัดส่งสำเร็จ'];
-const REQUIRES_SIGNATURE_RATING = ['การจัดส่งสำเร็จ'];
+const REQUIRES_SIGNATURE_RATING = ['การจัดส่งสำเร็จ','ยกเลิก'];
 const REQUIRES_BOX = ['ขึ้นของ'];
 const REQUIRES_MILE = ['กำลังจัดส่ง', 'การดำเนินการสำเร็จ'];
 const TRACKING_START_STATUS = 'กำลังจัดส่ง';
@@ -162,6 +163,12 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           'เช็คเอ้าท์',
           'การดำเนินการสำเร็จ',
           'พบปัญหา',
+        ];
+        setStatusList(names);
+        setSelectedStatus(names[0]);
+      }else if (item.status_id === 'SD04') {
+        const names = [
+          'ยกเลิก'
         ];
         setStatusList(names);
         setSelectedStatus(names[0]);
@@ -422,7 +429,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         showsVerticalScrollIndicator={false}>
         {/* ── ข้อมูลงาน ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>ข้อมูลงาน</Text>
+          <Text style={[styles.cardTitle, {color: companyColor}]}>ข้อมูลงาน</Text>
           <InfoRow label="Request ID" value={item.request_id} />
           <InfoRow label="ประเภท" value={item.type_name} />
           <InfoRow label="ปลายทาง" value={item.to_company} />
@@ -441,7 +448,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
         {/* ── อัปเดตสถานะ ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>อัปเดตสถานะ</Text>
+          <Text style={[styles.cardTitle, {color: companyColor}]}>อัปเดตสถานะ</Text>
 
           {loadingStatus ? (
             <ActivityIndicator
