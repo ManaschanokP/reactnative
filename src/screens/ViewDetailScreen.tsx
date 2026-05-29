@@ -860,11 +860,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  photoButtonText: {color: '#fff', fontFamily: 'Quicksand-Bold', fontSize: 15},
+  photoButtonText: {color: '#fff', fontFamily: 'Quicksand-Bold', fontSize: 16},
   photoPreview: {
     width: '100%',
     height: 200,
-    borderRadius: 8,
+    borderRadius: 10,
     marginTop: 10,
     resizeMode: 'cover',
   },
@@ -887,7 +887,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#e74c3c',
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 3,
     fontFamily: 'Quicksand-Regular',
   },

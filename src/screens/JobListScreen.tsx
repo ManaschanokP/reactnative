@@ -65,6 +65,13 @@ const getStatusStyle = (statusId: string, statusName?: string) => {
   return {bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60'};
 };
 
+const getFilterStatusLabel = (statusId: string, statusName?: string): string => {
+  if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ') return 'ดำเนินการสำเร็จ';
+  if (statusId === 'SD04' || statusName === 'พบปัญหา') return 'พบปัญหา';
+  if (statusId === 'SD10' || statusName === 'ยกเลิก') return 'ยกเลิก';
+  return 'กำลังดำเนินการ';
+};
+
 const JobListScreen: React.FC<Props> = ({navigation}) => {
   const {user, companyColor} = useContext(AuthContext)!;
   const insets = useSafeAreaInsets();
@@ -190,7 +197,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
           </View>
           <View style={[styles.statusBadge, {backgroundColor: statusStyle.bg}]}>
             <Text style={[styles.statusText, {color: statusStyle.text}]}>
-              {item.status_name}
+              {getFilterStatusLabel(item.status_id, item.status_name)}
             </Text>
             <View
               style={[styles.statusDot, {backgroundColor: statusStyle.dot}]}
