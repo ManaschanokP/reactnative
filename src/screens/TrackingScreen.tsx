@@ -9,6 +9,7 @@ import {
   Alert,
   Image,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -78,19 +79,14 @@ export default function TrackingScreen({route, navigation}: Props) {
   };
 
   if (loading) {
-  return (
-    <View style={styles.center}>
-      <ActivityIndicator
-        size="large"
-        color={companyColor}
-      />
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={companyColor} />
 
-      <Text style={styles.loadingText}>
-        กำลังโหลดข้อมูล...
-      </Text>
-    </View>
-  );
-}
+        <Text style={styles.loadingText}>กำลังโหลดข้อมูล...</Text>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -112,208 +108,236 @@ export default function TrackingScreen({route, navigation}: Props) {
         </View>
       </Modal>
 
-      <View style={[styles.wrapper, {backgroundColor: companyColor}]}>
-        {/* HEADER */}
-        <View style={[styles.header, {backgroundColor: companyColor}]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backButton}>{'‹'}</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.headerTitle}>Tracking</Text>
-        </View>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.content}>
-          {/* Request ID Card */}
-          <View style={styles.card}>
-            <Text style={styles.requestId}>{requestId}</Text>
-          </View>
-
-          {/* Track Table */}
-          <View style={styles.card}>
-            <View style={[styles.tableRow, styles.headerRow]}>
-              <Text style={[styles.headerCell, {flex: 1.4}]}>Date</Text>
-              <Text style={[styles.headerCell, {flex: 1.1}]}>Time</Text>
-              <Text style={[styles.headerCell, {flex: 2}]}>Status</Text>
-              <Text style={[styles.headerCell, {flex: 1.4}]}>Remark</Text>
-            </View>
-
-            {trackList.length === 0 ? (
-              <Text style={styles.empty}>ไม่พบข้อมูล</Text>
-            ) : (
-              trackList.map((track, index) => {
-                const hasPicture = !!getImageUri(track.picture);
-                const hasSignature =
-                  !!getImageUri(track.esig_cus) &&
-                  track.status_name === 'การจัดส่งสำเร็จ';
-
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.tableRow,
-                      index % 2 === 0 ? styles.rowEven : styles.rowOdd,
-                    ]}
-                    onPress={() => setSelectedTrack(track)}
-                    activeOpacity={0.7}>
-                    <Text style={[styles.cell, {flex: 1.4}]}>{track.date}</Text>
-                    <Text style={[styles.cell, {flex: 1.1}]}>{track.time}</Text>
-                    <View style={[styles.cellRow, {flex: 2}]}>
-                      <Text
-                        style={[
-                          styles.cell,
-                           (hasPicture || hasSignature) && {color:' #333'},
-                        ]}
-                        numberOfLines={2}>
-                        {track.status_name}
-                      </Text>
-                      {hasPicture && (
-                        <Icon
-                          name="image"
-                          size={13}
-                          color={companyColor}
-                          style={styles.cellIcon}
-                        />
-                      )}
-                      {hasSignature && (
-                        <Icon
-                          name="signature"
-                          size={13}
-                          color={companyColor}
-                          style={styles.cellIcon}
-                        />
-                      )}
-                    </View>
-                    <Text style={[styles.cell, {flex: 1.4}]} numberOfLines={0}>
-                      {track.detail}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })
-            )}
-          </View>
-
-          <View style={styles.closebt}>
-            <TouchableOpacity
-              style={[styles.closeBtn, {backgroundColor: companyColor}]}
-              onPress={() => navigation.goBack()}>
-              <Text style={styles.closeBtnText}>ปิด</Text>
+      <SafeAreaView style={[styles.safeArea, {backgroundColor: companyColor}]}>
+        <View style={[styles.wrapper, {backgroundColor: companyColor}]}>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.backButton}>{'‹'}</Text>
             </TouchableOpacity>
+
+            <Text style={styles.headerTitle}>Tracking</Text>
           </View>
-          <View style={{height: 40}} />
-        </ScrollView>
 
-        {/* ── Detail Modal ── */}
-        <Modal
-          visible={!!selectedTrack}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setSelectedTrack(null)}>
-          {/* overlay — กดพื้นที่ด้านบนเพื่อปิด */}
-          <View style={styles.modalOverlay}>
-            <TouchableOpacity
-              style={styles.modalDismissArea}
-              onPress={() => setSelectedTrack(null)}
-            />
+          {/* CONTENT CARD */}
+          <View style={styles.cardContainer}>
+            <ScrollView
+              style={styles.container}
+              contentContainerStyle={styles.content}
+              showsVerticalScrollIndicator={false}>
+              {/* Request ID Card */}
+              <View style={styles.card}>
+                <Text style={styles.requestId}>{requestId}</Text>
+              </View>
 
-            {/* กล่อง content — ใช้ View ไม่ใช้ TouchableOpacity */}
-            <View style={styles.modalContainer}>
-              {/* Header */}
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, ]}>รายละเอียด</Text>
+              {/* Track Table */}
+              <View style={styles.card}>
+                <View style={[styles.tableRow, styles.headerRow]}>
+                  <Text style={[styles.headerCell, {flex: 1.4}]}>Date</Text>
+                  <Text style={[styles.headerCell, {flex: 1.1}]}>Time</Text>
+                  <Text style={[styles.headerCell, {flex: 2}]}>Status</Text>
+                  <Text style={[styles.headerCell, {flex: 1.4}]}>Remark</Text>
+                </View>
+
+                {trackList.length === 0 ? (
+                  <Text style={styles.empty}>ไม่พบข้อมูล</Text>
+                ) : (
+                  trackList.map((track, index) => {
+                    const hasPicture = !!getImageUri(track.picture);
+                    const hasSignature =
+                      !!getImageUri(track.esig_cus) &&
+                      track.status_name === 'การจัดส่งสำเร็จ';
+
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.tableRow,
+                          index % 2 === 0 ? styles.rowEven : styles.rowOdd,
+                        ]}
+                        onPress={() => setSelectedTrack(track)}
+                        activeOpacity={0.7}>
+                        <Text style={[styles.cell, {flex: 1.4}]}>
+                          {track.date}
+                        </Text>
+
+                        <Text style={[styles.cell, {flex: 1.1}]}>
+                          {track.time}
+                        </Text>
+
+                        <View style={[styles.cellRow, {flex: 2}]}>
+                          <Text
+                            style={[
+                              styles.cell,
+                              (hasPicture || hasSignature) && {color: '#333'},
+                            ]}
+                            numberOfLines={2}>
+                            {track.status_name}
+                          </Text>
+
+                          {hasPicture && (
+                            <Icon
+                              name="image"
+                              size={13}
+                              color={companyColor}
+                              style={styles.cellIcon}
+                            />
+                          )}
+
+                          {hasSignature && (
+                            <Icon
+                              name="signature"
+                              size={13}
+                              color={companyColor}
+                              style={styles.cellIcon}
+                            />
+                          )}
+                        </View>
+
+                        <Text
+                          style={[styles.cell, {flex: 1.4}]}
+                          numberOfLines={0}>
+                          {track.detail}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                )}
+              </View>
+
+              <View style={styles.closebt}>
                 <TouchableOpacity
-                  onPress={() => setSelectedTrack(null)}
-                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-                  <Text style={styles.modalXBtn}></Text>
+                  style={[styles.closeBtn, {backgroundColor: companyColor}]}
+                  onPress={() => navigation.goBack()}>
+                  <Text style={styles.closeBtnText}>ปิด</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* ScrollView */}
-              <ScrollView
-                style={styles.modalScroll}
-                contentContainerStyle={styles.modalScrollContent}
-                showsVerticalScrollIndicator={true}
-                bounces={true}>
-                <DetailRow label="วันที่" value={selectedTrack?.date ?? ''} />
-                <DetailRow label="เวลา" value={selectedTrack?.time ?? ''} />
-                <DetailRow
-                  label="สถานะ"
-                  value={selectedTrack?.status_name ?? ''}
-                />
-                <DetailRow
-                  label="รายละเอียด"
-                  value={selectedTrack?.detail ?? ''}
-                />
-
-                {/* รูปภาพ */}
-                {!!getImageUri(selectedTrack?.picture) && (
-                  <View style={styles.imageSection}>
-                    <View style={styles.imageLabelRow}>
-                      
-                      <Text
-                        style={[styles.detailLabel, { marginLeft: 6}]}>
-                        รูปภาพ :
-                      </Text>
-                    </View>
-                    <Image
-                      source={{uri: getImageUri(selectedTrack!.picture)!}}
-                      style={styles.trackImage}
-                      resizeMode="contain"
-                    />
-                  </View>
-                )}
-
-                {/* ลายเซ็นผู้รับสินค้า */}
-                {!!getImageUri(selectedTrack?.esig_cus) &&
-                  selectedTrack?.status_name === 'การจัดส่งสำเร็จ' && (
-                    <View style={styles.imageSection}>
-                      <View style={styles.imageLabelRow}>
-                        
-                        <Text
-                          style={[styles.detailLabel, {marginLeft: 6}]}>
-                          ลายเซ็นผู้รับสินค้า :
-                        </Text>
-                      </View>
-                      <Image
-                        source={{uri: getImageUri(selectedTrack!.esig_cus)!}}
-                        style={styles.signatureImage}
-                        resizeMode="contain"
-                      />
-                    </View>
-                  )}
-
-                {/* ลายเซ็นผู้ส่ง */}
-                {!!getImageUri(selectedTrack?.esig_req) &&
-                  selectedTrack?.status_name === 'การจัดส่งสำเร็จ' && (
-                    <View style={styles.imageSection}>
-                      <View style={styles.imageLabelRow}>
-                        <Icon name="signature" size={14} color={companyColor} />
-                        <Text
-                          style={[styles.detailLabel, { marginLeft: 6}]}>
-                          ลายเซ็นผู้ส่ง :
-                        </Text>
-                      </View>
-                      <Image
-                        source={{uri: getImageUri(selectedTrack!.esig_req)!}}
-                        style={styles.signatureImage}
-                        resizeMode="contain"
-                      />
-                    </View>
-                  )}
-
-                <View style={styles.closebt}>
-                  <TouchableOpacity
-                    style={[styles.modalClose, {backgroundColor: companyColor}]}
-                    onPress={() => setSelectedTrack(null)}>
-                    <Text style={styles.modalCloseText}>ปิด</Text>
-                  </TouchableOpacity>
-                  <View style={{height: insets.bottom + 60}} />
-                </View>
-              </ScrollView>
-            </View>
+              <View
+                style={{
+                  height: insets.bottom + 40,
+                }}
+              />
+            </ScrollView>
           </View>
-        </Modal>
-      </View>
+
+          {/* ── Detail Modal ── */}
+          <Modal
+            visible={!!selectedTrack}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setSelectedTrack(null)}>
+            <View style={styles.modalOverlay}>
+              <TouchableOpacity
+                style={styles.modalDismissArea}
+                onPress={() => setSelectedTrack(null)}
+              />
+
+              <View style={styles.modalContainer}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>รายละเอียด</Text>
+
+                  <TouchableOpacity
+                    onPress={() => setSelectedTrack(null)}
+                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                    <Text style={styles.modalXBtn}></Text>
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                  style={styles.modalScroll}
+                  contentContainerStyle={styles.modalScrollContent}
+                  showsVerticalScrollIndicator={true}
+                  bounces={true}>
+                  <DetailRow label="วันที่" value={selectedTrack?.date ?? ''} />
+                  <DetailRow label="เวลา" value={selectedTrack?.time ?? ''} />
+                  <DetailRow
+                    label="สถานะ"
+                    value={selectedTrack?.status_name ?? ''}
+                  />
+                  <DetailRow
+                    label="รายละเอียด"
+                    value={selectedTrack?.detail ?? ''}
+                  />
+
+                  {!!getImageUri(selectedTrack?.picture) && (
+                    <View style={styles.imageSection}>
+                      <View style={styles.imageLabelRow}>
+                        <Text style={[styles.detailLabel, {marginLeft: 6}]}>
+                          รูปภาพ :
+                        </Text>
+                      </View>
+
+                      <Image
+                        source={{uri: getImageUri(selectedTrack!.picture)!}}
+                        style={styles.trackImage}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  )}
+
+                  {!!getImageUri(selectedTrack?.esig_cus) &&
+                    selectedTrack?.status_name === 'การจัดส่งสำเร็จ' && (
+                      <View style={styles.imageSection}>
+                        <View style={styles.imageLabelRow}>
+                          <Text style={[styles.detailLabel, {marginLeft: 6}]}>
+                            ลายเซ็นผู้รับสินค้า :
+                          </Text>
+                        </View>
+
+                        <Image
+                          source={{
+                            uri: getImageUri(selectedTrack!.esig_cus)!,
+                          }}
+                          style={styles.signatureImage}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    )}
+
+                  {!!getImageUri(selectedTrack?.esig_req) &&
+                    selectedTrack?.status_name === 'การจัดส่งสำเร็จ' && (
+                      <View style={styles.imageSection}>
+                        <View style={styles.imageLabelRow}>
+                          <Icon
+                            name="signature"
+                            size={14}
+                            color={companyColor}
+                          />
+
+                          <Text style={[styles.detailLabel, {marginLeft: 6}]}>
+                            ลายเซ็นผู้ส่ง :
+                          </Text>
+                        </View>
+
+                        <Image
+                          source={{
+                            uri: getImageUri(selectedTrack!.esig_req)!,
+                          }}
+                          style={styles.signatureImage}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    )}
+
+                  <View style={styles.closebt}>
+                    <TouchableOpacity
+                      style={[
+                        styles.modalClose,
+                        {backgroundColor: companyColor},
+                      ]}
+                      onPress={() => setSelectedTrack(null)}>
+                      <Text style={styles.modalCloseText}>ปิด</Text>
+                    </TouchableOpacity>
+
+                    <View style={{height: insets.bottom + 60}} />
+                  </View>
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
+        </View>
+      </SafeAreaView>
     </>
   );
 }
@@ -536,5 +560,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontFamily: 'Quicksand-Bold',
+  },
+
+  safeArea: {
+    flex: 1,
+  },
+
+  cardContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: 'hidden',
   },
 });
