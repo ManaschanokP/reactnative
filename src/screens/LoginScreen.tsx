@@ -1,7 +1,6 @@
 //app/src/screens/LoginScreen.tsx
 import React, {useContext, useEffect, useState} from 'react';
 import {
-  SafeAreaView,
   View,
   TextInput,
   Image,
@@ -25,6 +24,7 @@ import {LoginRequest, UpdateTokenRequest} from '../types/authTypes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -123,7 +123,7 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={{flex: 1, backgroundColor: '#F7F8FA'}}>
+      <SafeAreaView style={{flex: 1, backgroundColor: '#F7F8FA'}} edges={['top']}>
         <KeyboardAwareScrollView
           style={{flex: 1}}
           contentContainerStyle={{
