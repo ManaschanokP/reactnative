@@ -58,13 +58,20 @@ const STATUS_ID_MAP: Record<string, string> = {
   ยกเลิก: 'SD10',
 };
 
-const REQUIRES_PHOTO = ['ขึ้นของ', 'เช็คอิน', 'พบปัญหา', 'การจัดส่งสำเร็จ'];
+const REQUIRES_PHOTO = [
+  'ขึ้นของ',
+  'เช็คอิน',
+  'พบปัญหา',
+  'การจัดส่งสำเร็จ',
+  'รับเอกสารกลับ',
+];
 const REQUIRES_SIGNATURE_RATING = ['ยกเลิก']; // บังคับ
 const OPTIONAL_SIGNATURE_RATING = ['การจัดส่งสำเร็จ']; // ไม่บังคับ
 const REQUIRES_BOX = ['ขึ้นของ'];
-const REQUIRES_MILE = ['กำลังจัดส่ง', 'การดำเนินการสำเร็จ'];
+const REQUIRES_MILE = ['กำลังจัดส่ง', 'การดำเนินการสำเร็จ', 'คลังสินค้า'];
 const TRACKING_START_STATUS = 'กำลังจัดส่ง';
-const TRACKING_STOP_STATUSES = ['การดำเนินการสำเร็จ', 'พบปัญหา'];
+const TRACKING_STOP_STATUSES = ['การดำเนินการสำเร็จ', 'พบปัญหา', 'คลังสินค้า'];
+const REQUIRES_DETAIL = ['พบปัญหา'];
 
 const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const insets = useSafeAreaInsets();
@@ -103,6 +110,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const photoRef = useRef<{uri: string; base64: string} | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  const needsDetail = REQUIRES_DETAIL.includes(selectedStatus);
   const needsPhoto = REQUIRES_PHOTO.includes(selectedStatus);
   const needsSignatureRating =
     REQUIRES_SIGNATURE_RATING.includes(selectedStatus); // บังคับ (ยกเลิก)
@@ -117,7 +125,8 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     (needsPhoto && !photo) ||
     (needsBox && !box.trim()) ||
     (needsMile && !mile.trim()) ||
-    (needsSignatureRating && !signature);
+    (needsSignatureRating && !signature) ||
+    (needsDetail && !detail.trim());
 
   useEffect(() => {
     const checkTracking = async () => {
@@ -235,6 +244,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     }
     if (needsMile && !mile.trim()) {
       Alert.alert('แจ้งเตือน', 'กรุณากรอกเลขไมล์');
+      return;
+    }
+    if (needsDetail && !detail.trim()) {
+      Alert.alert('แจ้งเตือน', 'กรุณาระบุรายละเอียดของปัญหา');
       return;
     }
 
@@ -660,12 +673,23 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
           {/* ── รายละเอียด ── */}
           <View style={styles.inlineRow}>
-            <Text style={styles.inlineLabel}>รายละเอียด :</Text>
+            <Text style={styles.inlineLabel}>
+              รายละเอียด :
+              {needsDetail && <Text style={styles.required}> *</Text>}
+            </Text>
             <TextInput
-              style={[styles.inlineInput, styles.inputMultiline]}
+              style={[
+                styles.inlineInput,
+                styles.inputMultiline,
+                needsDetail && !detail.trim() && styles.inputError, 
+              ]}
               value={detail}
               onChangeText={setDetail}
-              placeholder="รายละเอียดเพิ่มเติม"
+              placeholder={
+                needsDetail
+                  ? 'ระบุรายละเอียดของปัญหา (จำเป็น)'
+                  : 'รายละเอียดเพิ่มเติม'
+              }
               multiline
               numberOfLines={3}
             />
@@ -884,7 +908,7 @@ const styles = StyleSheet.create({
 
   specialSection: {
     padding: 12,
-    backgroundColor: '#fff9f0',
+    backgroundColor: '#fcefdc41',
     borderRadius: 8,
     marginVertical: 10,
     borderWidth: 1,
