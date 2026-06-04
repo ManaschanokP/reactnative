@@ -6,6 +6,7 @@ export type JobItem = {
   d_time: string;
   status_name: string;
   status_id: string;
+  box: string;
 };
 
 export type JobResponse = {
