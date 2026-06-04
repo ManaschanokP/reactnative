@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  Pressable,
 } from 'react-native';
 
 import Toast from 'react-native-toast-message';
@@ -24,7 +25,7 @@ import {LoginRequest, UpdateTokenRequest} from '../types/authTypes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -123,7 +124,9 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={{flex: 1, backgroundColor: '#F7F8FA'}} edges={['top']}>
+      <SafeAreaView
+        style={{flex: 1, backgroundColor: '#F7F8FA'}}
+        edges={['top']}>
         <KeyboardAwareScrollView
           style={{flex: 1}}
           contentContainerStyle={{
@@ -229,12 +232,14 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
             </TouchableOpacity>
 
             {/* Login Button */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.loginButton}
-              onPress={handleLogin}>
+            <Pressable
+              onPress={handleLogin}
+              style={({pressed}) => ({
+                ...styles.loginButton,
+                backgroundColor: pressed ? '#7AB100' : '#93D500',
+              })}>
               <Text style={styles.loginText}>ล็อคอิน</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </KeyboardAwareScrollView>
       </SafeAreaView>
@@ -251,8 +256,7 @@ const styles = StyleSheet.create({
 
   content: {
     flex: 1,
-    justifyContent: 'center',
-
+    marginTop: 55,
     paddingHorizontal: width * 0.08,
     paddingVertical: 40,
   },
@@ -372,16 +376,11 @@ const styles = StyleSheet.create({
 
   loginButton: {
     height: 58,
-
-    backgroundColor: '#98CE00',
-
+    backgroundColor: '#93D500',
     borderRadius: 18,
-
     justifyContent: 'center',
     alignItems: 'center',
-
-    shadowColor: '#98CE00',
-
+    shadowColor: '#7AB100',
     shadowOffset: {
       width: 0,
       height: 6,
