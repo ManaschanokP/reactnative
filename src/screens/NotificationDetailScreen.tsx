@@ -8,6 +8,7 @@ import {
   StatusBar,
   ScrollView,
   Image,
+  Pressable,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NotificationItem} from '../types/notificationTypes';
@@ -178,8 +179,13 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
             {/* Buttons */}
             <View style={styles.buttonContainer}>
               {canStartWork && (
-                <TouchableOpacity
-                  style={styles.startButton}
+                <Pressable
+                  style={({pressed}) => [
+                    styles.startButton,
+                    {
+                      backgroundColor: pressed ? '#7AB100' : '#93D500',
+                    },
+                  ]}
                   onPress={handleStartWork}>
                   <Icons
                     name="play-skip-back-circle-sharp"
@@ -188,11 +194,16 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
                     style={styles.iconbottom}
                   />
                   <Text style={styles.buttonText}>เริ่มงาน</Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
 
-              <TouchableOpacity
-                style={styles.closeButton}
+              <Pressable
+                style={({pressed}) => [
+                  styles.closeButton,
+                  {
+                    backgroundColor: pressed ? '#8F0000' : '#C00000',
+                  },
+                ]}
                 onPress={() => navigation.goBack()}>
                 <IconO
                   name="x-circle-fill"
@@ -201,7 +212,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
                   style={styles.iconbottom}
                 />
                 <Text style={styles.buttonText}>ปิด</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             <View
@@ -273,28 +284,25 @@ const styles = StyleSheet.create({
 
   startButton: {
     flexDirection: 'row',
-    backgroundColor: '#93D500',
-    //paddingVertical: 14,
     paddingHorizontal: 18,
     borderRadius: 10,
     alignItems: 'center',
     minWidth: 120,
     width: 100,
     height: 40,
-    justifyContent:'space-between',
+    justifyContent: 'space-between',
   },
 
   closeButton: {
     flexDirection: 'row',
     backgroundColor: '#D00000',
-    //paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 10,
     alignItems: 'center',
     minWidth: 120,
     width: 100,
     height: 40,
-    justifyContent:'space-between',
+    justifyContent: 'space-between',
   },
 
   iconbottom: {
