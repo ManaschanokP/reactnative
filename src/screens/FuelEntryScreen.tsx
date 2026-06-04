@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  Pressable,
 } from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -184,8 +185,11 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
                   editable={false}
                 />
 
-                 <CalenderTGL  width={36} height={36} style={styles.iconcalender} />
-                
+                <CalenderTGL
+                  width={36}
+                  height={36}
+                  style={styles.iconcalender}
+                />
               </View>
             </TouchableOpacity>
 
@@ -299,10 +303,14 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
             />
 
             {/* ปุ่มบันทึก */}
-            <TouchableOpacity
-              style={[
+            <Pressable
+              style={({pressed}) => [
                 styles.submitButton,
                 loading && styles.submitButtonDisabled,
+                pressed &&
+                  !loading && {
+                    backgroundColor: '#7AB100', // สีตอนกด
+                  },
               ]}
               onPress={() => {
                 if (!license_no || !mile || !liter || !price) {
@@ -325,7 +333,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
               ) : (
                 <Text style={styles.submitButtonText}>บันทึก</Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
 
             <View style={{height: 90}} />
           </KeyboardAwareScrollView>
@@ -347,14 +355,24 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
               </Text>
 
               <View style={modalStyles.buttons}>
-                <TouchableOpacity
-                  style={modalStyles.cancelBtn}
+                <Pressable
+                  style={({pressed}) => [
+                    modalStyles.cancelBtn,
+                    {
+                      backgroundColor: pressed ? '#E0E0E0' : '#FFFFFF',
+                    },
+                  ]}
                   onPress={() => setShowConfirm(false)}>
                   <Text style={modalStyles.cancelText}>ยกเลิก</Text>
-                </TouchableOpacity>
+                </Pressable>
 
-                <TouchableOpacity
-                  style={[modalStyles.confirmBtn, {backgroundColor: '#93D500'}]}
+                <Pressable
+                  style={({pressed}) => [
+                    modalStyles.confirmBtn,
+                    {
+                      backgroundColor: pressed ? '#7AB100' : '#93D500',
+                    },
+                  ]}
                   onPress={() => {
                     setShowConfirm(false);
 
@@ -363,7 +381,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
                     }, 100);
                   }}>
                   <Text style={modalStyles.confirmText}>ยืนยัน</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </View>
           </View>
@@ -382,11 +400,16 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
 
               <Text style={modalStyles.message}>กรุณากรอกข้อมูลให้ครบถ้วน</Text>
 
-              <TouchableOpacity
-                style={[modalStyles.singleButton, {backgroundColor: '#93D500'}]}
+              <Pressable
+                style={({pressed}) => [
+                  modalStyles.singleButton,
+                  {
+                    backgroundColor: pressed ? '#7AB100' : '#93D500',
+                  },
+                ]}
                 onPress={() => setShowWarning(false)}>
                 <Text style={modalStyles.confirmText}>ตกลง</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </Modal>
@@ -404,14 +427,19 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
 
               <Text style={modalStyles.message}>{successMessage}</Text>
 
-              <TouchableOpacity
-                style={[modalStyles.singleButton, {backgroundColor: '#93D500'}]}
+              <Pressable
+                style={({pressed}) => [
+                  modalStyles.singleButton,
+                  {
+                    backgroundColor: pressed ? '#7AB100' : '#93D500',
+                  },
+                ]}
                 onPress={() => {
                   setShowSuccess(false);
                   navigation.goBack();
                 }}>
                 <Text style={modalStyles.confirmText}>ตกลง</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </Modal>
@@ -656,10 +684,11 @@ const modalStyles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#EAEAEA',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#000000',
   },
 
   confirmBtn: {
