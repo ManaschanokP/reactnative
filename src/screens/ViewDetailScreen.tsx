@@ -407,19 +407,21 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 onPress={() => setShowConfirm(false)}>
                 <Text style={modalStyles.cancelText}>ยกเลิก</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[
+              <Pressable
+                style={({pressed}) => [
                   modalStyles.confirmBtn,
-                  {backgroundColor: isPhotoPressed ? '#93D500' : '#7AB100'},
+                  {
+                    backgroundColor: pressed
+                      ? darkenColor(companyColor ?? '#93D500', 0.2)
+                      : companyColor ?? '#93D500',
+                  },
                 ]}
-                onPressIn={() => setIsPhotoPressed(true)}
-                onPressOut={() => setIsPhotoPressed(false)}
                 onPress={() => {
                   setShowConfirm(false);
                   doUpdate(pendingStatusId);
                 }}>
                 <Text style={modalStyles.confirmText}>ยืนยัน</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -448,18 +450,24 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
             <Text style={modalStyles.message}>
               {successMessage || 'บันทึกข้อมูลสำเร็จ'}
             </Text>
-            <TouchableOpacity
-              style={[
+            <Pressable
+              style={({pressed}) => [
                 modalStyles.fullBtn,
                 {
-                  backgroundColor: isOfflineSuccess
+                  backgroundColor: pressed
+                    ? darkenColor(
+                        isOfflineSuccess
+                          ? '#e67e22'
+                          : companyColor ?? '#93D500',
+                        0.2,
+                      )
+                    : isOfflineSuccess
                     ? '#e67e22'
                     : companyColor ?? '#93D500',
                 },
               ]}
               onPress={() => {
                 setShowSuccess(false);
-
                 if (fromScreen === 'NotificationList') {
                   navigation.navigate('NotificationList');
                 } else {
@@ -467,7 +475,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 }
               }}>
               <Text style={modalStyles.confirmText}>ตกลง</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -725,7 +733,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                   placeholderTextColor="#aaa"
                 />
                 {!mile.trim() && (
-                  <Text style={styles.errorText}>⚠ กรุณากรอกเลขไมล์</Text>
+                  <Text style={styles.errorText}>กรุณากรอกเลขไมล์</Text>
                 )}
               </View>
             </View>
