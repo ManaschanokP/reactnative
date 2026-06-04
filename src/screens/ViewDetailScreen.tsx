@@ -543,7 +543,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           {needsPhoto && (
             <View style={styles.photoSection}>
               <TouchableOpacity
-                style={[styles.photoButton, {backgroundColor: '#4E80FF'}]}
+                style={[
+                  styles.photoButton,
+                  {backgroundColor: photo ? '#2d5fd4' : '#4E80FF'}, // ✅ เข้มขึ้นเมื่อมีรูป
+                ]}
                 onPress={handleTakePhoto}>
                 <Icon name="camera-alt" size={18} color="#fff" />
                 <Text style={styles.photoButtonText}>
