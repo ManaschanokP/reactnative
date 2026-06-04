@@ -11,6 +11,7 @@ import {
   Image,
   useWindowDimensions,
   Modal,
+  Pressable,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {launchCamera} from 'react-native-image-picker';
@@ -108,6 +109,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const [signatureKey, setSignatureKey] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
   const [totalDistance, setTotalDistance] = useState(0);
+  const [isPhotoPressed, setIsPhotoPressed] = useState(false);
 
   // Custom modal states
   const [showConfirm, setShowConfirm] = useState(false);
@@ -371,6 +373,17 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     return companyColor ?? '#93D500';
   };
 
+  // เพิ่ม function นี้ก่อน return
+  const darkenColor = (hex: string, amount: number = 0.2): string => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.max(0, (num >> 16) - Math.round(255 * amount));
+    const g = Math.max(0, ((num >> 8) & 0xff) - Math.round(255 * amount));
+    const b = Math.max(0, (num & 0xff) - Math.round(255 * amount));
+    return `#${r.toString(16).padStart(2, '0')}${g
+      .toString(16)
+      .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  };
+
   return (
     <>
       {/* ── Confirm Modal ── */}
@@ -397,8 +410,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
               <TouchableOpacity
                 style={[
                   modalStyles.confirmBtn,
-                  {backgroundColor: companyColor ?? '#93D500'},
+                  {backgroundColor: isPhotoPressed ? '#93D500' : '#7AB100'},
                 ]}
+                onPressIn={() => setIsPhotoPressed(true)}
+                onPressOut={() => setIsPhotoPressed(false)}
                 onPress={() => {
                   setShowConfirm(false);
                   doUpdate(pendingStatusId);
@@ -545,9 +560,12 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
               <TouchableOpacity
                 style={[
                   styles.photoButton,
-                  {backgroundColor: photo ? '#2d5fd4' : '#4E80FF'}, // ✅ เข้มขึ้นเมื่อมีรูป
+                  {backgroundColor: isPhotoPressed ? '#2d5fd4' : '#4E80FF'},
                 ]}
-                onPress={handleTakePhoto}>
+                onPressIn={() => setIsPhotoPressed(true)}
+                onPressOut={() => setIsPhotoPressed(false)}
+                onPress={handleTakePhoto}
+                activeOpacity={1}>
                 <Icon name="camera-alt" size={18} color="#fff" />
                 <Text style={styles.photoButtonText}>
                   {photo ? '  ถ่ายรูปใหม่' : '  ถ่ายรูป (จำเป็น)'}
@@ -739,11 +757,16 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         </View>
 
         {/* ── ปุ่ม Confirm ── */}
-        <TouchableOpacity
-          style={[
+        <Pressable
+          style={({pressed}) => [
             styles.confirmButton,
-            {backgroundColor: companyColor ?? '#93D500'},
-            isSubmitDisabled && styles.buttonDisabled,
+            isSubmitDisabled
+              ? styles.buttonDisabled
+              : {
+                  backgroundColor: pressed
+                    ? '#7AB100'
+                    : companyColor ?? '#93D500',
+                },
           ]}
           onPress={handleUpdate}
           disabled={isSubmitDisabled}>
@@ -752,7 +775,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           ) : (
             <Text style={styles.confirmText}> ยืนยันอัปเดตสถานะ</Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={{height: insets.bottom + 120}} />
       </ScrollView>
