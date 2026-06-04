@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Modal,
+  Pressable,
 } from 'react-native'; // เพิ่ม TextInput, Alert
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -34,29 +35,27 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   const [searching, setSearching] = useState(false);
 
   //เพิ่ม function ค้นหา
-  const handleSearch = async() => {
+  const handleSearch = async () => {
     if (!searchId.trim()) {
       setShowWarning(true);
-      
 
       return;
     }
     try {
-    setSearching(true);
-    const baseUrl = await getBaseUrlByCompany();
-    const url = `${baseUrl}${API_ENDPOINTS.TRACK}`;
-    const formData = new FormData();
-    formData.append('request_id', searchId);
-    const res = await fetch(url, {method: 'POST', body: formData});
-    const obj = await res.json();
-    
+      setSearching(true);
+      const baseUrl = await getBaseUrlByCompany();
+      const url = `${baseUrl}${API_ENDPOINTS.TRACK}`;
+      const formData = new FormData();
+      formData.append('request_id', searchId);
+      const res = await fetch(url, {method: 'POST', body: formData});
+      const obj = await res.json();
 
-    if (!obj.error && obj.Track && obj.Track.length > 0) {
-      navigation.navigate('Tracking', {requestId: searchId});
-    } else {
-      setAlertMessage(obj.message || 'ไม่พบข้อมูลหมายเลขนี้');
-      setShowAlert(true);
-    }
+      if (!obj.error && obj.Track && obj.Track.length > 0) {
+        navigation.navigate('Tracking', {requestId: searchId});
+      } else {
+        setAlertMessage(obj.message || 'ไม่พบข้อมูลหมายเลขนี้');
+        setShowAlert(true);
+      }
     } catch (e) {
       setAlertMessage('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
       setShowAlert(true);
@@ -68,16 +67,18 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   const [showWarning, setShowWarning] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  
 
   const isDriverOrMessenger = user?.status === 'U04' || user?.status === 'U05';
   //format function
   const formatRequestId = (value: string) => {
-  // แยก raw ออกก่อน (ลบ - ออก)
+    // แยก raw ออกก่อน (ลบ - ออก)
     let cleaned = value.replace(/-/g, '');
 
     // 2 ตัวแรก = ตัวอักษรเท่านั้น (A-Z)
-    const letters = cleaned.slice(0, 2).replace(/[^A-Za-z]/g, '').toUpperCase();
+    const letters = cleaned
+      .slice(0, 2)
+      .replace(/[^A-Za-z]/g, '')
+      .toUpperCase();
 
     // ที่เหลือ = ตัวเลขเท่านั้น (0-9)
     const digits = cleaned.slice(2).replace(/[^0-9]/g, '');
@@ -93,24 +94,24 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <>
-    {/* ── Alert Modal ── */}
-          <Modal transparent visible={showAlert} animationType="fade">
-            <View style={styles.modalAlertOverlay}>
-              <View style={styles.modalAlertBox}>
-                <View style={[styles.modalAlertIcon, {backgroundColor: '#FBC900'}]}>
-                  <Text style={styles.modalAlertIconText}>!</Text>
-                </View>
-                <Text style={styles.modalAlertTitle}>แจ้งเตือน</Text>
-                <Text style={styles.modalAlertMessage}>{alertMessage}</Text>
-                <TouchableOpacity
-                  style={[styles.modalAlertBtn, {backgroundColor: companyColor}]}
-                  onPress={() => setShowAlert(false)}>
-                  <Text style={styles.modalAlertBtnText}>ตกลง</Text>
-                </TouchableOpacity>
-              </View>
+      {/* ── Alert Modal ── */}
+      <Modal transparent visible={showAlert} animationType="fade">
+        <View style={styles.modalAlertOverlay}>
+          <View style={styles.modalAlertBox}>
+            <View style={[styles.modalAlertIcon, {backgroundColor: '#FBC900'}]}>
+              <Text style={styles.modalAlertIconText}>!</Text>
             </View>
-          </Modal>
-    
+            <Text style={styles.modalAlertTitle}>แจ้งเตือน</Text>
+            <Text style={styles.modalAlertMessage}>{alertMessage}</Text>
+            <TouchableOpacity
+              style={[styles.modalAlertBtn, {backgroundColor: companyColor}]}
+              onPress={() => setShowAlert(false)}>
+              <Text style={styles.modalAlertBtnText}>ตกลง</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <SafeAreaView style={{flex: 1}}>
           <View style={styles.hello1}>
@@ -140,9 +141,11 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
                 style={[styles.searchButton, {backgroundColor: companyColor}]}
                 onPress={handleSearch}
                 disabled={searching}>
-                {searching
-                  ? <ActivityIndicator size="small" color="#fff" />
-                  : <Icon name="search" size={26} color="#fff" />}
+                {searching ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Icon name="search" size={26} color="#fff" />
+                )}
               </TouchableOpacity>
             </View>
 
@@ -154,8 +157,13 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
               <View style={styles.line} />
             </View>
 
-            <TouchableOpacity
-              style={[styles.button]}
+            <Pressable
+              style={({pressed}) => [
+                styles.button,
+                pressed && {
+                  backgroundColor: '#EAEAEA',
+                },
+              ]}
               onPress={() => {
                 console.log('Scan QR-Code Pressed');
                 navigation.navigate('Scan');
@@ -167,11 +175,16 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
                 style={styles.leftIcon}
               />
               <Text style={styles.buttonText}>Scan QR-Code</Text>
-            </TouchableOpacity>
+            </Pressable>
 
             {isDriverOrMessenger && (
-              <TouchableOpacity
-                style={[styles.button]}
+              <Pressable
+                style={({pressed}) => [
+                  styles.button,
+                  pressed && {
+                    backgroundColor: '#EAEAEA',
+                  },
+                ]}
                 onPress={() => navigation.navigate('FuelEntry')}>
                 <Image
                   source={require('../../assets/fuel.png')}
@@ -179,7 +192,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
                   resizeMode="contain"
                 />
                 <Text style={styles.buttonText}>น้ำมัน</Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
         </SafeAreaView>
