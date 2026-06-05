@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react'; //เพิ่ม useState
+import React, {useContext, useState} from 'react';
 import {
   View,
   Text,
@@ -6,39 +6,55 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   Image,
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
   Modal,
   Pressable,
-} from 'react-native'; // เพิ่ม TextInput, Alert
+} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../types/navigationTypes';
-import {AuthContext, getCompanyColor} from '../context/AuthProvider';
-import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import IonIcon from 'react-native-vector-icons/Ionicons';
+
+// คอนเท็กซ์ คอนฟิก และประเภทข้อมูล
+import {RootStackParamList} from '../types/navigationTypes';
+import {AuthContext} from '../context/AuthProvider';
+import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+const {width} = Dimensions.get('window');
 
 const HomeScreen: React.FC<Props> = ({navigation}) => {
   const {user, companyColor} = useContext(AuthContext)!;
 
-  //เพิ่ม state สำหรับค้นหา
+  // สเตทสำหรับจัดการข้อมูลการค้นหาและโมดอลแจ้งเตือน
   const [searchId, setSearchId] = useState('');
-  console.log('User Home Screen:', user);
-  console.log('User Status Home Screen:', user?.status);
-
   const [searching, setSearching] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
-  //เพิ่ม function ค้นหา
+  // ตรวจสอบสิทธิ์ประเภทผู้ใช้งาน
+  const isDriverOrMessenger = user?.status === 'U04' || user?.status === 'U05';
+
+  // ฟังก์ชันจัดรูปแบบตัวอักษรหมายเลขติดตามพัสดุ (XX-XX-XXXXX)
+  const formatRequestId = (value: string) => {
+    let cleaned = value.replace(/-/g, '');
+    const letters = cleaned.slice(0, 2).replace(/[^A-Za-z]/g, '').toUpperCase();
+    const digits = cleaned.slice(2).replace(/[^0-9]/g, '');
+    const raw = (letters + digits).slice(0, 9);
+
+    if (raw.length <= 2) return raw;
+    if (raw.length <= 4) return `${raw.slice(0, 2)}-${raw.slice(2)}`;
+    return `${raw.slice(0, 2)}-${raw.slice(2, 4)}-${raw.slice(4)}`;
+  };
+
+  // ฟังก์ชันยิง API ค้นหาหมายเลขติดตามพัสดุ
   const handleSearch = async () => {
     if (!searchId.trim()) {
       setShowWarning(true);
-
       return;
     }
     try {
@@ -64,79 +80,51 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
     }
   };
 
-  const [showWarning, setShowWarning] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-
-  const isDriverOrMessenger = user?.status === 'U04' || user?.status === 'U05';
-  //format function
-  const formatRequestId = (value: string) => {
-    // แยก raw ออกก่อน (ลบ - ออก)
-    let cleaned = value.replace(/-/g, '');
-
-    // 2 ตัวแรก = ตัวอักษรเท่านั้น (A-Z)
-    const letters = cleaned
-      .slice(0, 2)
-      .replace(/[^A-Za-z]/g, '')
-      .toUpperCase();
-
-    // ที่เหลือ = ตัวเลขเท่านั้น (0-9)
-    const digits = cleaned.slice(2).replace(/[^0-9]/g, '');
-
-    // รวมกัน จำกัด 9 ตัว (2 ตัวอักษร + 7 ตัวเลข)
-    const raw = (letters + digits).slice(0, 9);
-
-    // ใส่ - คั่น format XX-XX-XXXXX
-    if (raw.length <= 2) return raw;
-    if (raw.length <= 4) return `${raw.slice(0, 2)}-${raw.slice(2)}`;
-    return `${raw.slice(0, 2)}-${raw.slice(2, 4)}-${raw.slice(4)}`;
-  };
-
   return (
     <>
-      {/* ── Alert Modal ── */}
+      {/* โมดอลแจ้งเตือนเมื่อพบข้อผิดพลาดหรือข้อความจากระบบ */}
       <Modal transparent visible={showAlert} animationType="fade">
-        <View style={styles.modalAlertOverlay}>
-          <View style={styles.modalAlertBox}>
-            <View style={[styles.modalAlertIcon, {backgroundColor: '#FBC900'}]}>
-              <Text style={styles.modalAlertIconText}>!</Text>
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.container}>
+            <View style={modalStyles.iconBadge}>
+              <Text style={modalStyles.iconText}>!</Text>
             </View>
-            <Text style={styles.modalAlertTitle}>แจ้งเตือน</Text>
-            <Text style={styles.modalAlertMessage}>{alertMessage}</Text>
+            <Text style={modalStyles.title}>แจ้งเตือน</Text>
+            <Text style={modalStyles.message}>{alertMessage}</Text>
             <TouchableOpacity
-              style={[styles.modalAlertBtn, {backgroundColor: companyColor}]}
+              style={[modalStyles.actionButton, {backgroundColor: companyColor}]}
               onPress={() => setShowAlert(false)}>
-              <Text style={styles.modalAlertBtnText}>ตกลง</Text>
+              <Text style={modalStyles.actionButtonText}>ตกลง</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
+      {/* เนื้อหาหลักของหน้าจอหลัก */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={{flex: 1}}>
-          <View style={styles.hello1}>
-            <Text style={styles.hello}>
+        <SafeAreaView style={styles.screenWrapper}>
+          <View style={styles.welcomeWrapper}>
+            <Text style={styles.welcomeText}>
               สวัสดี , {user?.name?.split(' ')[0]}
             </Text>
           </View>
-          <View style={styles.container}>
+
+          <View style={styles.contentContainer}>
             <Image
               source={require('../../assets/Delivery3.png')}
-              style={styles.delivery}
+              style={styles.bannerImage}
               resizeMode="contain"
             />
-            <View style={styles.searchBox}>
+
+            {/* ส่วนกล่องค้นหาหมายเลขพัสดุ */}
+            <View style={styles.searchContainer}>
               <TextInput
                 placeholder="ป้อนหมายเลขติดตาม"
                 value={searchId}
-                onChangeText={text => {
-                  const formatted = formatRequestId(text);
-                  setSearchId(formatted);
-                }}
-                style={styles.input}
+                onChangeText={text => setSearchId(formatRequestId(text))}
+                style={styles.searchInput}
                 onSubmitEditing={handleSearch}
               />
-
               <TouchableOpacity
                 style={[styles.searchButton, {backgroundColor: companyColor}]}
                 onPress={handleSearch}
@@ -149,75 +137,62 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.orContainer}>
-              <View style={styles.line} />
-
-              <Text style={styles.orText}>Or</Text>
-
-              <View style={styles.line} />
+            {/* ส่วนเส้นคั่นแบ่งตัวเลือก */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>Or</Text>
+              <View style={styles.dividerLine} />
             </View>
 
+            {/* ปุ่มกดเปิดสแกนคิวอาร์โค้ด */}
             <Pressable
               style={({pressed}) => [
-                styles.button,
-                pressed && {
-                  backgroundColor: '#EAEAEA',
-                },
+                styles.menuButton,
+                pressed && styles.menuButtonPressed,
               ]}
-              onPress={() => {
-                console.log('Scan QR-Code Pressed');
-                navigation.navigate('Scan');
-              }}>
+              onPress={() => navigation.navigate('Scan')}>
               <Icon
                 name="qr-code-scanner"
                 size={28}
                 color="#373737"
-                style={styles.leftIcon}
+                style={styles.menuButtonIcon}
               />
-              <Text style={styles.buttonText}>Scan QR-Code</Text>
+              <Text style={styles.menuButtonText}>Scan QR-Code</Text>
             </Pressable>
 
+            {/* ปุ่มกดบันทึกน้ำมันสำหรับพนักงานขับรถหรือขนส่ง */}
             {isDriverOrMessenger && (
               <Pressable
                 style={({pressed}) => [
-                  styles.button,
-                  pressed && {
-                    backgroundColor: '#EAEAEA',
-                  },
+                  styles.menuButton,
+                  pressed && styles.menuButtonPressed,
                 ]}
                 onPress={() => navigation.navigate('FuelEntry')}>
                 <Image
                   source={require('../../assets/fuel.png')}
-                  style={styles.vectoricon}
+                  style={styles.fuelButtonIcon}
                   resizeMode="contain"
                 />
-                <Text style={styles.buttonText}>น้ำมัน</Text>
+                <Text style={styles.menuButtonText}>น้ำมัน</Text>
               </Pressable>
             )}
           </View>
         </SafeAreaView>
       </TouchableWithoutFeedback>
 
-      {/* WARNING MODAL */}
+      {/* โมดอลแจ้งเตือนเมื่อยังไม่ได้กรอกหมายเลขติดตามพัสดุ */}
       <Modal transparent visible={showWarning} animationType="fade">
         <View style={modalStyles.overlay}>
-          <View style={modalStyles.box}>
-            <View
-              style={[modalStyles.iconCircle, {backgroundColor: '#F5A800'}]}>
+          <View style={modalStyles.container}>
+            <View style={modalStyles.iconBadge}>
               <Text style={modalStyles.iconText}>!</Text>
             </View>
-
             <Text style={modalStyles.title}>แจ้งเตือน</Text>
-
             <Text style={modalStyles.message}>ป้อนหมายเลขติดตาม</Text>
-
             <TouchableOpacity
-              style={[
-                modalStyles.singleButton,
-                {backgroundColor: companyColor},
-              ]}
+              style={[modalStyles.actionButton, {backgroundColor: companyColor}]}
               onPress={() => setShowWarning(false)}>
-              <Text style={modalStyles.confirmText}>ตกลง</Text>
+              <Text style={modalStyles.actionButtonText}>ตกลง</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -226,19 +201,36 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   );
 };
 
-const {width, height} = Dimensions.get('window');
-
+// การจัดกลุ่มสไตล์ของหน้าจอและคอมโพเนนต์หลัก
 const styles = StyleSheet.create({
-  container: {
+  screenWrapper: {
+    flex: 1,
+  },
+  welcomeWrapper: {
+    backgroundColor: '#F9F9F9',
+    paddingLeft: '8%',
+    paddingTop: '10%',
+    paddingBottom: 0,
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontFamily: 'Quicksand-Bold',
+    color: '#373737',
+  },
+  contentContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F9F9F9',
     paddingBottom: '15%',
   },
-
-  //เพิ่ม style search
-  searchBox: {
+  bannerImage: {
+    width: width * 0.82,
+    height: 182,
+    alignSelf: 'center',
+    marginBottom: 35,
+  },
+  searchContainer: {
     flexDirection: 'row',
     borderWidth: 1,
     borderColor: '#ddd',
@@ -248,35 +240,36 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: '#fff',
   },
-
-  input: {
+  searchInput: {
     flex: 1,
     paddingHorizontal: 15,
     fontSize: 16,
     fontFamily: 'Quicksand-Medium',
   },
-
   searchButton: {
     justifyContent: 'center',
     paddingHorizontal: 15,
   },
-
-  leftIcon: {
-    marginRight: 12,
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
   },
-
-  vectoricon: {
-    width: 25,
-    height: 25,
-    paddingRight: 50,
+  dividerLine: {
+    height: 1,
+    backgroundColor: '#CFCFCF',
+    width: 95,
   },
-
-  //ของเดิม
-  button: {
+  dividerText: {
+    marginHorizontal: 15,
+    fontSize: 12,
+    color: '#6C7278',
+  },
+  menuButton: {
     padding: 10,
     marginVertical: 5,
     borderRadius: 10,
-    Height: 60,
+    height: 50,
     width: '80%',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -285,118 +278,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
   },
-  buttonText: {
+  menuButtonPressed: {
+    backgroundColor: '#EAEAEA',
+  },
+  menuButtonText: {
     color: '#000000',
     fontSize: 16,
     fontFamily: 'Quicksand-Bold',
   },
-  bottomNav: {
-    flexDirection: 'row',
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    padding: 2,
-    justifyContent: 'space-around',
+  menuButtonIcon: {
+    marginRight: 12,
   },
-  navButton: {
-    padding: 2,
-  },
-  navButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  delivery: {
-    width: width * 0.82,
-    height: 182,
-    alignSelf: 'center',
-    marginBottom: 35,
-  },
-  orContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-
-  line: {
-    height: 1,
-    backgroundColor: '#CFCFCF',
-    width: 95,
-  },
-
-  orText: {
-    marginHorizontal: 15,
-    fontSize: 12,
-    color: '#6C7278',
-  },
-
-  hello: {
-    fontSize: 24,
-    fontFamily: 'Quicksand-Bold',
-    color: '#373737',
-    justifyContent: 'flex-end',
-  },
-  hello1: {
-    //flex: 1,
-    justifyContent: 'flex-start',
-    //alignItems: 'center',
-    backgroundColor: '#F9F9F9',
-    paddingLeft: '8%',
-    paddingTop: '10%',
-    paddingBottom: 0,
-  },
-  modalAlertOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalAlertBox: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    width: '80%',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  modalAlertIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  modalAlertIconText: {
-    color: '#fff',
-    fontSize: 30,
-    fontFamily: 'Quicksand-Bold',
-  },
-  modalAlertTitle: {
-    fontSize: 20,
-    fontFamily: 'Quicksand-Bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  modalAlertMessage: {
-    fontSize: 14,
-    color: '#555',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  modalAlertBtn: {
-    width: '100%',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  modalAlertBtnText: {
-    color: '#fff',
-    fontSize: 15,
-    fontFamily: 'Quicksand-Bold',
+  fuelButtonIcon: {
+    width: 25,
+    height: 25,
+    marginRight: 12,
   },
 });
 
+// การจัดกลุ่มสไตล์ของกล่องข้อความแจ้งเตือน (Modals)
 const modalStyles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -405,54 +305,50 @@ const modalStyles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 30,
   },
-
-  box: {
+  container: {
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 24,
     padding: 24,
     alignItems: 'center',
+    elevation: 5,
   },
-
-  iconCircle: {
+  iconBadge: {
     width: 70,
     height: 70,
     borderRadius: 35,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 18,
+    backgroundColor: '#F5A800',
   },
-
   iconText: {
     fontSize: 38,
     color: '#fff',
     fontFamily: 'Quicksand-Bold',
   },
-
   title: {
-    fontSize: 28,
+    fontSize: 24,
     color: '#222',
     fontFamily: 'Quicksand-Bold',
     marginBottom: 10,
   },
-
   message: {
     fontSize: 14,
     color: '#373737',
     textAlign: 'center',
     fontFamily: 'Quicksand-Medium',
     marginBottom: 24,
+    lineHeight: 22,
   },
-
-  singleButton: {
+  actionButton: {
     width: '70%',
     height: 48,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  confirmText: {
+  actionButtonText: {
     color: '#fff',
     fontSize: 14,
     fontFamily: 'Quicksand-Bold',

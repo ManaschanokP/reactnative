@@ -5,31 +5,34 @@ import {Linking, StatusBar} from 'react-native';
 import {
   NavigationContainer,
   NavigationContainerRef,
-  useNavigation,
 } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Toast from 'react-native-toast-message';
+import {PermissionsAndroid} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import messaging from '@react-native-firebase/messaging';
+
+// Screens & Navigators
 import MenuScreen from './src/screens/MenuScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SatisfactionScreen from './src/screens/SatisfactionScreen';
 import FuelEntryScreen from './src/screens/FuelEntryScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import JobListScreen from './src/screens/JobListScreen';
-import RootTabs from './src/components/RootTabs';
-import {RootStackParamList} from './src/types/navigationTypes';
-import {AuthProvider, AuthContext} from './src/context/AuthProvider';
-import messaging from '@react-native-firebase/messaging';
-import {PermissionsAndroid} from 'react-native';
 import NotificationDetailScreen from './src/screens/NotificationDetailScreen';
 import NotificationListScreen from './src/screens/NotificationListScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ScanScreen from './src/screens/ScanScreen';
 import ViewDetailScreen from './src/screens/ViewDetailScreen';
-import {SafeAreaProvider} from 'react-native-safe-area-context'; //import อยู่แล้ว
 import SignaturePadScreen from './src/screens/SignaturePadScreen';
 import EvaluationScreen from './src/screens/EvaluationScreen';
 import TrackingScreen from './src/screens/TrackingScreen';
+import RootTabs from './src/components/RootTabs';
+
+// Context & Services
+import {RootStackParamList} from './src/types/navigationTypes';
+import {AuthProvider, AuthContext} from './src/context/AuthProvider';
 import {startSyncListener} from './src/services/syncService';
 import {
   isTrackingActive,
@@ -37,7 +40,9 @@ import {
 } from './src/services/locationService';
 
 const NAVIGATION_IDS = ['NotificationDetail'];
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
+// ฟังก์ชันแปลงข้อมูลแจ้งเตือน (FCM Data) ให้เป็น URL สำหรับ Deep Link
 function buildDeepLinkFromNotificationData(data: any): string | null {
   const navigationId = data?.navigationId;
   if (!NAVIGATION_IDS.includes(navigationId)) {
@@ -51,6 +56,7 @@ function buildDeepLinkFromNotificationData(data: any): string | null {
   return null;
 }
 
+// การตั้งค่า Deep Linking ของแอปพลิเคชันและการจัดการกับข้อความแจ้งเตือน (FCM)
 const linking = {
   prefixes: ['myapp://'],
   config: {
@@ -60,30 +66,31 @@ const linking = {
   },
   async getInitialURL() {
     const url = await Linking.getInitialURL();
-    if (typeof url === 'string') {
-      return url;
-    }
+    if (typeof url === 'string') return url;
+
     const message = await messaging().getInitialNotification();
     const deeplinkURL = buildDeepLinkFromNotificationData(message?.data);
-    if (typeof deeplinkURL === 'string') {
-      return deeplinkURL;
-    }
+    if (typeof deeplinkURL === 'string') return deeplinkURL;
   },
   subscribe(listener: (url: string) => void) {
     const onReceiveURL = ({url}: {url: string}) => listener(url);
     const linkingSubscription = Linking.addEventListener('url', onReceiveURL);
+
     messaging().setBackgroundMessageHandler(async remoteMessage => {
       console.log('Message handled in the background!', remoteMessage);
     });
+
     const foreground = messaging().onMessage(async remoteMessage => {
       console.log('A new FCM message arrived!', remoteMessage);
     });
+
     const unsubscribe = messaging().onNotificationOpenedApp(remoteMessage => {
       const url = buildDeepLinkFromNotificationData(remoteMessage.data);
       if (typeof url === 'string') {
         listener(url);
       }
     });
+
     return () => {
       linkingSubscription.remove();
       unsubscribe();
@@ -92,8 +99,7 @@ const linking = {
   },
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
+// คอมโพเนนต์หลักของแอปพลิเคชัน ทำหน้าที่ห่อหุ้มด้วย SafeAreaProvider และ AuthProvider
 function App(): React.JSX.Element {
   return (
     <SafeAreaProvider>
@@ -104,18 +110,20 @@ function App(): React.JSX.Element {
   );
 }
 
+// ส่วนจัดการระบบเนวิเกชันหลัก ขอสิทธิ์แจ้งเตือน และจัดการแถบสถานะ (StatusBar)
 function NavigationHandler() {
   const navigationRef = useRef<NavigationContainerRef<any>>(null!);
   const {user, companyColor} = useContext(AuthContext)!;
   const [statusBarColor, setStatusBarColor] = useState<string | null>(null);
 
+  // เริ่มต้นทำงานตัวดักจับการซิงค์ข้อมูล
   useEffect(() => {
     const unsubscribe = startSyncListener();
     return () => unsubscribe();
   }, []);
 
+  // เปลี่ยนสีสถานะแอปพลิเคชันตามสถานะผู้ใช้งาน
   useEffect(() => {
-    console.log('User changed:', user);
     if (user) {
       if (user.status === 'U04') {
         setStatusBarColor('#93D500');
@@ -127,6 +135,7 @@ function NavigationHandler() {
     }
   }, [user]);
 
+  // ขอสิทธิ์การแจ้งเตือนจากผู้ใช้งานและบันทึกรหัสลงทะเบียนเครื่อง (FCM Token)
   useEffect(() => {
     const requestUserPermission = async () => {
       PermissionsAndroid.request(
@@ -148,7 +157,7 @@ function NavigationHandler() {
   return (
     <>
       <StatusBar
-        backgroundColor={user ? companyColor : undefined}
+        backgroundColor={user ? statusBarColor || companyColor : '#ffffff'}
         barStyle="dark-content"
       />
       <NavigationContainer linking={linking} ref={navigationRef}>
@@ -162,62 +171,53 @@ function NavigationHandler() {
   );
 }
 
+// คอมโพเนนต์จัดการกองสกรีน (Stack Screen) และเส้นทางการนำทางตามสถานะของผู้ใช้
 function MainApp({
   navigationRef,
 }: {
   navigationRef?: React.RefObject<NavigationContainerRef<any>>;
 }) {
   const {user, companyColor} = useContext(AuthContext)!;
-  console.log('User in MainApp:', user);
 
-  // ✅ 1. เพิ่ม useEffect สำหรับเช็คและเปิด GPS อัตโนมัติเมื่อเปิดแอปใหม่ (Cold Start)
+  // ตรวจสอบและกู้คืนการทำงานของ GPS เผื่อกรณีที่ผู้ใช้เปิดแอปขึ้นมาใหม่ (Cold Start)
   useEffect(() => {
     const resumeTrackingIfNeeded = async () => {
-      // ถ้ายังไม่ Login ไม่ต้องทำอะไร
       if (!user) return;
 
       try {
         const isActive = await isTrackingActive();
         if (isActive) {
-          console.log(
-            '🔄 [Cold Start] ตรวจพบการทำงานค้างไว้ กำลังเปิด GPS กลับมาทำงานต่อ...',
-          );
-
+          console.log('[Cold Start] Tracking active. Resuming GPS tracking...');
           const reqId = await AsyncStorage.getItem('track_request_id');
           const statusId = await AsyncStorage.getItem('track_status_id');
           const userId = await AsyncStorage.getItem('track_user_id');
 
           if (reqId && statusId && userId) {
             await startLocationTracking(reqId, statusId, userId);
-            console.log('✅ ระบบ GPS กลับมาทำงานอัตโนมัติแล้ว');
+            console.log('GPS tracking resumed successfully.');
           }
         }
       } catch (error) {
-        console.error('❌ Error resuming tracking:', error);
+        console.error('Error resuming tracking:', error);
       }
     };
 
     resumeTrackingIfNeeded();
-  }, [user]); // ทำงานเมื่อ user มีการโหลดข้อมูลเสร็จ
+  }, [user]);
 
-  // ✅ 2. useEffect เดิมของคุณสำหรับจัดการ Navigation Profile / Home
+  // จัดการเปลี่ยนเส้นทางหน้าจอเมื่อเปิดแอปพลิเคชันครั้งแรกตามเงื่อนไขผู้ใช้
   useEffect(() => {
     if (user && navigationRef?.current) {
       if (user.first_login === 'Y') {
         navigationRef.current.navigate('Profile');
       } else if (user.first_login === 'N') {
-        if (user.status === 'U04' || user.status === 'U05') {
-          navigationRef.current.navigate('Home');
-        } else {
-          navigationRef.current.navigate('Home');
-        }
+        navigationRef.current.navigate('Home');
       }
     }
   }, [user, navigationRef]);
 
   return (
     <>
-      <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
       <Stack.Navigator
         screenOptions={{
           headerStyle: {
