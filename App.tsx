@@ -31,6 +31,10 @@ import SignaturePadScreen from './src/screens/SignaturePadScreen';
 import EvaluationScreen from './src/screens/EvaluationScreen';
 import TrackingScreen from './src/screens/TrackingScreen';
 import {startSyncListener} from './src/services/syncService';
+import {
+  isTrackingActive,
+  startLocationTracking,
+} from './src/services/locationService';
 
 const NAVIGATION_IDS = ['NotificationDetail'];
 
@@ -144,7 +148,7 @@ function NavigationHandler() {
   return (
     <>
       <StatusBar
-        backgroundColor={user ? companyColor : null}
+        backgroundColor={user ? companyColor : undefined}
         barStyle="dark-content"
       />
       <NavigationContainer linking={linking} ref={navigationRef}>
@@ -166,6 +170,37 @@ function MainApp({
   const {user, companyColor} = useContext(AuthContext)!;
   console.log('User in MainApp:', user);
 
+  // ✅ 1. เพิ่ม useEffect สำหรับเช็คและเปิด GPS อัตโนมัติเมื่อเปิดแอปใหม่ (Cold Start)
+  useEffect(() => {
+    const resumeTrackingIfNeeded = async () => {
+      // ถ้ายังไม่ Login ไม่ต้องทำอะไร
+      if (!user) return;
+
+      try {
+        const isActive = await isTrackingActive();
+        if (isActive) {
+          console.log(
+            '🔄 [Cold Start] ตรวจพบการทำงานค้างไว้ กำลังเปิด GPS กลับมาทำงานต่อ...',
+          );
+
+          const reqId = await AsyncStorage.getItem('track_request_id');
+          const statusId = await AsyncStorage.getItem('track_status_id');
+          const userId = await AsyncStorage.getItem('track_user_id');
+
+          if (reqId && statusId && userId) {
+            await startLocationTracking(reqId, statusId, userId);
+            console.log('✅ ระบบ GPS กลับมาทำงานอัตโนมัติแล้ว');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error resuming tracking:', error);
+      }
+    };
+
+    resumeTrackingIfNeeded();
+  }, [user]); // ทำงานเมื่อ user มีการโหลดข้อมูลเสร็จ
+
+  // ✅ 2. useEffect เดิมของคุณสำหรับจัดการ Navigation Profile / Home
   useEffect(() => {
     if (user && navigationRef?.current) {
       if (user.first_login === 'Y') {

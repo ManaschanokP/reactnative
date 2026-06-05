@@ -60,7 +60,7 @@ const STATUS_OPTIONS = [
 const getStatusStyle = (statusId: string, statusName?: string) => {
   if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ')
     return {bg: '#e4e4e4', text: '#373737', dot: '#373737'};
-  if (statusId === 'SD04' || statusName === 'พบปัญหา' || statusId === 'SD05' || statusName === 'ยกเลิก')
+  if (statusId === 'SD04' || statusName === 'พบปัญหา' || statusId === 'SD10' || statusName === 'ยกเลิก')
     return {bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c'};
   return {bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60'};
 };
@@ -178,8 +178,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
           if (
             item.status_id !== 'SD09' &&
             item.status_name !== 'ดำเนินการสำเร็จ' &&
-            item.status_id !== 'SD10' &&
-            item.status_name !== 'ยกเลิก'
+            item.status_id !== 'SD04' &&
+            item.status_name !== 'พบปัญหา'
           ) {
             navigation.navigate('ViewDetail', {item});
           }

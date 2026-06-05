@@ -150,7 +150,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     checkTracking();
     const interval = setInterval(async () => {
       setTotalDistance(await getTotalDistance());
-    }, 5000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
