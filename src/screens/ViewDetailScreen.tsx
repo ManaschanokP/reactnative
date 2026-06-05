@@ -39,6 +39,7 @@ import {
   getTotalDistance,
 } from '../services/locationService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ViewDetail'>;
 
@@ -82,7 +83,7 @@ const SHOW_BOX_READONLY = [
   'การดำเนินการสำเร็จ',
   'พบปัญหา',
   'คลังสินค้า',
-  'ยกเลิก',
+  // 'ยกเลิก',
 ];
 
 const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
@@ -286,15 +287,47 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       const netState = await NetInfo.fetch();
 
       if (!netState.isConnected) {
+        // ✅ บันทึก status/picture ลง queue
         const endpoint = currentPhoto
           ? API_ENDPOINTS.UPDATE_PICTURE
           : API_ENDPOINTS.UPDATE_STATUS;
-
         const payload = currentPhoto
           ? {...baseParams, picture: currentPhoto.base64 ?? ''}
           : baseParams;
-
         await addToQueue(endpoint, payload);
+
+        // ✅ บันทึก signature ลง queue ด้วย (ถ้ามี)
+        if (hasSignatureRating && signature) {
+          const cleanSig = signature.replace(/^data:image\/\w+;base64,/, '');
+          await addToQueue(API_ENDPOINTS.SIGNATURE, {
+            request_id: item.request_id,
+            status_id,
+            picture: cleanSig,
+          });
+        }
+
+        // ✅ บันทึก evaluation ลง queue ด้วย
+        if (hasSignatureRating) {
+          await addToQueue(API_ENDPOINTS.EVALUATION, {
+            request_id: item.request_id,
+            status_id,
+            eval: String(rating),
+          });
+        }
+
+        if (selectedStatus === TRACKING_START_STATUS) {
+          await AsyncStorage.setItem(
+            'pending_tracking_start',
+            JSON.stringify({
+              request_id: item.request_id,
+              status_id,
+              user_id: user.id,
+            }),
+          );
+        }
+        if (TRACKING_STOP_STATUSES.includes(selectedStatus)) {
+          await AsyncStorage.setItem('pending_tracking_stop', 'true');
+        }
         setIsOfflineSuccess(true);
         setSuccessMessage(
           'ไม่มีอินเทอร์เน็ต ข้อมูลถูกบันทึกไว้\nจะส่งอัตโนมัติเมื่อกลับมาออนไลน์',
@@ -325,6 +358,21 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       }
 
       await syncQueue();
+
+      const pendingStart = await AsyncStorage.getItem('pending_tracking_start');
+      if (pendingStart) {
+        const {request_id, status_id: sid, user_id} = JSON.parse(pendingStart);
+        await startLocationTracking(request_id, sid, user_id);
+        setIsTracking(true);
+        await AsyncStorage.removeItem('pending_tracking_start');
+      }
+      const pendingStop = await AsyncStorage.getItem('pending_tracking_stop');
+      if (pendingStop) {
+        await stopLocationTracking();
+        setIsTracking(false);
+        setTotalDistance(0);
+        await AsyncStorage.removeItem('pending_tracking_stop');
+      }
 
       await new Promise(resolve => setTimeout(resolve, 1000));
       // ── ส่งลายเซ็นแยก ──

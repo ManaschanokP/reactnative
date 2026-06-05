@@ -53,7 +53,7 @@ const STATUS_OPTIONS = [
   {label: 'กำลังดำเนินการ', value: '02'},
   {label: 'ดำเนินการสำเร็จ', value: '03'},
   {label: 'พบปัญหา', value: '04'},
-  {label: 'ยกเลิก', value: '05'},
+ // {label: 'ยกเลิก', value: '05'},
 ];
 
 // ✅ สีและข้อความตาม status
@@ -154,8 +154,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
           );
         if (currentStatus === '04')
           return job.status_id === 'SD04' || job.status_name === 'พบปัญหา';
-        if (currentStatus === '05')
-          return job.status_id === 'SD10' || job.status_name === 'ยกเลิก';
+        // if (currentStatus === '05')
+        //   return job.status_id === 'SD10' || job.status_name === 'ยกเลิก';
         return true;
       });
 
@@ -179,7 +179,9 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
             item.status_id !== 'SD09' &&
             item.status_name !== 'ดำเนินการสำเร็จ' &&
             item.status_id !== 'SD04' &&
-            item.status_name !== 'พบปัญหา'
+            item.status_name !== 'พบปัญหา'&&
+            item.status_id !== 'SD10' &&
+            item.status_name !== 'ยกเลิก'
           ) {
             navigation.navigate('ViewDetail', {item});
           }
