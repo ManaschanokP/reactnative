@@ -7,6 +7,9 @@ export type JobItem = {
   status_name: string;
   status_id: string;
   box: string;
+  pickup_date:string;
+  pickup_time:string;
+  license_no: string;
 };
 
 export type JobResponse = {

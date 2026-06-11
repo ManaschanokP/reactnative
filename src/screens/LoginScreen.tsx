@@ -63,8 +63,11 @@ const LoginScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const handleLogin = async () => {
+    console.log('hadleLogin');
     try {
+      console.log('try');
       const responseUserCompany = await loginUser(credentials);
+      console.log(responseUserCompany);
       if (responseUserCompany.error) {
         Toast.show({
           type: 'error',

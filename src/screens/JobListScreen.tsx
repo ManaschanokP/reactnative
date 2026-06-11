@@ -31,6 +31,7 @@ import StatusCalendar from '../../assets/Status-Calendar.svg';
 import StatusPackage from '../../assets/Status-Package.svg';
 import StatusCar from '../../assets/Status-Car.svg';
 import CalenderTGL from '../../assets/CalendarThaiGL.svg';
+import LicenseCar from '../../assets/car.svg';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobList'>;
 
@@ -53,7 +54,7 @@ const STATUS_OPTIONS = [
   {label: 'กำลังดำเนินการ', value: '02'},
   {label: 'ดำเนินการสำเร็จ', value: '03'},
   {label: 'พบปัญหา', value: '04'},
- // {label: 'ยกเลิก', value: '05'},
+  // {label: 'ยกเลิก', value: '05'},
 ];
 
 // ✅ สีและข้อความตาม status
@@ -62,16 +63,26 @@ const getStatusStyle = (statusId: string, statusName?: string) => {
     return {bg: '#fffde6', text: '#ddbd07', dot: '#ddbc01'};
   if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ')
     return {bg: '#e4e4e4', text: '#373737', dot: '#373737'};
-  if (statusId === 'SD04' || statusName === 'พบปัญหา' || statusId === 'SD10' || statusName === 'ยกเลิก')
+  if (
+    statusId === 'SD04' ||
+    statusName === 'พบปัญหา' ||
+    statusId === 'SD10' ||
+    statusName === 'ยกเลิก'
+  )
     return {bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c'};
   return {bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60'};
 };
 
-const getFilterStatusLabel = (statusId: string, statusName?: string): string => {
-  if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ') return 'ดำเนินการสำเร็จ';
+const getFilterStatusLabel = (
+  statusId: string,
+  statusName?: string,
+): string => {
+  if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ')
+    return 'ดำเนินการสำเร็จ';
   if (statusId === 'SD04' || statusName === 'พบปัญหา') return 'พบปัญหา';
   if (statusId === 'SD10' || statusName === 'ยกเลิก') return 'ยกเลิก';
-  if (statusId === 'S002' || statusName === 'มอบหมายงานสำเร็จ') return 'รอดำเนินการ';
+  if (statusId === 'S002' || statusName === 'มอบหมายงานสำเร็จ')
+    return 'รอดำเนินการ';
   return 'กำลังดำเนินการ';
 };
 
@@ -98,12 +109,12 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
   const hasFetchedRef = useRef(false);
 
   useFocusEffect(
-  useCallback(() => {
-    if (hasFetchedRef.current) {
-      fetchJobs(status);
-    }
-  }, [startDate, endDate, status]),
-);
+    useCallback(() => {
+      if (hasFetchedRef.current) {
+        fetchJobs(status);
+      }
+    }, [startDate, endDate, status]),
+  );
 
   const handleStartDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
@@ -150,7 +161,11 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
       const filtered = sorted.filter(job => {
         if (currentStatus === '01') return true;
         if (currentStatus === '02')
-          return job.status_id !== 'SD09' && job.status_id !== 'SD04' && job.status_id !== 'SD10';
+          return (
+            job.status_id !== 'SD09' &&
+            job.status_id !== 'SD04' &&
+            job.status_id !== 'SD10'
+          );
         if (currentStatus === '03')
           return (
             job.status_id === 'SD09' || job.status_name === 'ดำเนินการสำเร็จ'
@@ -182,7 +197,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
             item.status_id !== 'SD09' &&
             item.status_name !== 'ดำเนินการสำเร็จ' &&
             item.status_id !== 'SD04' &&
-            item.status_name !== 'พบปัญหา'&&
+            item.status_name !== 'พบปัญหา' &&
             item.status_id !== 'SD10' &&
             item.status_name !== 'ยกเลิก'
           ) {
@@ -197,8 +212,17 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
         {/* ── Header row ── */}
         <View style={styles.cardHeader}>
           <View style={styles.idRow}>
-            <StatusIdCardIcon width={20} height={20} />
-            <Text style={styles.requestId}>{item.request_id}</Text>
+            <StatusIdCardIcon width={30} height={30} />
+            <View>
+              <Text style={styles.requestId}>{item.request_id}</Text>
+              <View style={styles.dateRow2}>
+                <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
+                <Text style={styles.timeSubtitle}>
+                  {' '}
+                  {item.d_date} {item.d_time}
+                </Text>
+              </View>
+            </View>
           </View>
           <View style={[styles.statusBadge, {backgroundColor: statusStyle.bg}]}>
             <Text style={[styles.statusText, {color: statusStyle.text}]}>
@@ -229,15 +253,25 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
           </View>
         </View>
 
+        <View style={styles.infoRow}>
+          <StatusCalendar width={20} height={20} color="#373737" />
+          <View>
+              <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
+              <Text style={styles.footerDate}>
+                {item.pickup_date} {item.pickup_time}
+              </Text>
+            </View>
+        </View>
+
         {/* ── วันที่ + สถานะล่าง ── */}
         {/* ── Footer ── */}
-        <View style={styles.cardFooter}>
+        <View style={styles.infoRow}>
           <View style={styles.footerItemLeft}>
-            <StatusCalendar width={20} height={20} color="#373737" />
+            <LicenseCar width={20} height={20} color="#373737" />
             <View>
-              <Text style={styles.infoLabel}>วันที่ถึงปลายทาง</Text>
+              <Text style={styles.infoLabel}>ทะเบียน</Text>
               <Text style={styles.footerDate}>
-                {item.d_date} {item.d_time}
+                {item.license_no} 
               </Text>
             </View>
           </View>
@@ -248,8 +282,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
               <Text
                 style={[
                   styles.statusText,
-                  item.status_id === 'SD04'  && {color: '#e74c3c'},
-                  item.status_id === 'SD10'  && {color: '#e74c3c'},
+                  item.status_id === 'SD04' && {color: '#e74c3c'},
+                  item.status_id === 'SD10' && {color: '#e74c3c'},
                 ]}>
                 {item.status_name}
               </Text>
@@ -299,29 +333,31 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
           <View style={styles.dateBlock}>
             <Text style={styles.filterLabel}>วันที่เริ่ม :</Text>
 
-            <TouchableOpacity style={styles.dateBtnRow}  onPress={() => setShowStartPicker(true)}>
+            <TouchableOpacity
+              style={styles.dateBtnRow}
+              onPress={() => setShowStartPicker(true)}>
               <TouchableOpacity
-                style={styles.dateBtn} onPress={() => setShowStartPicker(true)}
-                >
+                style={styles.dateBtn}
+                onPress={() => setShowStartPicker(true)}>
                 <Text style={styles.dateBtnText}>
                   {toDisplayDate(startDate)}
                 </Text>
-
               </TouchableOpacity>
-              <CalenderTGL  width={22} height={22} color={companyColor} />
+              <CalenderTGL width={22} height={22} color={companyColor} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.dateBlock}>
             <Text style={styles.filterLabel}>วันที่สิ้นสุด :</Text>
-            <TouchableOpacity style={styles.dateBtnRow} onPress={() => setShowEndPicker(true)}>
+            <TouchableOpacity
+              style={styles.dateBtnRow}
+              onPress={() => setShowEndPicker(true)}>
               <TouchableOpacity
-                style={styles.dateBtn} onPress={() => setShowEndPicker(true)}
-                >
+                style={styles.dateBtn}
+                onPress={() => setShowEndPicker(true)}>
                 <Text style={styles.dateBtnText}>{toDisplayDate(endDate)}</Text>
-                
               </TouchableOpacity>
-               <CalenderTGL  width={22} height={22}  />
+              <CalenderTGL width={22} height={22} />
             </TouchableOpacity>
           </View>
         </View>
@@ -588,10 +624,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     gap: 6,
   },
-   iconcalender: {
+  iconcalender: {
     marginLeft: 10,
   },
-  statusText: {fontSize: 12, fontFamily: 'Quicksand-Bold' ,marginBottom: 3,},
+  statusText: {fontSize: 12, fontFamily: 'Quicksand-Bold', marginBottom: 3},
   statusDot: {width: 7, height: 7, borderRadius: 4},
   divider: {height: 1, backgroundColor: '#f0f0f0'},
 
@@ -671,6 +707,23 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 35,
   },
+  dateSubtitle: {
+    fontSize: 6,
+    color: '#373737',
+    fontFamily: 'Quicksand-Regular',
+    marginTop: 12,
+  },
+  timeSubtitle: {
+    fontSize: 12,
+    color: '#373737',
+    fontFamily: 'Quicksand-Medium',
+    marginTop: 2,
+  },
+  dateRow2: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 2,
+},
 });
 
 export default JobListScreen;

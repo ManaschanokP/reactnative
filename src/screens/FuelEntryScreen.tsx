@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
     marginRight: 10,
-    paddingTop: 24,
+    paddingTop: 4,
     paddingLeft: 5,
   },
 
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
-    paddingTop: 38,
+    paddingTop: 18,
     paddingLeft: 10,
   },
 
