@@ -243,12 +243,12 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
   },
 
-  backButton: {
+ backButton: {
     fontSize: 45,
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
     marginRight: 10,
-    paddingTop: 34,
+    paddingTop: 2,
     paddingLeft: 5,
   },
 
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
-    paddingTop: 48,
+    paddingTop: 8,
     paddingLeft: 10,
   },
 

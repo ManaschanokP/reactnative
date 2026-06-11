@@ -359,19 +359,20 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 15,
   },
-  backButton: {
+   backButton: {
     fontSize: 45,
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
     marginRight: 10,
-    paddingTop: 34,
+    paddingTop: 2,
     paddingLeft: 5,
   },
+
   headerTitle: {
     fontSize: 24,
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
-    paddingTop: 48,
+    paddingTop: 8,
     paddingLeft: 10,
   },
   wrapper: {flex: 1, backgroundColor: '#93D500'},

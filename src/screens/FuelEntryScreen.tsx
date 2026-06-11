@@ -470,8 +470,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 0,
-    paddingBottom: 2,
+    paddingTop: 10,
+    paddingBottom: 15,
   },
 
   backButton: {
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
     marginRight: 10,
-    paddingTop: 24,
+    paddingTop: 2,
     paddingLeft: 5,
   },
 
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
-    paddingTop: 38,
+    paddingTop: 8,
     paddingLeft: 10,
   },
 
@@ -498,7 +498,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     paddingHorizontal: 24,
-    paddingTop: 24,
   },
 
   label: {
