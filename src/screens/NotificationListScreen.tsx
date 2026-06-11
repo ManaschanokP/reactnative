@@ -21,8 +21,9 @@ import StatusMask from '../../assets/Status-Mark.svg';
 import StatusCalendar from '../../assets/Status-Calendar.svg';
 import StatusPackage from '../../assets/Status-Package.svg';
 import StatusCar from '../../assets/Status-Car.svg';
-
+import LicenseCar from '../../assets/car.svg';
 import notifee, {AndroidImportance} from '@notifee/react-native';
+import {JobItem} from '../types/jobTypes';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -126,8 +127,10 @@ const NotificationListScreen: React.FC = () => {
       setData(prevData => {
         if (prevData.length > 0 && sorted.length > 0) {
           const newestJob = sorted[0];
-          const isBrandNewJob = !prevData.some(oldItem => oldItem.request_id === newestJob.request_id);
-          
+          const isBrandNewJob = !prevData.some(
+            oldItem => oldItem.request_id === newestJob.request_id,
+          );
+
           if (isBrandNewJob) {
             // 🔥 สั่งเด้งแจ้งเตือนบนแถบ Noti ของมือถือทันที
             triggerSystemNotification(newestJob.request_id, newestJob.t_com);
@@ -152,14 +155,25 @@ const NotificationListScreen: React.FC = () => {
         onPress={() => navigation.navigate('NotificationDetail', {item})}
         activeOpacity={0.8}>
         {/* ── Header ── */}
+        {/* ── Header row ── */}
         <View style={styles.cardHeader}>
-          <View style={styles.idRow}>
-            <StatusIdCardIcon width={20} height={20} color="companycode" />
-            <Text style={styles.requestId}>{item.request_id}</Text>
+          <View>
+            <View style={styles.idRow}>
+              <StatusIdCardIcon width={30} height={30} />
+              <Text style={styles.requestId}>{item.request_id}</Text>
+            </View>
+
+            <View style={styles.dateRow2}>
+              <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
+              <Text style={styles.timeSubtitle}>
+                {item.d_date} {item.d_time}
+              </Text>
+            </View>
           </View>
+
           <View style={[styles.statusBadge, {backgroundColor: statusStyle.bg}]}>
             <Text style={[styles.statusText, {color: statusStyle.text}]}>
-              {item.status_name}
+              {getFilterStatusLabel(item.status_id, item.status_name)}
             </Text>
             <View
               style={[styles.statusDot, {backgroundColor: statusStyle.dot}]}
@@ -174,35 +188,50 @@ const NotificationListScreen: React.FC = () => {
           <StatusMask width={20} height={20} color="#373737" />
           <View>
             <Text style={styles.infoLabel}>ปลายทาง</Text>
-            <Text style={styles.infoValue}>{item.t_com}</Text>
+            <Text style={styles.infoValue}>{item.to_company}</Text>
           </View>
         </View>
-
-        {/* ── รายละเอียด ── */}
+        {/* ── ประเภทบริการ ── */}
         <View style={styles.infoRow}>
           <StatusPackage width={20} height={20} color="#373737" />
           <View>
             <Text style={styles.infoLabel}>ประเภทการบริการ</Text>
-            <Text style={styles.infoValue}>{item.remake}</Text>
+            <Text style={styles.infoValue}>{item.type_name}</Text>
           </View>
         </View>
 
+        <View style={styles.infoRow}>
+          <StatusCalendar width={20} height={20} color="#373737" />
+          <View>
+            <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
+            <Text style={styles.footerDate}>
+              {item.pickup_date} {item.pickup_time}
+            </Text>
+          </View>
+        </View>
+
+        {/* ── วันที่ + สถานะล่าง ── */}
         {/* ── Footer ── */}
-        <View style={styles.cardFooter}>
+        <View style={styles.infoRow}>
           <View style={styles.footerItemLeft}>
-            <StatusCalendar width={20} height={20} color="#373737" />
+            <LicenseCar width={20} height={20} color="#373737" />
             <View>
-              <Text style={styles.infoLabel}>วันที่ถึงปลายทาง</Text>
-              <Text style={styles.footerDate}>
-                {item.d_date} {item.d_time}
-              </Text>
+              <Text style={styles.infoLabel}>ทะเบียน</Text>
+              <Text style={styles.footerDate}>{item.license_no}</Text>
             </View>
           </View>
           <View style={[styles.footerItemRight]}>
             <StatusCar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>สถานะ</Text>
-              <Text style={styles.footerStatus}>{item.status_name}</Text>
+              <Text
+                style={[
+                  styles.statusText,
+                  item.status_id === 'SD04' && {color: '#e74c3c'},
+                  item.status_id === 'SD10' && {color: '#e74c3c'},
+                ]}>
+                {item.status_name}
+              </Text>
             </View>
           </View>
         </View>

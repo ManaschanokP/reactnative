@@ -211,19 +211,20 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
         }>
         {/* ── Header row ── */}
         <View style={styles.cardHeader}>
-          <View style={styles.idRow}>
-            <StatusIdCardIcon width={30} height={30} />
-            <View>
+          <View>
+            <View style={styles.idRow}>
+              <StatusIdCardIcon width={30} height={30} />
               <Text style={styles.requestId}>{item.request_id}</Text>
-              <View style={styles.dateRow2}>
-                <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
-                <Text style={styles.timeSubtitle}>
-                  {' '}
-                  {item.d_date} {item.d_time}
-                </Text>
-              </View>
+            </View>
+
+            <View style={styles.dateRow2}>
+              <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
+              <Text style={styles.timeSubtitle}>
+                {item.d_date} {item.d_time}
+              </Text>
             </View>
           </View>
+
           <View style={[styles.statusBadge, {backgroundColor: statusStyle.bg}]}>
             <Text style={[styles.statusText, {color: statusStyle.text}]}>
               {getFilterStatusLabel(item.status_id, item.status_name)}
@@ -256,11 +257,11 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
         <View style={styles.infoRow}>
           <StatusCalendar width={20} height={20} color="#373737" />
           <View>
-              <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
-              <Text style={styles.footerDate}>
-                {item.pickup_date} {item.pickup_time}
-              </Text>
-            </View>
+            <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
+            <Text style={styles.footerDate}>
+              {item.pickup_date} {item.pickup_time}
+            </Text>
+          </View>
         </View>
 
         {/* ── วันที่ + สถานะล่าง ── */}
@@ -270,9 +271,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
             <LicenseCar width={20} height={20} color="#373737" />
             <View>
               <Text style={styles.infoLabel}>ทะเบียน</Text>
-              <Text style={styles.footerDate}>
-                {item.license_no} 
-              </Text>
+              <Text style={styles.footerDate}>{item.license_no}</Text>
             </View>
           </View>
           <View style={[styles.footerItemRight]}>
@@ -603,7 +602,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  idRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  idRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   idIcon: {
     width: 24,
     height: 24,
@@ -708,10 +711,11 @@ const styles = StyleSheet.create({
     marginBottom: 35,
   },
   dateSubtitle: {
-    fontSize: 6,
+    fontSize: 8,
     color: '#373737',
     fontFamily: 'Quicksand-Regular',
-    marginTop: 12,
+    marginTop: 4,
+    paddingRight: 8,
   },
   timeSubtitle: {
     fontSize: 12,
@@ -720,10 +724,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   dateRow2: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginTop: 2,
-},
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  infoContainer: {
+    marginLeft: 8,
+  },
 });
 
 export default JobListScreen;
