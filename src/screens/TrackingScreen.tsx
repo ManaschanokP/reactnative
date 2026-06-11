@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -110,6 +111,7 @@ export default function TrackingScreen({route, navigation}: Props) {
 
       <SafeAreaView style={[styles.safeArea, {backgroundColor: companyColor}]}>
         <View style={[styles.wrapper, {backgroundColor: companyColor}]}>
+          <StatusBar backgroundColor={companyColor} barStyle="light-content" />
           {/* HEADER */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>

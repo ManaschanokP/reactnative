@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Keyboard,
   Modal,
   Pressable,
+  StatusBar,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -28,6 +29,11 @@ const {width} = Dimensions.get('window');
 
 const HomeScreen: React.FC<Props> = ({navigation}) => {
   const {user, companyColor} = useContext(AuthContext)!;
+
+   useEffect(() => {
+    StatusBar.setBarStyle('dark-content', true);
+    StatusBar.setBackgroundColor('#F9F9F9', true);
+  }, []);
 
   // สเตทสำหรับจัดการข้อมูลการค้นหาและโมดอลแจ้งเตือน
   const [searchId, setSearchId] = useState('');
@@ -102,7 +108,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
       {/* เนื้อหาหลักของหน้าจอหลัก */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={styles.screenWrapper}>
+        <SafeAreaView style={styles.screenWrapper} edges={['bottom', 'left', 'right']}>
           <View style={styles.welcomeWrapper}>
             <Text style={styles.welcomeText}>
               สวัสดี , {user?.name?.split(' ')[0]}
@@ -205,6 +211,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 const styles = StyleSheet.create({
   screenWrapper: {
     flex: 1,
+     backgroundColor: '#F9F9F9',
   },
   welcomeWrapper: {
     backgroundColor: '#F9F9F9',

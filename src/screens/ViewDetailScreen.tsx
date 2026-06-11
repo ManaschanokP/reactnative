@@ -12,8 +12,10 @@ import {
   useWindowDimensions,
   Modal,
   Pressable,
+  Platform,
+  PermissionsAndroid,
+  StatusBar,
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
 import {launchCamera} from 'react-native-image-picker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
@@ -67,11 +69,16 @@ const REQUIRES_PHOTO = [
   'การจัดส่งสำเร็จ',
   'รับเอกสารกลับ',
 ];
-const REQUIRES_SIGNATURE_RATING = ['ยกเลิก']; // บังคับ
-const OPTIONAL_SIGNATURE_RATING = ['การจัดส่งสำเร็จ']; // ไม่บังคับ
+const REQUIRES_SIGNATURE_RATING = ['ยกเลิก'];
+const OPTIONAL_SIGNATURE_RATING = ['การจัดส่งสำเร็จ'];
 const REQUIRES_BOX = ['ขึ้นของ'];
 const REQUIRES_MILE = ['กำลังจัดส่ง', 'การดำเนินการสำเร็จ', 'คลังสินค้า'];
-const TRACKING_START_STATUS = 'กำลังจัดส่ง';
+const TRACKING_START_STATUSES = [
+  'กำลังจัดส่ง',
+  'เช็คอิน',
+  'รับเอกสารกลับ',
+  'เช็คเอ้าท์',
+];
 const TRACKING_STOP_STATUSES = ['การดำเนินการสำเร็จ', 'พบปัญหา', 'คลังสินค้า'];
 const REQUIRES_DETAIL = ['พบปัญหา'];
 const SHOW_BOX_READONLY = [
@@ -83,7 +90,6 @@ const SHOW_BOX_READONLY = [
   'การดำเนินการสำเร็จ',
   'พบปัญหา',
   'คลังสินค้า',
-  // 'ยกเลิก',
 ];
 
 const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
@@ -91,8 +97,6 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const {width} = useWindowDimensions();
   const {item} = route.params;
   const {user, companyColor} = useContext(AuthContext)!;
-
-  //จากหน้า NotiDetail
   const {fromScreen} = route.params;
 
   const [statusList, setStatusList] = useState<string[]>([]);
@@ -100,9 +104,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const [detail, setDetail] = useState('');
   const [box, setBox] = useState('');
   const [mile, setMile] = useState('');
-  const [photo, setPhoto] = useState<{uri: string; base64: string} | null>(
-    null,
-  );
+  const [photo, setPhoto] = useState<{uri: string; base64: string} | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [rating, setRating] = useState(5);
@@ -112,11 +114,12 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const [totalDistance, setTotalDistance] = useState(0);
   const [isPhotoPressed, setIsPhotoPressed] = useState(false);
 
-  // Custom modal states
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [pendingStatusId, setPendingStatusId] = useState('');
+  // ✅ FIX 1: เก็บ statusName ตอนกดปุ่ม ไม่ใช้ closure
+  const [pendingStatusName, setPendingStatusName] = useState('');
   const [isOfflineSuccess, setIsOfflineSuccess] = useState(false);
 
   const signatureRef = useRef<SignatureViewRef>(null);
@@ -126,10 +129,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
   const needsDetail = REQUIRES_DETAIL.includes(selectedStatus);
   const needsPhoto = REQUIRES_PHOTO.includes(selectedStatus);
-  const needsSignatureRating =
-    REQUIRES_SIGNATURE_RATING.includes(selectedStatus); // บังคับ (ยกเลิก)
+  const needsSignatureRating = REQUIRES_SIGNATURE_RATING.includes(selectedStatus);
   const hasSignatureRating =
-    needsSignatureRating || OPTIONAL_SIGNATURE_RATING.includes(selectedStatus); // แสดง section (ทั้งคู่)
+    needsSignatureRating || OPTIONAL_SIGNATURE_RATING.includes(selectedStatus);
   const needsBox = REQUIRES_BOX.includes(selectedStatus);
   const needsMile = REQUIRES_MILE.includes(selectedStatus);
   const signatureHeight = Math.round(width * 0.4);
@@ -150,8 +152,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     };
     checkTracking();
     const interval = setInterval(async () => {
+      const active = await isTrackingActive();
+      setIsTracking(active);
       setTotalDistance(await getTotalDistance());
-    }, 10000);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -169,7 +173,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       });
 
       if (!response.error && response.listStatus.length > 0) {
-        let names = response.listStatus.map(s => s.status_name);
+        let names = response.listStatus.map((s: any) => s.status_name);
         if (item.status_id === 'SD05') {
           names = Object.keys(STATUS_ID_MAP).filter(
             name =>
@@ -188,12 +192,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         setStatusList(names);
         setSelectedStatus(names[0]);
       } else if (item.status_id === 'SD05') {
-        const names = [
-          'รับเอกสารกลับ',
-          'เช็คเอ้าท์',
-          'การดำเนินการสำเร็จ',
-          'พบปัญหา',
-        ];
+        const names = ['รับเอกสารกลับ', 'เช็คเอ้าท์', 'การดำเนินการสำเร็จ', 'พบปัญหา'];
         setStatusList(names);
         setSelectedStatus(names[0]);
       } else if (item.status_id === 'SD04') {
@@ -204,12 +203,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     } catch (err) {
       console.error(err);
       if (item.status_id === 'SD05') {
-        const names = [
-          'รับเอกสารกลับ',
-          'เช็คเอ้าท์',
-          'การดำเนินการสำเร็จ',
-          'พบปัญหา',
-        ];
+        const names = ['รับเอกสารกลับ', 'เช็คเอ้าท์', 'การดำเนินการสำเร็จ', 'พบปัญหา'];
         setStatusList(names);
         setSelectedStatus(names[0]);
       }
@@ -218,7 +212,22 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     }
   };
 
-  const handleTakePhoto = () => {
+  const handleTakePhoto = async () => {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'ขอสิทธิ์ใช้กล้อง',
+          message: 'แอปต้องการเข้าถึงกล้องเพื่อถ่ายรูป',
+          buttonPositive: 'อนุญาต',
+          buttonNegative: 'ปฏิเสธ',
+        },
+      );
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        Alert.alert('ไม่ได้รับสิทธิ์', 'กรุณาเปิดสิทธิ์กล้องในการตั้งค่าแอป', [{text: 'ตกลง'}]);
+        return;
+      }
+    }
     launchCamera(
       {mediaType: 'photo', includeBase64: true, quality: 0.6},
       response => {
@@ -227,15 +236,13 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         if (asset?.uri && asset?.base64) {
           const photoData = {uri: asset.uri, base64: asset.base64};
           setPhoto(photoData);
-          photoRef.current = photoData; // เก็บใน ref ด้วย
+          photoRef.current = photoData;
         }
       },
     );
   };
 
-  const handleSignatureOK = (sig: string) => {
-    setSignature(sig);
-  };
+  const handleSignatureOK = (sig: string) => setSignature(sig);
 
   const handleClearSignature = () => {
     setSignature(null);
@@ -266,11 +273,20 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     }
 
     setPendingStatusId(status_id);
+    // ✅ FIX 1: จับค่า selectedStatus ณ เวลานั้นเลย
+    setPendingStatusName(selectedStatus);
     setShowConfirm(true);
   };
 
-  const doUpdate = async (status_id: string) => {
+  // ✅ FIX 1: รับ statusName เป็น parameter แทนการอ่านจาก closure
+  const doUpdate = async (status_id: string, statusName: string) => {
     const currentPhoto = photoRef.current;
+
+    // ✅ FIX 2: คำนวณ flags จาก statusName ที่ส่งมา ไม่ใช้ closure
+    const _needsSigRating = REQUIRES_SIGNATURE_RATING.includes(statusName);
+    const _hasSigRating =
+      _needsSigRating || OPTIONAL_SIGNATURE_RATING.includes(statusName);
+    const _needsPhoto = REQUIRES_PHOTO.includes(statusName);
 
     try {
       setUpdating(true);
@@ -287,7 +303,6 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       const netState = await NetInfo.fetch();
 
       if (!netState.isConnected) {
-        // ✅ บันทึก status/picture ลง queue
         const endpoint = currentPhoto
           ? API_ENDPOINTS.UPDATE_PICTURE
           : API_ENDPOINTS.UPDATE_STATUS;
@@ -296,8 +311,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           : baseParams;
         await addToQueue(endpoint, payload);
 
-        // ✅ บันทึก signature ลง queue ด้วย (ถ้ามี)
-        if (hasSignatureRating && signature) {
+        if (_hasSigRating && signature) {
           const cleanSig = signature.replace(/^data:image\/\w+;base64,/, '');
           await addToQueue(API_ENDPOINTS.SIGNATURE, {
             request_id: item.request_id,
@@ -306,8 +320,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           });
         }
 
-        // ✅ บันทึก evaluation ลง queue ด้วย
-        if (hasSignatureRating) {
+        if (_hasSigRating) {
           await addToQueue(API_ENDPOINTS.EVALUATION, {
             request_id: item.request_id,
             status_id,
@@ -315,49 +328,42 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           });
         }
 
-        if (selectedStatus === TRACKING_START_STATUS) {
+        if (TRACKING_START_STATUSES.includes(statusName)) {
           await AsyncStorage.setItem(
             'pending_tracking_start',
-            JSON.stringify({
-              request_id: item.request_id,
-              status_id,
-              user_id: user.id,
-            }),
+            JSON.stringify({request_id: item.request_id, status_id, user_id: user.id}),
           );
         }
-        if (TRACKING_STOP_STATUSES.includes(selectedStatus)) {
+        if (TRACKING_STOP_STATUSES.includes(statusName)) {
           await AsyncStorage.setItem('pending_tracking_stop', 'true');
         }
+
         setIsOfflineSuccess(true);
-        setSuccessMessage(
-          'ไม่มีอินเทอร์เน็ต ข้อมูลถูกบันทึกไว้\nจะส่งอัตโนมัติเมื่อกลับมาออนไลน์',
-        );
+        setSuccessMessage('ไม่มีอินเทอร์เน็ต ข้อมูลถูกบันทึกไว้\nจะส่งอัตโนมัติเมื่อกลับมาออนไลน์');
         setShowSuccess(true);
         return;
       }
 
       // ── online ──
       let response;
-
-      if (needsSignatureRating) {
+      if (_needsSigRating) {
         if (currentPhoto) {
-          response = await updatePicture({
-            ...baseParams,
-            picture: currentPhoto.base64,
-          });
+          response = await updatePicture({...baseParams, picture: currentPhoto.base64});
         } else {
           response = await updateStatus(baseParams);
         }
-      } else if (needsPhoto && currentPhoto) {
-        response = await updatePicture({
-          ...baseParams,
-          picture: currentPhoto.base64,
-        });
+      } else if (_needsPhoto && currentPhoto) {
+        response = await updatePicture({...baseParams, picture: currentPhoto.base64});
       } else {
         response = await updateStatus(baseParams);
       }
 
-      await syncQueue();
+      // ✅ FIX 3: syncQueue แยก try/catch ไม่ให้ crash ทั้ง block
+      try {
+        await syncQueue();
+      } catch (e) {
+        console.warn('syncQueue error:', e);
+      }
 
       const pendingStart = await AsyncStorage.getItem('pending_tracking_start');
       if (pendingStart) {
@@ -375,30 +381,38 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       }
 
       await new Promise(resolve => setTimeout(resolve, 1000));
-      // ── ส่งลายเซ็นแยก ──
-      if (hasSignatureRating && signature) {
-        const cleanSig = signature.replace(/^data:image\/\w+;base64,/, '');
-        await submitSignature({
-          request_id: item.request_id,
-          status_id,
-          picture: cleanSig,
-        });
+
+      // ✅ FIX 4: submitSignature / submitEvaluation แยก try/catch
+      if (_hasSigRating && signature) {
+        try {
+          const cleanSig = signature.replace(/^data:image\/\w+;base64,/, '');
+          await submitSignature({
+            request_id: item.request_id,
+            status_id,
+            picture: cleanSig,
+          });
+        } catch (e) {
+          console.warn('submitSignature error:', e);
+        }
       }
 
-      // ส่งประเมิน — ส่งทั้งสองสถานะ
-      if (hasSignatureRating) {
-        await submitEvaluation({
-          request_id: item.request_id,
-          status_id,
-          eval: String(rating),
-        });
+      if (_hasSigRating) {
+        try {
+          await submitEvaluation({
+            request_id: item.request_id,
+            status_id,
+            eval: String(rating),
+          });
+        } catch (e) {
+          console.warn('submitEvaluation error:', e);
+        }
       }
 
-      if (selectedStatus === TRACKING_START_STATUS) {
+      if (TRACKING_START_STATUSES.includes(statusName)) {
         await startLocationTracking(item.request_id, status_id, user.id);
         setIsTracking(true);
       }
-      if (TRACKING_STOP_STATUSES.includes(selectedStatus)) {
+      if (TRACKING_STOP_STATUSES.includes(statusName)) {
         await stopLocationTracking();
         setIsTracking(false);
         setTotalDistance(0);
@@ -416,12 +430,11 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   };
 
   const getConfirmColor = () => {
-    if (selectedStatus === 'พบปัญหา') return '#f39c12'; // เหลือง
-    if (selectedStatus === 'ยกเลิก') return '#D00000'; // แดง
+    if (selectedStatus === 'พบปัญหา') return '#f39c12';
+    if (selectedStatus === 'ยกเลิก') return '#D00000';
     return companyColor ?? '#93D500';
   };
 
-  // เพิ่ม function นี้ก่อน return
   const darkenColor = (hex: string, amount: number = 0.2): string => {
     const num = parseInt(hex.replace('#', ''), 16);
     const r = Math.max(0, (num >> 16) - Math.round(255 * amount));
@@ -439,10 +452,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         <View style={modalStyles.overlay}>
           <View style={modalStyles.box}>
             <View
-              style={[
-                modalStyles.iconCircle,
-                {backgroundColor: getConfirmColor()},
-              ]}>
+              style={[modalStyles.iconCircle, {backgroundColor: getConfirmColor()}]}>
               <Text style={modalStyles.iconText}>!</Text>
             </View>
             <Text style={modalStyles.title}>ยืนยัน</Text>
@@ -466,7 +476,8 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 ]}
                 onPress={() => {
                   setShowConfirm(false);
-                  doUpdate(pendingStatusId);
+                  // ✅ FIX 1: ส่ง pendingStatusName แทน selectedStatus
+                  doUpdate(pendingStatusId, pendingStatusName);
                 }}>
                 <Text style={modalStyles.confirmText}>ยืนยัน</Text>
               </Pressable>
@@ -504,9 +515,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 {
                   backgroundColor: pressed
                     ? darkenColor(
-                        isOfflineSuccess
-                          ? '#e67e22'
-                          : companyColor ?? '#93D500',
+                        isOfflineSuccess ? '#e67e22' : companyColor ?? '#93D500',
                         0.2,
                       )
                     : isOfflineSuccess
@@ -528,16 +537,17 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         </View>
       </Modal>
 
+      <View style={styles.container}>
+         <StatusBar  backgroundColor={companyColor} barStyle="light-content" />
       <ScrollView
         scrollEnabled={scrollEnabled}
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
+          
         {/* ── ข้อมูลงาน ── */}
         <View style={styles.card}>
-          <Text style={[styles.cardTitle, {color: companyColor}]}>
-            ข้อมูลงาน
-          </Text>
+          <Text style={[styles.cardTitle, {color: companyColor}]}>ข้อมูลงาน</Text>
           <InfoRow label="Request ID" value={item.request_id} />
           <InfoRow label="ประเภท" value={item.type_name} />
           <InfoRow label="ปลายทาง" value={item.to_company} />
@@ -548,7 +558,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         {/* ── GPS Banner ── */}
         {isTracking && (
           <View style={[styles.trackingBanner, {borderColor: companyColor}]}>
-            <Text style={[styles.trackingBannerText, {color: companyColor}]}>
+            <Text style={[styles.trackingBannerText, {color: '#373737'}]}>
               📍 กำลังติดตาม GPS — {totalDistance.toFixed(2)} กม.
             </Text>
           </View>
@@ -556,15 +566,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
         {/* ── อัปเดตสถานะ ── */}
         <View style={styles.card}>
-          <Text style={[styles.cardTitle, {color: companyColor}]}>
-            อัปเดตสถานะ
-          </Text>
+          <Text style={[styles.cardTitle, {color: companyColor}]}>อัปเดตสถานะ</Text>
 
           {loadingStatus ? (
-            <ActivityIndicator
-              color={companyColor}
-              style={{marginVertical: 12}}
-            />
+            <ActivityIndicator color={companyColor} style={{marginVertical: 12}} />
           ) : (
             <View style={{zIndex: 999}}>
               <TouchableOpacity
@@ -572,9 +577,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 onPress={() => setShowDropdown(p => !p)}>
                 <Text style={styles.dropdownBtnText}>{selectedStatus}</Text>
                 <Icon
-                  name={
-                    showDropdown ? 'keyboard-arrow-up' : 'keyboard-arrow-down'
-                  }
+                  name={showDropdown ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
                   size={22}
                   color="#555"
                 />
@@ -589,6 +592,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                       onPress={() => {
                         setSelectedStatus(s);
                         setPhoto(null);
+                        photoRef.current = null;
                         setBox('');
                         setMile('');
                         handleClearSignature();
@@ -610,6 +614,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
               )}
             </View>
           )}
+
           {/* ── ถ่ายรูป ── */}
           {needsPhoto && (
             <View style={styles.photoSection}>
@@ -631,9 +636,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 <Image source={{uri: photo.uri}} style={styles.photoPreview} />
               )}
               {!photo && (
-                <Text style={styles.photoHint}>
-                  * สถานะนี้ต้องถ่ายรูปก่อนยืนยัน
-                </Text>
+                <Text style={styles.photoHint}>* สถานะนี้ต้องถ่ายรูปก่อนยืนยัน</Text>
               )}
             </View>
           )}
@@ -641,7 +644,6 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           {/* ── Rating & Signature ── */}
           {hasSignatureRating && (
             <>
-              {/* ── กล่องประเมิน ── */}
               <View style={styles.specialSection}>
                 <Text style={styles.fieldLabel}>ประเมินความพึงพอใจ :</Text>
                 <Rating
@@ -654,7 +656,6 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 />
               </View>
 
-              {/* ── กล่องลายเซ็น ── */}
               <View style={styles.specialSection}>
                 <Text style={styles.fieldLabel}>ลายเซ็นผู้รับสินค้า :</Text>
                 <View style={[styles.signatureBox, {height: signatureHeight}]}>
@@ -671,11 +672,11 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                     backgroundColor="#ffffff"
                     imageType="image/png"
                     webStyle={`
-            .m-signature-pad { box-shadow: none; border: none; }
-            .m-signature-pad--body { background-color: #ffffff; }
-            .m-signature-pad--footer { display: none; }
-            body { margin: 0; background-color: #ffffff; }
-          `}
+                      .m-signature-pad { box-shadow: none; border: none; }
+                      .m-signature-pad--body { background-color: #ffffff; }
+                      .m-signature-pad--footer { display: none; }
+                      body { margin: 0; background-color: #ffffff; }
+                    `}
                   />
                 </View>
                 <View style={styles.signatureActions}>
@@ -685,19 +686,13 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                     <Text style={styles.clearText}>ล้างลายเซ็น</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[
-                      styles.signatureBtnSave,
-                      {backgroundColor: '#FBC900'},
-                    ]}
+                    style={[styles.signatureBtnSave, {backgroundColor: '#FBC900'}]}
                     onPress={() => signatureRef.current?.readSignature()}>
                     <Text style={styles.saveText}>บันทึกลายเซ็น</Text>
                   </TouchableOpacity>
                 </View>
                 {signature ? (
-                  <Text style={styles.signatureSuccess}>
-                    {' '}
-                    ได้รับลายเซ็นแล้ว
-                  </Text>
+                  <Text style={styles.signatureSuccess}> ได้รับลายเซ็นแล้ว</Text>
                 ) : (
                   <Text
                     style={[
@@ -713,7 +708,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
             </>
           )}
 
-          {/* ── จำนวนกล่อง ── */}
+          {/* ── จำนวนกล่อง (กรอกได้) ── */}
           {needsBox && (
             <View style={styles.inlineRow}>
               <Text style={styles.inlineLabel}>
@@ -735,32 +730,22 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
             </View>
           )}
 
-          {/* ── จำนวนกล่อง (read-only) ── */}
-          {/* {!needsBox &&
-            SHOW_BOX_READONLY.includes(selectedStatus) &&
-            item.box && (
-              <View style={styles.inlineRow}>
-                <Text style={styles.inlineLabel}>จำนวนกล่อง :</Text>
-                <View
-                  style={[
-                    styles.inlineInput,
-                    {
-                      backgroundColor: '#f0f0f0',
-                      justifyContent: 'center',
-                      flex: 1,
-                    },
-                  ]}>
-                  <Text
-                    style={{
-                      color: '#555',
-                      fontFamily: 'Quicksand-Medium',
-                      fontSize: 14,
-                    }}>
-                    {item.box}
-                  </Text>
-                </View>
+          {/* ── จำนวนกล่อง (แสดงอย่างเดียว) ── */}
+          {!needsBox && item.box && item.box !== '0' && item.box !== '' ? (
+            <View style={styles.inlineRow}>
+              <Text style={styles.inlineLabel}>จำนวนกล่อง :</Text>
+              <View
+                style={[
+                  styles.inlineInput,
+                  {backgroundColor: '#f0f0f0', justifyContent: 'center', flex: 1},
+                ]}>
+                <Text
+                  style={{color: '#555', fontFamily: 'Quicksand-Medium', fontSize: 14}}>
+                  {item.box}
+                </Text>
               </View>
-            )} */}
+            </View>
+          ) : null}
 
           {/* ── เลขไมล์ ── */}
           {needsMile && (
@@ -770,10 +755,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
               </Text>
               <View style={styles.inlineInputWrap}>
                 <TextInput
-                  style={[
-                    styles.inlineInput,
-                    !mile.trim() && styles.inputError,
-                  ]}
+                  style={[styles.inlineInput, !mile.trim() && styles.inputError]}
                   keyboardType="numeric"
                   value={mile}
                   onChangeText={text => setMile(text.replace(/[^0-9]/g, ''))}
@@ -835,6 +817,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
         <View style={{height: insets.bottom + 120}} />
       </ScrollView>
+      </View>
     </>
   );
 };
@@ -851,9 +834,7 @@ const InfoRow = ({
   <View style={styles.row}>
     <Text style={styles.rowLabel}>{label}</Text>
     <Text style={styles.rowSeparator}> : </Text>
-    <Text style={[styles.rowValue, highlight && styles.highlightValue]}>
-      {value}
-    </Text>
+    <Text style={[styles.rowValue, highlight && styles.highlightValue]}>{value}</Text>
   </View>
 );
 
@@ -893,9 +874,7 @@ const styles = StyleSheet.create({
     width: 90,
     marginTop: 10,
   },
-  inlineInputWrap: {
-    flex: 1,
-  },
+  inlineInputWrap: {flex: 1},
   inlineInput: {
     flex: 1,
     borderWidth: 1,
@@ -944,11 +923,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     marginBottom: 8,
   },
-  dropdownBtnText: {
-    fontSize: 14,
-    color: '#333',
-    fontFamily: 'Quicksand-Medium',
-  },
+  dropdownBtnText: {fontSize: 14, color: '#333', fontFamily: 'Quicksand-Medium'},
   dropdownList: {
     position: 'absolute',
     top: 48,
@@ -966,11 +941,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
-  dropdownItemText: {
-    fontSize: 14,
-    color: '#333',
-    fontFamily: 'Quicksand-Medium',
-  },
+  dropdownItemText: {fontSize: 14, color: '#333', fontFamily: 'Quicksand-Medium'},
 
   photoSection: {marginVertical: 12, alignItems: 'center'},
   photoButton: {
@@ -1001,11 +972,7 @@ const styles = StyleSheet.create({
   },
   inputMultiline: {height: 80, textAlignVertical: 'top'},
   required: {color: '#e74c3c', fontFamily: 'Quicksand-Bold'},
-  inputError: {
-    borderColor: '#e74c3c',
-    borderWidth: 2,
-    backgroundColor: '#fff5f5',
-  },
+  inputError: {borderColor: '#e74c3c', borderWidth: 2, backgroundColor: '#fff5f5'},
   errorText: {
     color: '#e74c3c',
     fontSize: 12,
@@ -1054,14 +1021,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 8,
     borderRadius: 6,
-
     alignItems: 'center',
   },
   signatureBtnSave: {
     flex: 1,
     paddingVertical: 8,
     borderRadius: 6,
-
     alignItems: 'center',
   },
   clearText: {
@@ -1109,16 +1074,8 @@ const modalStyles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  iconText: {
-    color: '#fff',
-    fontSize: 30,
-    fontWeight: 'bold',
-  },
-  iconCheck: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
+  iconText: {color: '#fff', fontSize: 30, fontWeight: 'bold'},
+  iconCheck: {color: '#fff', fontSize: 28, fontWeight: 'bold'},
   title: {
     fontSize: 20,
     fontFamily: 'Quicksand-Bold',
@@ -1133,11 +1090,7 @@ const modalStyles = StyleSheet.create({
     lineHeight: 22,
     fontFamily: 'Quicksand-Regular',
   },
-  buttons: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
+  buttons: {flexDirection: 'row', gap: 12, width: '100%'},
   cancelBtn: {
     flex: 1,
     padding: 12,
@@ -1146,28 +1099,10 @@ const modalStyles = StyleSheet.create({
     borderColor: '#ccc',
     alignItems: 'center',
   },
-  cancelText: {
-    color: '#666',
-    fontSize: 15,
-    fontFamily: 'Quicksand-Bold',
-  },
-  confirmBtn: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  confirmText: {
-    color: '#fff',
-    fontSize: 15,
-    fontFamily: 'Quicksand-Bold',
-  },
-  fullBtn: {
-    width: '100%',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
+  cancelText: {color: '#666', fontSize: 15, fontFamily: 'Quicksand-Bold'},
+  confirmBtn: {flex: 1, padding: 12, borderRadius: 8, alignItems: 'center'},
+  confirmText: {color: '#fff', fontSize: 15, fontFamily: 'Quicksand-Bold'},
+  fullBtn: {width: '100%', padding: 12, borderRadius: 8, alignItems: 'center'},
 });
 
 export default ViewDetailScreen;

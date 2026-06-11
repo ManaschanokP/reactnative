@@ -1,7 +1,13 @@
 import React, {useState, useContext, useCallback} from 'react';
 import {
-  View, FlatList, Text, TouchableOpacity,
-  StyleSheet, ActivityIndicator,Image,useWindowDimensions,
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+  useWindowDimensions,
 } from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
@@ -15,6 +21,8 @@ import StatusMask from '../../assets/Status-Mark.svg';
 import StatusCalendar from '../../assets/Status-Calendar.svg';
 import StatusPackage from '../../assets/Status-Package.svg';
 import StatusCar from '../../assets/Status-Car.svg';
+
+import notifee, {AndroidImportance} from '@notifee/react-native';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -48,8 +56,8 @@ const NotificationListScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { width } = useWindowDimensions();
-  const numColumns = width >= 600 ? 2 : 1;  // tablet = 2 col, phone = 1 col
+  const {width} = useWindowDimensions();
+  const numColumns = width >= 600 ? 2 : 1; // tablet = 2 col, phone = 1 col
   const ICON_SIZE = Math.round(width * 0.08);
 
   useFocusEffect(
@@ -57,6 +65,34 @@ const NotificationListScreen: React.FC = () => {
       fetchNotifications();
     }, [user]),
   );
+
+  const triggerSystemNotification = async (
+    requestId: string,
+    destination: string,
+  ) => {
+    // 1. ขอสิทธิ์แจ้งเตือน (จำเป็นมากสำหรับ iOS และ Android 13+)
+    await notifee.requestPermission();
+
+    // 2. สร้าง Channel สำหรับ Android (ถ้าไม่สร้าง แจ้งเตือนจะไม่ขึ้นใน Android)
+    const channelId = await notifee.createChannel({
+      id: 'job-notifications',
+      name: 'การแจ้งเตือนงานใหม่',
+      importance: AndroidImportance.HIGH, // ความสำคัญสูงเพื่อให้เด้งเป็น Banner ลงมาบนจอ
+    });
+
+    // 3. สั่งแสดงผลแจ้งเตือนบนตัวเครื่อง
+    await notifee.displayNotification({
+      title: '🔔 มีงานใหม่เข้ามา!',
+      body: `รหัสงาน: ${requestId} | ปลายทาง: ${destination}`,
+      android: {
+        channelId,
+        importance: AndroidImportance.HIGH,
+        pressAction: {
+          id: 'default',
+        },
+      },
+    });
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -87,8 +123,19 @@ const NotificationListScreen: React.FC = () => {
         return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
       });
 
-      setData(sorted);
-      setHasUnreadNoti(sorted.length > 0); 
+      setData(prevData => {
+        if (prevData.length > 0 && sorted.length > 0) {
+          const newestJob = sorted[0];
+          const isBrandNewJob = !prevData.some(oldItem => oldItem.request_id === newestJob.request_id);
+          
+          if (isBrandNewJob) {
+            // 🔥 สั่งเด้งแจ้งเตือนบนแถบ Noti ของมือถือทันที
+            triggerSystemNotification(newestJob.request_id, newestJob.t_com);
+          }
+        }
+        return sorted;
+      });
+      setHasUnreadNoti(sorted.length > 0);
     } catch (err) {
       setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
       console.error(err);
@@ -194,25 +241,23 @@ const NotificationListScreen: React.FC = () => {
         data={data}
         keyExtractor={item => item.request_id}
         renderItem={renderItem}
-        key={numColumns}  
+        key={numColumns}
         numColumns={numColumns}
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
         onRefresh={fetchNotifications}
         refreshing={loading}
         ListEmptyComponent={
-          
           <View style={styles.emptyCon}>
-                    
-                     <View style={styles.emptyCon}>
-                        <Image
-                      source={require('../../assets/NoJob3.png')}
-                      style={[styles.delivery ]}
-                      resizeMode="contain"
-                    />
-                        <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
-                      </View>
-                  </View>
+            <View style={styles.emptyCon}>
+              <Image
+                source={require('../../assets/NoJob3.png')}
+                style={[styles.delivery]}
+                resizeMode="contain"
+              />
+              <Text style={styles.emptyText}>ไม่พบข้อมูล</Text>
+            </View>
+          </View>
         }
       />
       <View style={{height: insets.bottom + 60}} />
@@ -220,17 +265,15 @@ const NotificationListScreen: React.FC = () => {
   );
 };
 
-
-
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#f4f6f8'},
   listContent: {
-  padding:  12,
-  gap:      12,
-  flexGrow: 1,
-},
-delivery: {
-   height: 195,
+    padding: 12,
+    gap: 12,
+    flexGrow: 1,
+  },
+  delivery: {
+    height: 195,
     marginBottom: 24,
   },
 
@@ -257,19 +300,19 @@ delivery: {
     paddingBottom: 12,
   },
   columnWrapper: {
-  gap: 12,
-  paddingHorizontal: 12,
-},
+    gap: 12,
+    paddingHorizontal: 12,
+  },
 
   // Card
   card: {
-  backgroundColor: '#fff',
-  borderRadius:    12,
-  padding:         24,
-  elevation:       2,
-  gap:             8,
-  flex:            1,   // ✅ เพิ่ม — ทำให้ card ยืดเต็ม column
-},
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    elevation: 2,
+    gap: 8,
+    flex: 1, // ✅ เพิ่ม — ทำให้ card ยืดเต็ม column
+  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -293,7 +336,7 @@ delivery: {
     borderRadius: 20,
     gap: 6,
   },
-  statusText: {  fontSize: 12, fontFamily: 'Quicksand-Bold' , marginBottom: 3,},
+  statusText: {fontSize: 12, fontFamily: 'Quicksand-Bold', marginBottom: 3},
   statusDot: {width: 7, height: 7, borderRadius: 4},
   divider: {height: 1, backgroundColor: '#f0f0f0'},
 
@@ -338,12 +381,22 @@ delivery: {
   },
 
   // States
-  centered:    { flex: 1, justifyContent: 'center', alignItems: 'center',  },
-  errorText:   { color: '#e74c3c', fontSize: 15, fontFamily: 'Quicksand-Medium', marginBottom: 12 },
-  retryButton: { paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
-  retryText:   { color: '#fff', fontSize: 15, fontFamily: 'Quicksand-Medium' },
-  emptyText:   { color: '#bbb', fontSize: 14, marginTop: 12, fontFamily: 'Quicksand-Regular' },
-  emptyCon:    { flex: 1, justifyContent: 'center', alignItems: 'center',  },
+  centered: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  errorText: {
+    color: '#e74c3c',
+    fontSize: 15,
+    fontFamily: 'Quicksand-Medium',
+    marginBottom: 12,
+  },
+  retryButton: {paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8},
+  retryText: {color: '#fff', fontSize: 15, fontFamily: 'Quicksand-Medium'},
+  emptyText: {
+    color: '#bbb',
+    fontSize: 14,
+    marginTop: 12,
+    fontFamily: 'Quicksand-Regular',
+  },
+  emptyCon: {flex: 1, justifyContent: 'center', alignItems: 'center'},
 });
 
 export default NotificationListScreen;

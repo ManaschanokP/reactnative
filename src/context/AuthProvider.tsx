@@ -6,7 +6,7 @@ export const getCompanyColor = (companyCode: string | null): string => {
   switch (companyCode) {
     case 'TGL': return '#93D500';
     case 'TND': return '#230785';
-    default:    return '#f8ac59';
+    default:    return '#93D500';
   }
 };
 
@@ -24,7 +24,7 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
   const [user,             setUser]             = useState<any>(null);
-  const [companyColor,     setCompanyColor]     = useState<string>('#f8ac59');
+  const [companyColor,     setCompanyColor]     = useState<string>('#93D500');
   const [hasUnreadNoti,    setHasUnreadNoti]    = useState(false); 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
     await AsyncStorage.removeItem('companyCode');
     await AsyncStorage.removeItem('userData');
     setUser(null);
-    setCompanyColor('#f8ac59');
+    setCompanyColor('#93D500');
     setHasUnreadNoti(false); // ✅ reset ตอน logout
   };
 

@@ -109,25 +109,7 @@ const apiService = {
 export const loginUser = async (
   credentials: LoginRequest,
 ): Promise<LoginResponse> => {
-  /* FOR TESTING ONLY
-  if (process.env.NODE_ENV === 'development') {
-      if (credentials.username === 'admin' && credentials.password === 'admin') {
-          return new Promise((resolve) => setTimeout(() => resolve(DUMMY_USER), 1000));
-      } else if (credentials.username === 'driver' && credentials.password === 'driver') {
-        DUMMY_USER.User[0].name = 'Driver Doe';
-        DUMMY_USER.User[0].status = 'U04'; // Driver
-        return new Promise((resolve) => setTimeout(() => resolve(DUMMY_USER), 1000));
-      } else if (credentials.username === 'msg' && credentials.password === 'msg') {
-        DUMMY_USER.User[0].name = 'Messenger Doe';
-        DUMMY_USER.User[0].status = 'U05'; // Messenger
-        return new Promise((resolve) => setTimeout(() => resolve(DUMMY_USER), 1000));
-      } else {
-        console.log('Using dummy login user in development mode');
-        return new Promise((resolve) => setTimeout(() => resolve(DUMMY_USER_FAIL), 1000));
-      }
-  }
-  console.log('API_ENDPOINTS.LOGIN:', API_ENDPOINTS.LOGIN);
-  */
+  
   return apiService.postFormLogin<LoginResponse>(
     API_ENDPOINTS.CHECK_COMPANY,
     credentials,

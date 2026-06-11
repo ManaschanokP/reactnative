@@ -58,6 +58,8 @@ const STATUS_OPTIONS = [
 
 // ✅ สีและข้อความตาม status
 const getStatusStyle = (statusId: string, statusName?: string) => {
+  if (statusId === 'S002' || statusName === 'มอบหมายงานสำเร็จ')
+    return {bg: '#fffde6', text: '#ddbd07', dot: '#ddbc01'};
   if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ')
     return {bg: '#e4e4e4', text: '#373737', dot: '#373737'};
   if (statusId === 'SD04' || statusName === 'พบปัญหา' || statusId === 'SD10' || statusName === 'ยกเลิก')
@@ -69,6 +71,7 @@ const getFilterStatusLabel = (statusId: string, statusName?: string): string => 
   if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ') return 'ดำเนินการสำเร็จ';
   if (statusId === 'SD04' || statusName === 'พบปัญหา') return 'พบปัญหา';
   if (statusId === 'SD10' || statusName === 'ยกเลิก') return 'ยกเลิก';
+  if (statusId === 'S002' || statusName === 'มอบหมายงานสำเร็จ') return 'รอดำเนินการ';
   return 'กำลังดำเนินการ';
 };
 

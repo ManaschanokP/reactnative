@@ -11,6 +11,7 @@ import {
   Alert,
   SafeAreaView,
   Pressable,
+  StatusBar,
 } from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -26,10 +27,11 @@ import Icon from 'react-native-vector-icons/Feather';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import CalenderTGL from '../../assets/CalendarThaiGL.svg';
 
+
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
 
 const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
-  const {user} = useContext(AuthContext)!;
+  const {user,companyColor} = useContext(AuthContext)!;
 
   // STATE
   const [license_no, setlicense_no] = useState('');
@@ -156,6 +158,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        <StatusBar  backgroundColor={companyColor} barStyle="light-content" />
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -467,8 +470,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 15,
+    paddingTop: 0,
+    paddingBottom: 2,
   },
 
   backButton: {
@@ -476,7 +479,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
     marginRight: 10,
-    paddingTop: 34,
+    paddingTop: 24,
     paddingLeft: 5,
   },
 
@@ -484,7 +487,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
-    paddingTop: 48,
+    paddingTop: 38,
     paddingLeft: 10,
   },
 

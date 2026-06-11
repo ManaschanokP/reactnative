@@ -37,6 +37,7 @@ import {startSyncListener} from './src/services/syncService';
 import {
   isTrackingActive,
   startLocationTracking,
+  stopLocationTracking,
 } from './src/services/locationService';
 
 const NAVIGATION_IDS = ['NotificationDetail'];
@@ -123,17 +124,22 @@ function NavigationHandler() {
   }, []);
 
   // เปลี่ยนสีสถานะแอปพลิเคชันตามสถานะผู้ใช้งาน
-  useEffect(() => {
-    if (user) {
-      if (user.status === 'U04') {
-        setStatusBarColor('#93D500');
-      } else {
-        setStatusBarColor('#D7E9F7');
-      }
-    } else {
-      setStatusBarColor(null);
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user) {
+  //     console.log(user);
+  //     if (user.status === 'U04') {
+  //       setStatusBarColor('rgb(147, 213, 0)');
+  //       StatusBar.setBarStyle('dark-content', true);
+  //     } else {
+  //       setStatusBarColor('#F9F9F9');
+  //        StatusBar.setBarStyle('dark-content', true);
+  //     }
+      
+  //   } else {
+  //     setStatusBarColor(null);
+     
+  //   }
+  // }, [user]);
 
   // ขอสิทธิ์การแจ้งเตือนจากผู้ใช้งานและบันทึกรหัสลงทะเบียนเครื่อง (FCM Token)
   useEffect(() => {
@@ -154,11 +160,20 @@ function NavigationHandler() {
     requestUserPermission();
   }, []);
 
+  useEffect(() => {
+    StatusBar.setBackgroundColor(
+      user ? statusBarColor ||  '#F9F9F9' : '#F9F9F9',
+    );
+    StatusBar.setBarStyle(user ? 'dark-content' : 'dark-content');
+    StatusBar.setTranslucent(false);
+  }, [user]);
+
   return (
     <>
       <StatusBar
-        backgroundColor={user ? statusBarColor || companyColor : '#ffffff'}
-        barStyle="dark-content"
+        translucent={false}
+        //backgroundColor={user ? statusBarColor || companyColor : '#ffffff'}
+        barStyle={user ? 'dark-content' : 'dark-content'}
       />
       <NavigationContainer linking={linking} ref={navigationRef}>
         <MainApp
@@ -186,16 +201,26 @@ function MainApp({
 
       try {
         const isActive = await isTrackingActive();
-        if (isActive) {
-          console.log('[Cold Start] Tracking active. Resuming GPS tracking...');
-          const reqId = await AsyncStorage.getItem('track_request_id');
-          const statusId = await AsyncStorage.getItem('track_status_id');
-          const userId = await AsyncStorage.getItem('track_user_id');
+        if (!isActive) return;
 
-          if (reqId && statusId && userId) {
-            await startLocationTracking(reqId, statusId, userId);
-            console.log('GPS tracking resumed successfully.');
-          }
+        // ✅ เช็คว่ามี pending_tracking_stop ค้างอยู่ไหม
+        const pendingStop = await AsyncStorage.getItem('pending_tracking_stop');
+        if (pendingStop) {
+          // งานจบแล้วแต่ยังไม่ได้ stop — stop เลย
+          await stopLocationTracking();
+          await AsyncStorage.removeItem('pending_tracking_stop');
+          console.log('🛑 Cleared pending stop on cold start');
+          return;
+        }
+
+        console.log('[Cold Start] Tracking active. Resuming GPS tracking...');
+        const reqId = await AsyncStorage.getItem('track_request_id');
+        const statusId = await AsyncStorage.getItem('track_status_id');
+        const userId = await AsyncStorage.getItem('track_user_id');
+
+        if (reqId && statusId && userId) {
+          await startLocationTracking(reqId, statusId, userId);
+          console.log('GPS tracking resumed successfully.');
         }
       } catch (error) {
         console.error('Error resuming tracking:', error);
