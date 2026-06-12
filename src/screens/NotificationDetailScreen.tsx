@@ -19,6 +19,7 @@ import Icon6 from 'react-native-vector-icons/FontAwesome6';
 import Icons from 'react-native-vector-icons/Ionicons';
 import IconO from 'react-native-vector-icons/Octicons';
 import CalenderTGL from '../../assets/CalendarThaiGL.svg';
+import License from '../../assets/license.svg';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -88,18 +89,15 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Request */}
             <View style={styles.requestSection}>
+              <Text style={styles.requestLabel}>Request ID</Text>
               <View style={styles.requestRow}>
-                {/* Icon */}
                 <Image
                   source={require('../../assets/document.png')}
                   style={styles.document}
                   resizeMode="contain"
                 />
 
-                {/* Right Content */}
                 <View>
-                  <Text style={styles.requestLabel}>Request ID</Text>
-
                   <Text style={styles.requestId}>{item.request_id}</Text>
 
                   <View style={styles.statusBadge}>
@@ -143,22 +141,28 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
               <CalenderTGL width={24} height={30} style={styles.icon} />
 
               <View>
-                <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
-                <Text style={styles.value}>{item.d_date}</Text>
+                <Text style={styles.label}>วันที่ขึ้นของ</Text>
+                <Text style={styles.value}>{item.pickup_date} {' '} {item.pickup_time}</Text>
               </View>
             </View>
 
             <View style={styles.detailItem}>
-              <Icon6
-                name="clock"
-                size={24}
-                color="#8BC400"
+              <CalenderTGL width={24} height={30} style={styles.icon} />
+
+              <View>
+                <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
+                <Text style={styles.value}>{item.d_date} {' '}{item.d_time}</Text>
+              </View>
+            </View>
+
+            <View style={styles.detailItem}>
+              <License
                 style={styles.icon}
               />
 
               <View>
-                <Text style={styles.label}>เวลาที่ถึงปลายทาง</Text>
-                <Text style={styles.value}>{item.d_time}</Text>
+                <Text style={styles.label}>ทะเบียน</Text>
+                <Text style={styles.value}>{item.license_no}</Text>
               </View>
             </View>
 
@@ -243,7 +247,7 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
   },
 
- backButton: {
+  backButton: {
     fontSize: 45,
     fontFamily: 'Quicksand-Bold',
     color: '#fff',
@@ -266,6 +270,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     padding: 24,
+    paddingTop: 0,
   },
 
   divider: {
@@ -323,7 +328,8 @@ const styles = StyleSheet.create({
 
   requestRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    //alignItems: 'center',
+    alignItems: 'flex-start',
   },
 
   requestIcon: {
@@ -336,6 +342,8 @@ const styles = StyleSheet.create({
     color: '#373737',
     marginBottom: 4,
     fontFamily: 'Quicksand-SemiBold',
+    marginLeft: 51,
+    marginTop: 10,
   },
 
   requestId: {
