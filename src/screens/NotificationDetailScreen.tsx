@@ -102,7 +102,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
                   <View style={styles.statusBadge}>
                     <Text style={styles.statusBadgeText}>
-                      {item.status_name}
+                      {/* {item.status_name} */} รอดำเนินการ
                     </Text>
 
                     <View style={styles.statusDot} />
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
 
-    backgroundColor: '#d9d9d9',
+    backgroundColor: '#fffde6',
     paddingHorizontal: 16,
     paddingVertical: 7,
     borderRadius: 20,
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
 
   statusBadgeText: {
     fontSize: 12,
-    color: '#373737',
+    color: '#D98600',
     fontFamily: 'Quicksand-Bold',
   },
 
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 10,
-    backgroundColor: '#373737',
+    backgroundColor: '#D98600',
     marginLeft: 10,
   },
 
