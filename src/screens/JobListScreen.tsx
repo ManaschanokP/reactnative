@@ -67,7 +67,9 @@ const getStatusStyle = (statusId: string, statusName?: string) => {
     statusId === 'SD04' ||
     statusName === 'พบปัญหา' ||
     statusId === 'SD10' ||
-    statusName === 'ยกเลิก'
+    statusName === 'ยกเลิก' ||
+    statusId === 'SSSS' ||
+    statusName === 'คำขอถูกปฏิเสธ'
   )
     return {bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c'};
   return {bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60'};
@@ -83,6 +85,7 @@ const getFilterStatusLabel = (
   if (statusId === 'SD10' || statusName === 'ยกเลิก') return 'ยกเลิก';
   if (statusId === 'S002' || statusName === 'มอบหมายงานสำเร็จ')
     return 'รอดำเนินการ';
+  if (statusId === 'SSSS' || statusName === 'คำขอถูกปฏิเสธ') return 'ยกเลิก';
   return 'กำลังดำเนินการ';
 };
 
@@ -111,8 +114,8 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
   useFocusEffect(
     useCallback(() => {
       //if (hasFetchedRef.current) {
-        fetchJobs(status);
-     // }
+      fetchJobs(status);
+      // }
     }, [startDate, endDate, status]),
   );
 
@@ -178,7 +181,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
       });
 
       setJobs(filtered);
-     // hasFetchedRef.current = true;
+      // hasFetchedRef.current = true;
     } catch (err) {
       setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
       console.error(err);
@@ -199,7 +202,9 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
             item.status_id !== 'SD04' &&
             item.status_name !== 'พบปัญหา' &&
             item.status_id !== 'SD10' &&
-            item.status_name !== 'ยกเลิก'
+            item.status_name !== 'ยกเลิก' &&
+            item.status_id !== 'SSSS' &&
+            item.status_name !== 'คำขอถูกปฏิเสธ'
           ) {
             navigation.navigate('ViewDetail', {item});
           }

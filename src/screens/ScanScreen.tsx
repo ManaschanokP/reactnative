@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   scanningText: {color: '#fff', fontWeight: 'bold'},
 
   controlBtn: {
-    alignItems: 'center', justifyContent: 'center', paddingBottom: 32,
+    alignItems: 'center', justifyContent: 'center', paddingBottom: 18,
     
   },
   backBtn: {
