@@ -226,10 +226,11 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#F9F9F9',
     paddingBottom: '15%',
+    marginTop: 50,
   },
   bannerImage: {
     width: width * 0.82,
