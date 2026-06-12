@@ -255,6 +255,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand-Medium',
   },
   searchButton: {
+    width: '20%',
     justifyContent: 'center',
     paddingHorizontal: 15,
   },
