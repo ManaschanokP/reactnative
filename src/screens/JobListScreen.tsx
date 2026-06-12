@@ -60,7 +60,7 @@ const STATUS_OPTIONS = [
 // ✅ สีและข้อความตาม status
 const getStatusStyle = (statusId: string, statusName?: string) => {
   if (statusId === 'S002' || statusName === 'มอบหมายงานสำเร็จ')
-    return {bg: '#fffde6', text: '#ddbd07', dot: '#ddbc01'};
+    return {bg: '#fffde6', text: '#D98600', dot: '#D98600'};
   if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ')
     return {bg: '#e4e4e4', text: '#373737', dot: '#373737'};
   if (
@@ -110,9 +110,9 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (hasFetchedRef.current) {
+      //if (hasFetchedRef.current) {
         fetchJobs(status);
-      }
+     // }
     }, [startDate, endDate, status]),
   );
 
@@ -178,7 +178,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
       });
 
       setJobs(filtered);
-      hasFetchedRef.current = true;
+     // hasFetchedRef.current = true;
     } catch (err) {
       setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
       console.error(err);

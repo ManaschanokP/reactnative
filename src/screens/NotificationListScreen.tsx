@@ -23,7 +23,7 @@ import StatusPackage from '../../assets/Status-Package.svg';
 import StatusCar from '../../assets/Status-Car.svg';
 import LicenseCar from '../../assets/car.svg';
 import notifee, {AndroidImportance} from '@notifee/react-native';
-import {JobItem} from '../types/jobTypes';
+import {JobItem} from '../types/NotificationTypes';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -36,9 +36,11 @@ type NavigationProp = NativeStackNavigationProp<
 >;
 
 const getStatusStyle = (statusName: string) => {
-  if (statusName === 'มอบหมายงานสำเร็จ') {
-    return {bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60'};
-  }
+  // if (statusName === 'มอบหมายงานสำเร็จ') {
+  //   return {bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60'};
+  // }
+  if (statusName === 'มอบหมายงานสำเร็จ')
+    return {bg: '#fffde6', text: '#D98600', dot: '#D98600'};
   if (statusName === 'ยกเลิก') {
     return {bg: '#fdecea', text: '#e74c3c', dot: '#e74c3c'};
   }
@@ -46,6 +48,19 @@ const getStatusStyle = (statusName: string) => {
     return {bg: '#e4e4e4', text: '#373737', dot: '#373737'};
   }
   return {bg: '#e8f5e9', text: '#27ae60', dot: '#27ae60'};
+};
+
+const getFilterStatusLabel = (
+  statusId: string,
+  statusName?: string,
+): string => {
+  if (statusId === 'SD09' || statusName === 'ดำเนินการสำเร็จ')
+    return 'ดำเนินการสำเร็จ';
+  if (statusId === 'SD04' || statusName === 'พบปัญหา') return 'พบปัญหา';
+  if (statusId === 'SD10' || statusName === 'ยกเลิก') return 'ยกเลิก';
+  if (statusId === 'S002' || statusName === 'มอบหมายงานสำเร็จ')
+    return 'รอดำเนินการ';
+  return 'กำลังดำเนินการ';
 };
 
 const NotificationListScreen: React.FC = () => {
@@ -147,95 +162,140 @@ const NotificationListScreen: React.FC = () => {
     }
   };
 
+  const isOverdue = (dateStr: string, timeStr: string): boolean => {
+    try {
+      let isoDate = dateStr;
+      if (dateStr.includes('/')) {
+        const [d, m, y] = dateStr.split('/');
+        isoDate = `${y}-${m}-${d}`;
+      }
+      const jobTime = new Date(`${isoDate} ${timeStr}`);
+      return jobTime < new Date();
+    } catch {
+      return false;
+    }
+  };
+
+  const isPickupOverdue = (dateStr: string, timeStr: string): boolean => {
+    try {
+      let isoDate = dateStr;
+      if (dateStr.includes('/')) {
+        const [d, m, y] = dateStr.split('/');
+        isoDate = `${y}-${m}-${d}`;
+      }
+      const pickupTime = new Date(`${isoDate} ${timeStr}`);
+      return pickupTime < new Date();
+    } catch {
+      return false;
+    }
+  };
+
   const renderItem = ({item}: {item: NotificationItem}) => {
     const statusStyle = getStatusStyle(item.status_name);
+    const overdue = isOverdue(item.pickup_date, item.pickup_time);
+    const pickupOverdue = isPickupOverdue(item.pickup_date, item.pickup_time);
     return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigation.navigate('NotificationDetail', {item})}
-        activeOpacity={0.8}>
-        {/* ── Header ── */}
-        {/* ── Header row ── */}
-        <View style={styles.cardHeader}>
-          <View>
-            <View style={styles.idRow}>
-              <StatusIdCardIcon width={30} height={30} />
-              <Text style={styles.requestId}>{item.request_id}</Text>
+      <View style={styles.cardWrapper}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('NotificationDetail', {item})}
+          activeOpacity={0.8}>
+          {/* ── Header ── */}
+          {/* ── Header row ── */}
+          <View style={styles.cardHeader}>
+            <View>
+              <View style={styles.idRow}>
+                <StatusIdCardIcon width={30} height={30} />
+                <Text style={styles.requestId}>{item.request_id}</Text>
+              </View>
+
+              <View style={styles.dateRow2}>
+                <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
+                <Text style={styles.timeSubtitle}>
+                  {item.d_date} {item.d_time}
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.dateRow2}>
-              <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
-              <Text style={styles.timeSubtitle}>
-                {item.d_date} {item.d_time}
-              </Text>
-            </View>
-          </View>
-
-          <View style={[styles.statusBadge, {backgroundColor: statusStyle.bg}]}>
-            <Text style={[styles.statusText, {color: statusStyle.text}]}>
-              {getFilterStatusLabel(item.status_id, item.status_name)}
-            </Text>
             <View
-              style={[styles.statusDot, {backgroundColor: statusStyle.dot}]}
-            />
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* ── ปลายทาง ── */}
-        <View style={styles.infoRow}>
-          <StatusMask width={20} height={20} color="#373737" />
-          <View>
-            <Text style={styles.infoLabel}>ปลายทาง</Text>
-            <Text style={styles.infoValue}>{item.to_company}</Text>
-          </View>
-        </View>
-        {/* ── ประเภทบริการ ── */}
-        <View style={styles.infoRow}>
-          <StatusPackage width={20} height={20} color="#373737" />
-          <View>
-            <Text style={styles.infoLabel}>ประเภทการบริการ</Text>
-            <Text style={styles.infoValue}>{item.type_name}</Text>
-          </View>
-        </View>
-
-        <View style={styles.infoRow}>
-          <StatusCalendar width={20} height={20} color="#373737" />
-          <View>
-            <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
-            <Text style={styles.footerDate}>
-              {item.pickup_date} {item.pickup_time}
-            </Text>
-          </View>
-        </View>
-
-        {/* ── วันที่ + สถานะล่าง ── */}
-        {/* ── Footer ── */}
-        <View style={styles.infoRow}>
-          <View style={styles.footerItemLeft}>
-            <LicenseCar width={20} height={20} color="#373737" />
-            <View>
-              <Text style={styles.infoLabel}>ทะเบียน</Text>
-              <Text style={styles.footerDate}>{item.license_no}</Text>
+              style={[styles.statusBadge, {backgroundColor: statusStyle.bg}]}>
+              <Text style={[styles.statusText, {color: statusStyle.text}]}>
+                {getFilterStatusLabel(item.status_id, item.status_name)}
+              </Text>
+              <View
+                style={[styles.statusDot, {backgroundColor: statusStyle.dot}]}
+              />
             </View>
           </View>
-          <View style={[styles.footerItemRight]}>
-            <StatusCar width={20} height={20} color="#373737" />
+
+          <View style={styles.divider} />
+
+          {/* ── ปลายทาง ── */}
+          <View style={styles.infoRow}>
+            <StatusMask width={20} height={20} color="#373737" />
             <View>
-              <Text style={styles.infoLabel}>สถานะ</Text>
+              <Text style={styles.infoLabel}>ปลายทาง</Text>
+              <Text style={styles.infoValue}>{item.t_com}</Text>
+            </View>
+          </View>
+          {/* ── ประเภทบริการ ── */}
+          <View style={styles.infoRow}>
+            <StatusPackage width={20} height={20} color="#373737" />
+            <View>
+              <Text style={styles.infoLabel}>ประเภทการบริการ</Text>
+              <Text style={styles.infoValue}>{item.remake}</Text>
+            </View>
+          </View>
+
+          <View style={styles.infoRow}>
+            <StatusCalendar width={20} height={20} color={pickupOverdue ? '#e74c3c' : '#373737'} />
+            <View>
+              <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
               <Text
                 style={[
-                  styles.statusText,
-                  item.status_id === 'SD04' && {color: '#e74c3c'},
-                  item.status_id === 'SD10' && {color: '#e74c3c'},
+                  styles.footerDate,
+                  pickupOverdue && {
+                    color: '#e74c3c',
+                    fontFamily: 'Quicksand-Bold',
+                  },
                 ]}>
-                {item.status_name}
+                {item.pickup_date} {item.pickup_time}
               </Text>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
+
+          {/* ── วันที่ + สถานะล่าง ── */}
+          {/* ── Footer ── */}
+          <View style={styles.infoRow}>
+            <View style={styles.footerItemLeft}>
+              <LicenseCar width={20} height={20} color="#373737" />
+              <View>
+                <Text style={styles.infoLabel}>ทะเบียน</Text>
+                <Text style={styles.footerDate}>{item.license_no}</Text>
+              </View>
+            </View>
+            <View style={[styles.footerItemRight]}>
+              <StatusCar width={20} height={20} color="#373737" />
+              <View>
+                <Text style={styles.infoLabel}>สถานะ</Text>
+                <Text
+                  style={[
+                    styles.statusText,
+                    item.status_id === 'SD04' && {color: '#e74c3c'},
+                    item.status_id === 'SD10' && {color: '#e74c3c'},
+                  ]}>
+                  {item.status_name}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+        {overdue && (
+          <View style={styles.overdotBadge}>
+            <Text style={styles.overdotText}>!</Text>
+          </View>
+        )}
+      </View>
     );
   };
 
@@ -340,7 +400,7 @@ const styles = StyleSheet.create({
     padding: 24,
     elevation: 2,
     gap: 8,
-    flex: 1, // ✅ เพิ่ม — ทำให้ card ยืดเต็ม column
+    // flex: 1, // ✅ เพิ่ม — ทำให้ card ยืดเต็ม column
   },
   cardHeader: {
     flexDirection: 'row',
@@ -426,6 +486,50 @@ const styles = StyleSheet.create({
     fontFamily: 'Quicksand-Regular',
   },
   emptyCon: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+
+  dateSubtitle: {
+    fontSize: 8,
+    color: '#373737',
+    fontFamily: 'Quicksand-Regular',
+    marginTop: 4,
+    paddingRight: 8,
+  },
+  timeSubtitle: {
+    fontSize: 12,
+    color: '#373737',
+    fontFamily: 'Quicksand-Medium',
+    marginTop: 2,
+  },
+  dateRow2: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  infoContainer: {
+    marginLeft: 8,
+  },
+  cardWrapper: {
+    flex: 1,
+    position: 'relative', // ✅ ให้จุดแดง absolute ได้
+  },
+  overdotBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#e74c3c',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    zIndex: 10,
+  },
+  overdotText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Quicksand-Bold',
+  },
 });
 
 export default NotificationListScreen;
