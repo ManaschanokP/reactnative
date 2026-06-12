@@ -50,7 +50,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
   const insets = useSafeAreaInsets();
 
-  const companyColor = getCompanyColor(item.company_code);
+  const companyColor = getCompanyColor(item.companyCode);
 
   const canStartWork = item.status_name !== 'การดำเนินการสำเร็จ';
 

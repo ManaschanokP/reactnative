@@ -1,4 +1,5 @@
 export type NotificationItem = {
+  companyCode: string | null;
   request_id: string;
   status_name: string;
   status_id: string;
