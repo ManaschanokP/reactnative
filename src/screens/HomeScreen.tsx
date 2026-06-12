@@ -194,7 +194,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
               <Text style={modalStyles.iconText}>!</Text>
             </View>
             <Text style={modalStyles.title}>แจ้งเตือน</Text>
-            <Text style={modalStyles.message}>ป้อนหมายเลขติดตาม</Text>
+            <Text style={modalStyles.message}>กรุณาป้อนหมายเลขติดตาม</Text>
             <TouchableOpacity
               style={[modalStyles.actionButton, {backgroundColor: companyColor}]}
               onPress={() => setShowWarning(false)}>
