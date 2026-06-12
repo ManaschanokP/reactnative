@@ -261,7 +261,7 @@ function MainApp({
             <Stack.Screen
               name="ViewDetail"
               component={ViewDetailScreen}
-              options={{title: 'Jobs Detail'}}
+              options={{headerShown: false}}
             />
             <Stack.Screen name="Menu" component={MenuScreen} />
             <Stack.Screen name="Satisfaction" component={SatisfactionScreen} />

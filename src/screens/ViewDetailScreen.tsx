@@ -15,6 +15,7 @@ import {
   Platform,
   PermissionsAndroid,
   StatusBar,
+  SafeAreaView,
 } from 'react-native';
 import {launchCamera} from 'react-native-image-picker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -104,7 +105,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const [detail, setDetail] = useState('');
   const [box, setBox] = useState('');
   const [mile, setMile] = useState('');
-  const [photo, setPhoto] = useState<{uri: string; base64: string} | null>(null);
+  const [photo, setPhoto] = useState<{uri: string; base64: string} | null>(
+    null,
+  );
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [rating, setRating] = useState(5);
@@ -129,7 +132,8 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
   const needsDetail = REQUIRES_DETAIL.includes(selectedStatus);
   const needsPhoto = REQUIRES_PHOTO.includes(selectedStatus);
-  const needsSignatureRating = REQUIRES_SIGNATURE_RATING.includes(selectedStatus);
+  const needsSignatureRating =
+    REQUIRES_SIGNATURE_RATING.includes(selectedStatus);
   const hasSignatureRating =
     needsSignatureRating || OPTIONAL_SIGNATURE_RATING.includes(selectedStatus);
   const needsBox = REQUIRES_BOX.includes(selectedStatus);
@@ -192,7 +196,12 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         setStatusList(names);
         setSelectedStatus(names[0]);
       } else if (item.status_id === 'SD05') {
-        const names = ['รับเอกสารกลับ', 'เช็คเอ้าท์', 'การดำเนินการสำเร็จ', 'พบปัญหา'];
+        const names = [
+          'รับเอกสารกลับ',
+          'เช็คเอ้าท์',
+          'การดำเนินการสำเร็จ',
+          'พบปัญหา',
+        ];
         setStatusList(names);
         setSelectedStatus(names[0]);
       } else if (item.status_id === 'SD04') {
@@ -203,7 +212,12 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     } catch (err) {
       console.error(err);
       if (item.status_id === 'SD05') {
-        const names = ['รับเอกสารกลับ', 'เช็คเอ้าท์', 'การดำเนินการสำเร็จ', 'พบปัญหา'];
+        const names = [
+          'รับเอกสารกลับ',
+          'เช็คเอ้าท์',
+          'การดำเนินการสำเร็จ',
+          'พบปัญหา',
+        ];
         setStatusList(names);
         setSelectedStatus(names[0]);
       }
@@ -224,7 +238,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         },
       );
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert('ไม่ได้รับสิทธิ์', 'กรุณาเปิดสิทธิ์กล้องในการตั้งค่าแอป', [{text: 'ตกลง'}]);
+        Alert.alert('ไม่ได้รับสิทธิ์', 'กรุณาเปิดสิทธิ์กล้องในการตั้งค่าแอป', [
+          {text: 'ตกลง'},
+        ]);
         return;
       }
     }
@@ -331,7 +347,11 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         if (TRACKING_START_STATUSES.includes(statusName)) {
           await AsyncStorage.setItem(
             'pending_tracking_start',
-            JSON.stringify({request_id: item.request_id, status_id, user_id: user.id}),
+            JSON.stringify({
+              request_id: item.request_id,
+              status_id,
+              user_id: user.id,
+            }),
           );
         }
         if (TRACKING_STOP_STATUSES.includes(statusName)) {
@@ -339,7 +359,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         }
 
         setIsOfflineSuccess(true);
-        setSuccessMessage('ไม่มีอินเทอร์เน็ต ข้อมูลถูกบันทึกไว้\nจะส่งอัตโนมัติเมื่อกลับมาออนไลน์');
+        setSuccessMessage(
+          'ไม่มีอินเทอร์เน็ต ข้อมูลถูกบันทึกไว้\nจะส่งอัตโนมัติเมื่อกลับมาออนไลน์',
+        );
         setShowSuccess(true);
         return;
       }
@@ -348,12 +370,18 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       let response;
       if (_needsSigRating) {
         if (currentPhoto) {
-          response = await updatePicture({...baseParams, picture: currentPhoto.base64});
+          response = await updatePicture({
+            ...baseParams,
+            picture: currentPhoto.base64,
+          });
         } else {
           response = await updateStatus(baseParams);
         }
       } else if (_needsPhoto && currentPhoto) {
-        response = await updatePicture({...baseParams, picture: currentPhoto.base64});
+        response = await updatePicture({
+          ...baseParams,
+          picture: currentPhoto.base64,
+        });
       } else {
         response = await updateStatus(baseParams);
       }
@@ -452,7 +480,10 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         <View style={modalStyles.overlay}>
           <View style={modalStyles.box}>
             <View
-              style={[modalStyles.iconCircle, {backgroundColor: getConfirmColor()}]}>
+              style={[
+                modalStyles.iconCircle,
+                {backgroundColor: getConfirmColor()},
+              ]}>
               <Text style={modalStyles.iconText}>!</Text>
             </View>
             <Text style={modalStyles.title}>ยืนยัน</Text>
@@ -515,7 +546,9 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 {
                   backgroundColor: pressed
                     ? darkenColor(
-                        isOfflineSuccess ? '#e67e22' : companyColor ?? '#93D500',
+                        isOfflineSuccess
+                          ? '#e67e22'
+                          : companyColor ?? '#93D500',
                         0.2,
                       )
                     : isOfflineSuccess
@@ -537,287 +570,367 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         </View>
       </Modal>
 
-      <View style={styles.container}>
-         <StatusBar  backgroundColor={companyColor} barStyle="light-content" />
-      <ScrollView
-        scrollEnabled={scrollEnabled}
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}>
-          
-        {/* ── ข้อมูลงาน ── */}
-        <View style={styles.card}>
-          <Text style={[styles.cardTitle, {color: companyColor}]}>ข้อมูลงาน</Text>
-          <InfoRow label="Request ID" value={item.request_id} />
-          <InfoRow label="ประเภท" value={item.type_name} />
-          <InfoRow label="ปลายทาง" value={item.to_company} />
-          <InfoRow label="วันที่" value={`${item.d_date} ${item.d_time}`} />
-          <InfoRow label="สถานะปัจจุบัน" value={item.status_name} highlight />
-        </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <StatusBar backgroundColor={companyColor} barStyle="light-content" />
 
-        {/* ── GPS Banner ── */}
-        {isTracking && (
-          <View style={[styles.trackingBanner, {borderColor: companyColor}]}>
-            <Text style={[styles.trackingBannerText, {color: '#373737'}]}>
-              📍 กำลังติดตาม GPS — {totalDistance.toFixed(2)} กม.
-            </Text>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.backButton}>{'‹'}</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.headerTitle}>Jobs Detail</Text>
           </View>
-        )}
 
-        {/* ── อัปเดตสถานะ ── */}
-        <View style={styles.card}>
-          <Text style={[styles.cardTitle, {color: companyColor}]}>อัปเดตสถานะ</Text>
-
-          {loadingStatus ? (
-            <ActivityIndicator color={companyColor} style={{marginVertical: 12}} />
-          ) : (
-            <View style={{zIndex: 999}}>
-              <TouchableOpacity
-                style={styles.dropdownBtn}
-                onPress={() => setShowDropdown(p => !p)}>
-                <Text style={styles.dropdownBtnText}>{selectedStatus}</Text>
-                <Icon
-                  name={showDropdown ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-                  size={22}
-                  color="#555"
-                />
-              </TouchableOpacity>
-
-              {showDropdown && (
-                <View style={styles.dropdownList}>
-                  {statusList.map(s => (
-                    <TouchableOpacity
-                      key={s}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setSelectedStatus(s);
-                        setPhoto(null);
-                        photoRef.current = null;
-                        setBox('');
-                        setMile('');
-                        handleClearSignature();
-                        setShowDropdown(false);
-                      }}>
-                      <Text
-                        style={[
-                          styles.dropdownItemText,
-                          selectedStatus === s && {
-                            color: companyColor ?? '#93D500',
-                            fontFamily: 'Quicksand-Bold',
-                          },
-                        ]}>
-                        {s}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* ── ถ่ายรูป ── */}
-          {needsPhoto && (
-            <View style={styles.photoSection}>
-              <TouchableOpacity
-                style={[
-                  styles.photoButton,
-                  {backgroundColor: isPhotoPressed ? '#2d5fd4' : '#4E80FF'},
-                ]}
-                onPressIn={() => setIsPhotoPressed(true)}
-                onPressOut={() => setIsPhotoPressed(false)}
-                onPress={handleTakePhoto}
-                activeOpacity={1}>
-                <Icon name="camera-alt" size={18} color="#fff" />
-                <Text style={styles.photoButtonText}>
-                  {photo ? '  ถ่ายรูปใหม่' : '  ถ่ายรูป (จำเป็น)'}
+          <ScrollView
+            scrollEnabled={scrollEnabled}
+            style={styles.container}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.cardA}>
+              {/* ── ข้อมูลงาน ── */}
+              <View style={styles.card}>
+                <Text style={[styles.cardTitle, {color: companyColor}]}>
+                  ข้อมูลงาน
                 </Text>
-              </TouchableOpacity>
-              {photo && (
-                <Image source={{uri: photo.uri}} style={styles.photoPreview} />
-              )}
-              {!photo && (
-                <Text style={styles.photoHint}>* สถานะนี้ต้องถ่ายรูปก่อนยืนยัน</Text>
-              )}
-            </View>
-          )}
-
-          {/* ── Rating & Signature ── */}
-          {hasSignatureRating && (
-            <>
-              <View style={styles.specialSection}>
-                <Text style={styles.fieldLabel}>ประเมินความพึงพอใจ :</Text>
-                <Rating
-                  startingValue={rating}
-                  onFinishRating={setRating}
-                  imageSize={Math.round(width * 0.07)}
-                  style={{paddingVertical: 10}}
-                  tintColor="#fff9f0"
-                  ratingBackgroundColor="transparent"
+                <InfoRow label="Request ID" value={item.request_id} />
+                <InfoRow label="ประเภท" value={item.type_name} />
+                <InfoRow label="ปลายทาง" value={item.to_company} />
+                <InfoRow
+                  label="วันที่"
+                  value={`${item.d_date} ${item.d_time}`}
+                />
+                <InfoRow
+                  label="สถานะปัจจุบัน"
+                  value={item.status_name}
+                  highlight
                 />
               </View>
 
-              <View style={styles.specialSection}>
-                <Text style={styles.fieldLabel}>ลายเซ็นผู้รับสินค้า :</Text>
-                <View style={[styles.signatureBox, {height: signatureHeight}]}>
-                  <SignatureScreen
-                    onBegin={() => setScrollEnabled(false)}
-                    onEnd={() => setScrollEnabled(true)}
-                    key={signatureKey}
-                    ref={signatureRef}
-                    onOK={handleSignatureOK}
-                    descriptionText="เซ็นชื่อลงในช่องว่าง"
-                    clearText="ล้าง"
-                    confirmText="บันทึกลายเซ็น"
-                    penColor="#000000"
-                    backgroundColor="#ffffff"
-                    imageType="image/png"
-                    webStyle={`
+              {/* ── GPS Banner ── */}
+              {isTracking && (
+                <View
+                  style={[styles.trackingBanner, {borderColor: companyColor}]}>
+                  <Text style={[styles.trackingBannerText, {color: '#373737'}]}>
+                    📍 กำลังติดตาม GPS — {totalDistance.toFixed(2)} กม.
+                  </Text>
+                </View>
+              )}
+
+              {/* ── อัปเดตสถานะ ── */}
+              <View style={styles.card}>
+                <Text style={[styles.cardTitle, {color: companyColor}]}>
+                  อัปเดตสถานะ
+                </Text>
+
+                {loadingStatus ? (
+                  <ActivityIndicator
+                    color={companyColor}
+                    style={{marginVertical: 12}}
+                  />
+                ) : (
+                  <View style={{zIndex: 999}}>
+                    <TouchableOpacity
+                      style={styles.dropdownBtn}
+                      onPress={() => setShowDropdown(p => !p)}>
+                      <Text style={styles.dropdownBtnText}>
+                        {selectedStatus}
+                      </Text>
+                      <Icon
+                        name={
+                          showDropdown
+                            ? 'keyboard-arrow-up'
+                            : 'keyboard-arrow-down'
+                        }
+                        size={22}
+                        color="#555"
+                      />
+                    </TouchableOpacity>
+
+                    {showDropdown && (
+                      <View style={styles.dropdownList}>
+                        {statusList.map(s => (
+                          <TouchableOpacity
+                            key={s}
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                              setSelectedStatus(s);
+                              setPhoto(null);
+                              photoRef.current = null;
+                              setBox('');
+                              setMile('');
+                              handleClearSignature();
+                              setShowDropdown(false);
+                            }}>
+                            <Text
+                              style={[
+                                styles.dropdownItemText,
+                                selectedStatus === s && {
+                                  color: companyColor ?? '#93D500',
+                                  fontFamily: 'Quicksand-Bold',
+                                },
+                              ]}>
+                              {s}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* ── ถ่ายรูป ── */}
+                {needsPhoto && (
+                  <View style={styles.photoSection}>
+                    <TouchableOpacity
+                      style={[
+                        styles.photoButton,
+                        {
+                          backgroundColor: isPhotoPressed
+                            ? '#2d5fd4'
+                            : '#4E80FF',
+                        },
+                      ]}
+                      onPressIn={() => setIsPhotoPressed(true)}
+                      onPressOut={() => setIsPhotoPressed(false)}
+                      onPress={handleTakePhoto}
+                      activeOpacity={1}>
+                      <Icon name="camera-alt" size={18} color="#fff" />
+                      <Text style={styles.photoButtonText}>
+                        {photo ? '  ถ่ายรูปใหม่' : '  ถ่ายรูป (จำเป็น)'}
+                      </Text>
+                    </TouchableOpacity>
+                    {photo && (
+                      <Image
+                        source={{uri: photo.uri}}
+                        style={styles.photoPreview}
+                      />
+                    )}
+                    {!photo && (
+                      <Text style={styles.photoHint}>
+                        * สถานะนี้ต้องถ่ายรูปก่อนยืนยัน
+                      </Text>
+                    )}
+                  </View>
+                )}
+
+                {/* ── Rating & Signature ── */}
+                {hasSignatureRating && (
+                  <>
+                    <View style={styles.specialSection}>
+                      <Text style={styles.fieldLabel}>
+                        ประเมินความพึงพอใจ :
+                      </Text>
+                      <Rating
+                        startingValue={rating}
+                        onFinishRating={setRating}
+                        imageSize={Math.round(width * 0.07)}
+                        style={{paddingVertical: 10}}
+                        tintColor="#fff9f0"
+                        ratingBackgroundColor="transparent"
+                      />
+                    </View>
+
+                    <View style={styles.specialSection}>
+                      <Text style={styles.fieldLabel}>
+                        ลายเซ็นผู้รับสินค้า :
+                      </Text>
+                      <View
+                        style={[
+                          styles.signatureBox,
+                          {height: signatureHeight},
+                        ]}>
+                        <SignatureScreen
+                          onBegin={() => setScrollEnabled(false)}
+                          onEnd={() => setScrollEnabled(true)}
+                          key={signatureKey}
+                          ref={signatureRef}
+                          onOK={handleSignatureOK}
+                          descriptionText="เซ็นชื่อลงในช่องว่าง"
+                          clearText="ล้าง"
+                          confirmText="บันทึกลายเซ็น"
+                          penColor="#000000"
+                          backgroundColor="#ffffff"
+                          imageType="image/png"
+                          webStyle={`
                       .m-signature-pad { box-shadow: none; border: none; }
                       .m-signature-pad--body { background-color: #ffffff; }
                       .m-signature-pad--footer { display: none; }
                       body { margin: 0; background-color: #ffffff; }
                     `}
+                        />
+                      </View>
+                      <View style={styles.signatureActions}>
+                        <TouchableOpacity
+                          style={styles.signatureBtnClear}
+                          onPress={handleClearSignature}>
+                          <Text style={styles.clearText}>ล้างลายเซ็น</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.signatureBtnSave,
+                            {backgroundColor: '#FBC900'},
+                          ]}
+                          onPress={() => signatureRef.current?.readSignature()}>
+                          <Text style={styles.saveText}>บันทึกลายเซ็น</Text>
+                        </TouchableOpacity>
+                      </View>
+                      {signature ? (
+                        <Text style={styles.signatureSuccess}>
+                          {' '}
+                          ได้รับลายเซ็นแล้ว
+                        </Text>
+                      ) : (
+                        <Text
+                          style={[
+                            styles.signaturePending,
+                            needsSignatureRating && {color: '#e74c3c'},
+                          ]}>
+                          {needsSignatureRating
+                            ? '* จำเป็นต้องบันทึกลายเซ็น'
+                            : 'ยังไม่ได้บันทึกลายเซ็น'}
+                        </Text>
+                      )}
+                    </View>
+                  </>
+                )}
+
+                {/* ── จำนวนกล่อง (กรอกได้) ── */}
+                {needsBox && (
+                  <View style={styles.inlineRow}>
+                    <Text style={styles.inlineLabel}>
+                      จำนวนกล่อง : <Text style={styles.required}>*</Text>
+                    </Text>
+                    <View style={styles.inlineInputWrap}>
+                      <TextInput
+                        style={[
+                          styles.inlineInput,
+                          !box.trim() && styles.inputError,
+                        ]}
+                        keyboardType="numeric"
+                        value={box}
+                        onChangeText={text =>
+                          setBox(text.replace(/[^0-9]/g, ''))
+                        }
+                        placeholder="จำนวนกล่อง"
+                        placeholderTextColor="#aaa"
+                      />
+                      {!box.trim() && (
+                        <Text style={styles.errorText}>
+                          กรุณากรอกจำนวนกล่อง
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                )}
+
+                {/* ── จำนวนกล่อง (แสดงอย่างเดียว) ── */}
+                {!needsBox &&
+                item.box &&
+                item.box !== '0' &&
+                item.box !== '' ? (
+                  <View style={styles.inlineRow}>
+                    <Text style={styles.inlineLabel}>จำนวนกล่อง :</Text>
+                    <View
+                      style={[
+                        styles.inlineInput,
+                        {
+                          backgroundColor: '#f0f0f0',
+                          justifyContent: 'center',
+                          flex: 1,
+                        },
+                      ]}>
+                      <Text
+                        style={{
+                          color: '#555',
+                          fontFamily: 'Quicksand-Medium',
+                          fontSize: 14,
+                        }}>
+                        {item.box}
+                      </Text>
+                    </View>
+                  </View>
+                ) : null}
+
+                {/* ── เลขไมล์ ── */}
+                {needsMile && (
+                  <View style={styles.inlineRow}>
+                    <Text style={styles.inlineLabel}>
+                      เลขไมล์ : <Text style={styles.required}>*</Text>
+                    </Text>
+                    <View style={styles.inlineInputWrap}>
+                      <TextInput
+                        style={[
+                          styles.inlineInput,
+                          !mile.trim() && styles.inputError,
+                        ]}
+                        keyboardType="numeric"
+                        value={mile}
+                        onChangeText={text =>
+                          setMile(text.replace(/[^0-9]/g, ''))
+                        }
+                        placeholder="เลขไมล์"
+                        placeholderTextColor="#aaa"
+                      />
+                      {!mile.trim() && (
+                        <Text style={styles.errorText}>กรุณากรอกเลขไมล์</Text>
+                      )}
+                    </View>
+                  </View>
+                )}
+
+                {/* ── รายละเอียด ── */}
+                <View style={styles.inlineRow}>
+                  <Text style={styles.inlineLabel}>
+                    รายละเอียด :
+                    {needsDetail && <Text style={styles.required}> *</Text>}
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.inlineInput,
+                      styles.inputMultiline,
+                      needsDetail && !detail.trim() && styles.inputError,
+                    ]}
+                    value={detail}
+                    onChangeText={setDetail}
+                    placeholder={
+                      needsDetail
+                        ? 'ระบุรายละเอียดของปัญหา (จำเป็น)'
+                        : 'รายละเอียดเพิ่มเติม'
+                    }
+                    multiline
+                    numberOfLines={3}
                   />
                 </View>
-                <View style={styles.signatureActions}>
-                  <TouchableOpacity
-                    style={styles.signatureBtnClear}
-                    onPress={handleClearSignature}>
-                    <Text style={styles.clearText}>ล้างลายเซ็น</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.signatureBtnSave, {backgroundColor: '#FBC900'}]}
-                    onPress={() => signatureRef.current?.readSignature()}>
-                    <Text style={styles.saveText}>บันทึกลายเซ็น</Text>
-                  </TouchableOpacity>
-                </View>
-                {signature ? (
-                  <Text style={styles.signatureSuccess}> ได้รับลายเซ็นแล้ว</Text>
+              </View>
+
+              {/* ── ปุ่ม Confirm ── */}
+              <Pressable
+                style={({pressed}) => [
+                  styles.confirmButton,
+                  isSubmitDisabled
+                    ? styles.buttonDisabled
+                    : {
+                        backgroundColor: pressed
+                          ? '#7AB100'
+                          : companyColor ?? '#93D500',
+                      },
+                ]}
+                onPress={handleUpdate}
+                disabled={isSubmitDisabled}>
+                {updating ? (
+                  <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text
-                    style={[
-                      styles.signaturePending,
-                      needsSignatureRating && {color: '#e74c3c'},
-                    ]}>
-                    {needsSignatureRating
-                      ? '* จำเป็นต้องบันทึกลายเซ็น'
-                      : 'ยังไม่ได้บันทึกลายเซ็น'}
-                  </Text>
+                  <Text style={styles.confirmText}> ยืนยันอัปเดตสถานะ</Text>
                 )}
-              </View>
-            </>
-          )}
+              </Pressable>
 
-          {/* ── จำนวนกล่อง (กรอกได้) ── */}
-          {needsBox && (
-            <View style={styles.inlineRow}>
-              <Text style={styles.inlineLabel}>
-                จำนวนกล่อง : <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.inlineInputWrap}>
-                <TextInput
-                  style={[styles.inlineInput, !box.trim() && styles.inputError]}
-                  keyboardType="numeric"
-                  value={box}
-                  onChangeText={text => setBox(text.replace(/[^0-9]/g, ''))}
-                  placeholder="จำนวนกล่อง"
-                  placeholderTextColor="#aaa"
-                />
-                {!box.trim() && (
-                  <Text style={styles.errorText}>กรุณากรอกจำนวนกล่อง</Text>
-                )}
-              </View>
+              <View style={{height: insets.bottom + 120}} />
             </View>
-          )}
-
-          {/* ── จำนวนกล่อง (แสดงอย่างเดียว) ── */}
-          {!needsBox && item.box && item.box !== '0' && item.box !== '' ? (
-            <View style={styles.inlineRow}>
-              <Text style={styles.inlineLabel}>จำนวนกล่อง :</Text>
-              <View
-                style={[
-                  styles.inlineInput,
-                  {backgroundColor: '#f0f0f0', justifyContent: 'center', flex: 1},
-                ]}>
-                <Text
-                  style={{color: '#555', fontFamily: 'Quicksand-Medium', fontSize: 14}}>
-                  {item.box}
-                </Text>
-              </View>
-            </View>
-          ) : null}
-
-          {/* ── เลขไมล์ ── */}
-          {needsMile && (
-            <View style={styles.inlineRow}>
-              <Text style={styles.inlineLabel}>
-                เลขไมล์ : <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.inlineInputWrap}>
-                <TextInput
-                  style={[styles.inlineInput, !mile.trim() && styles.inputError]}
-                  keyboardType="numeric"
-                  value={mile}
-                  onChangeText={text => setMile(text.replace(/[^0-9]/g, ''))}
-                  placeholder="เลขไมล์"
-                  placeholderTextColor="#aaa"
-                />
-                {!mile.trim() && (
-                  <Text style={styles.errorText}>กรุณากรอกเลขไมล์</Text>
-                )}
-              </View>
-            </View>
-          )}
-
-          {/* ── รายละเอียด ── */}
-          <View style={styles.inlineRow}>
-            <Text style={styles.inlineLabel}>
-              รายละเอียด :
-              {needsDetail && <Text style={styles.required}> *</Text>}
-            </Text>
-            <TextInput
-              style={[
-                styles.inlineInput,
-                styles.inputMultiline,
-                needsDetail && !detail.trim() && styles.inputError,
-              ]}
-              value={detail}
-              onChangeText={setDetail}
-              placeholder={
-                needsDetail
-                  ? 'ระบุรายละเอียดของปัญหา (จำเป็น)'
-                  : 'รายละเอียดเพิ่มเติม'
-              }
-              multiline
-              numberOfLines={3}
-            />
-          </View>
+          </ScrollView>
         </View>
-
-        {/* ── ปุ่ม Confirm ── */}
-        <Pressable
-          style={({pressed}) => [
-            styles.confirmButton,
-            isSubmitDisabled
-              ? styles.buttonDisabled
-              : {
-                  backgroundColor: pressed
-                    ? '#7AB100'
-                    : companyColor ?? '#93D500',
-                },
-          ]}
-          onPress={handleUpdate}
-          disabled={isSubmitDisabled}>
-          {updating ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.confirmText}> ยืนยันอัปเดตสถานะ</Text>
-          )}
-        </Pressable>
-
-        <View style={{height: insets.bottom + 120}} />
-      </ScrollView>
-      </View>
+      </SafeAreaView>
     </>
   );
 };
@@ -834,14 +947,54 @@ const InfoRow = ({
   <View style={styles.row}>
     <Text style={styles.rowLabel}>{label}</Text>
     <Text style={styles.rowSeparator}> : </Text>
-    <Text style={[styles.rowValue, highlight && styles.highlightValue]}>{value}</Text>
+    <Text style={[styles.rowValue, highlight && styles.highlightValue]}>
+      {value}
+    </Text>
   </View>
 );
 
 // ── Main Styles ──
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#f5f5f5'},
-  content: {padding: 16, paddingBottom: 16},
+  container: {flex: 1, backgroundColor: '#93D500'},
+  content: {padding: 0, paddingBottom: 16},
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#93D500',
+  },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 15,
+  },
+
+  backButton: {
+    fontSize: 45,
+    fontFamily: 'Quicksand-Bold',
+    color: '#fff',
+    marginRight: 10,
+    paddingTop: 2,
+    paddingLeft: 5,
+  },
+
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: 'Quicksand-Bold',
+    color: '#fff',
+    paddingTop: 8,
+    paddingLeft: 10,
+  },
+  cardA: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    width: '100%',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
 
   card: {
     backgroundColor: '#fff',
@@ -851,6 +1004,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     zIndex: 1,
     overflow: 'visible',
+    width: '100%',
   },
   cardTitle: {
     fontSize: 16,
@@ -923,7 +1077,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     marginBottom: 8,
   },
-  dropdownBtnText: {fontSize: 14, color: '#333', fontFamily: 'Quicksand-Medium'},
+  dropdownBtnText: {
+    fontSize: 14,
+    color: '#333',
+    fontFamily: 'Quicksand-Medium',
+  },
   dropdownList: {
     position: 'absolute',
     top: 48,
@@ -941,7 +1099,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
-  dropdownItemText: {fontSize: 14, color: '#333', fontFamily: 'Quicksand-Medium'},
+  dropdownItemText: {
+    fontSize: 14,
+    color: '#333',
+    fontFamily: 'Quicksand-Medium',
+  },
 
   photoSection: {marginVertical: 12, alignItems: 'center'},
   photoButton: {
@@ -972,7 +1134,11 @@ const styles = StyleSheet.create({
   },
   inputMultiline: {height: 80, textAlignVertical: 'top'},
   required: {color: '#e74c3c', fontFamily: 'Quicksand-Bold'},
-  inputError: {borderColor: '#e74c3c', borderWidth: 2, backgroundColor: '#fff5f5'},
+  inputError: {
+    borderColor: '#e74c3c',
+    borderWidth: 2,
+    backgroundColor: '#fff5f5',
+  },
   errorText: {
     color: '#e74c3c',
     fontSize: 12,
