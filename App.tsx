@@ -63,6 +63,7 @@ const linking = {
   config: {
     screens: {
       NotificationDetail: 'NotificationDetail',
+      Home: 'tracking',
     },
   },
   async getInitialURL() {

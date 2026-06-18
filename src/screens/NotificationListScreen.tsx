@@ -23,7 +23,7 @@ import StatusPackage from '../../assets/Status-Package.svg';
 import StatusCar from '../../assets/Status-Car.svg';
 import LicenseCar from '../../assets/car.svg';
 import notifee, {AndroidImportance} from '@notifee/react-native';
-import {JobItem} from '../types/NotificationTypes';
+//import {JobItem} from '../types/NotificationTypes';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -367,15 +367,17 @@ const styles = StyleSheet.create({
   },
 
   emptyContainer: {
-    alignItems: 'top',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginTop: 10, // ชิดบน ไม่ใช่ตรงกลาง
   },
 
   // Title bar
   titleBar: {
+    flexDirection: 'column',
     backgroundColor: '#f4f6f8',
     justifyContent: 'space-between',
-    alignItems: 'Left',
+    alignItems: 'flex-start',
     paddingHorizontal: 26,
     paddingVertical: 46,
     elevation: 2,

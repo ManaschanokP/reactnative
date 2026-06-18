@@ -20,28 +20,29 @@ import Icons from 'react-native-vector-icons/Ionicons';
 import IconO from 'react-native-vector-icons/Octicons';
 import CalenderTGL from '../../assets/CalendarThaiGL.svg';
 import License from '../../assets/license.svg';
+import {RootStackParamList} from '../types/navigationTypes';
 
-type RootStackParamList = {
-  NotificationList: undefined;
+// type RootStackParamList = {
+//   NotificationList: undefined;
 
-  NotificationDetail: {
-    item: NotificationItem;
-  };
+//   NotificationDetail: {
+//     item: NotificationItem;
+//   };
 
-  ViewDetail: {
-    item: {
-      request_id: string;
-      status_id: string;
-      status_name: string;
-      type_name: string;
-      to_company: string;
-      d_date: string;
-      d_time: string;
-    };
+//   ViewDetail: {
+//     item: {
+//       request_id: string;
+//       status_id: string;
+//       status_name: string;
+//       type_name: string;
+//       to_company: string;
+//       d_date: string;
+//       d_time: string;
+//     };
 
-    fromScreen?: string;
-  };
-};
+//     fromScreen?: string;
+//   };
+// };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NotificationDetail'>;
 
@@ -64,6 +65,9 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
         to_company: item.t_com ?? '',
         d_date: item.d_date ?? '',
         d_time: item.d_time ?? '',
+        pickup_date: item.pickup_date ?? '',
+        pickup_time: item.pickup_time ?? '',
+        license_no: item.license_no ?? '',
       },
 
       fromScreen: 'NotificationList',
@@ -142,7 +146,9 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
               <View>
                 <Text style={styles.label}>วันที่ขึ้นของ</Text>
-                <Text style={styles.value}>{item.pickup_date} {' '} {item.pickup_time}</Text>
+                <Text style={styles.value}>
+                  {item.pickup_date} {item.pickup_time}
+                </Text>
               </View>
             </View>
 
@@ -151,14 +157,14 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
               <View>
                 <Text style={styles.label}>วันที่ถึงปลายทาง</Text>
-                <Text style={styles.value}>{item.d_date} {' '}{item.d_time}</Text>
+                <Text style={styles.value}>
+                  {item.d_date} {item.d_time}
+                </Text>
               </View>
             </View>
 
             <View style={styles.detailItem}>
-              <License
-                style={styles.icon}
-              />
+              <License style={styles.icon} />
 
               <View>
                 <Text style={styles.label}>ทะเบียน</Text>

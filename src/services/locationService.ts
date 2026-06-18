@@ -2,49 +2,56 @@ import Geolocation from '@react-native-community/geolocation';
 import BackgroundActions from 'react-native-background-actions';
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PermissionsAndroid, Platform } from 'react-native';
-import { enqueueLocation, flushQueue } from './locationQueue';
+import {PermissionsAndroid, Platform} from 'react-native';
+import {enqueueLocation, flushQueue} from './locationQueue';
 
 const KEYS = {
   REQUEST_ID: 'track_request_id',
-  STATUS_ID:  'track_status_id',
-  USER_ID:    'track_user_id',
-  LAT:        'track_lat',
-  LONG:       'track_long',
-  DIST:       'track_dist',
-  ACTIVE:     'track_active',
+  STATUS_ID: 'track_status_id',
+  USER_ID: 'track_user_id',
+  LAT: 'track_lat',
+  LONG: 'track_long',
+  DIST: 'track_dist',
+  ACTIVE: 'track_active',
 };
 
 // ── Helpers ──────────────────────────────────────────────
 
 export const calculateDistance = (
-  lat1: number, lon1: number,
-  lat2: number, lon2: number,
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
 ): number => {
   if (lat1 === lat2 && lon1 === lon2) return 0;
   const theta = lon1 - lon2;
   let dist =
     Math.sin((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) +
     Math.cos((lat1 * Math.PI) / 180) *
-    Math.cos((lat2 * Math.PI) / 180) *
-    Math.cos((theta * Math.PI) / 180);
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.cos((theta * Math.PI) / 180);
   dist = Math.acos(Math.min(1, Math.max(-1, dist)));
-  dist = (dist * 180) / Math.PI * 60 * 1.1515 * 1.609344;
+  dist = ((dist * 180) / Math.PI) * 60 * 1.1515 * 1.609344;
   return dist;
 };
 
 const getDateTimeNow = (): string => {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+    now.getDate(),
+  )} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 };
 
-const getCurrentPositionAsync = (): Promise<{latitude: number; longitude: number}> =>
+const getCurrentPositionAsync = (): Promise<{
+  latitude: number;
+  longitude: number;
+}> =>
   new Promise((resolve, reject) => {
     Geolocation.getCurrentPosition(
       pos => resolve(pos.coords),
       err => reject(err),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 },
+      {enableHighAccuracy: true, timeout: 15000, maximumAge: 5000},
     );
   });
 
@@ -61,57 +68,78 @@ const trackingTask = async (_taskData: any) => {
 
   while (BackgroundActions.isRunning()) {
     try {
-      const requestId  = await AsyncStorage.getItem(KEYS.REQUEST_ID);
-      const statusId   = await AsyncStorage.getItem(KEYS.STATUS_ID);
-      const userId     = await AsyncStorage.getItem(KEYS.USER_ID);
+      const requestId = await AsyncStorage.getItem(KEYS.REQUEST_ID);
+      const statusId = await AsyncStorage.getItem(KEYS.STATUS_ID);
+      const userId = await AsyncStorage.getItem(KEYS.USER_ID);
 
       if (!requestId || !statusId || !userId) {
         await sleep(10000);
         continue;
       }
 
-      const { latitude, longitude } = await getCurrentPositionAsync();
-      const latLastStr  = await AsyncStorage.getItem(KEYS.LAT);
+      const {latitude, longitude} = await getCurrentPositionAsync();
+      const latLastStr = await AsyncStorage.getItem(KEYS.LAT);
       const longLastStr = await AsyncStorage.getItem(KEYS.LONG);
       const distLastStr = await AsyncStorage.getItem(KEYS.DIST);
-      const distLast    = distLastStr ? parseFloat(distLastStr) : 0;
+      const distLast = distLastStr ? parseFloat(distLastStr) : 0;
       const datetime_location = getDateTimeNow();
 
       let dist = distLast;
 
       if (distLast !== 0 && latLastStr && longLastStr) {
         const moved = calculateDistance(
-          parseFloat(latLastStr), parseFloat(longLastStr),
-          latitude, longitude,
+          parseFloat(latLastStr),
+          parseFloat(longLastStr),
+          latitude,
+          longitude,
         );
-        if (moved > 0.2) {
+        if (moved > 0.1) {
           dist = distLast + moved;
           await AsyncStorage.multiSet([
-            [KEYS.LAT,  latitude.toString()],
+            [KEYS.LAT, latitude.toString()],
             [KEYS.LONG, longitude.toString()],
             [KEYS.DIST, dist.toString()],
           ]);
-          await enqueueLocation({ request_id: requestId, user_id: userId, lat: latitude.toString(), long: longitude.toString(), distance: dist.toString(), status_id: statusId, datetime_location });
+          await enqueueLocation({
+            request_id: requestId,
+            user_id: userId,
+            lat: latitude.toString(),
+            long: longitude.toString(),
+            distance: dist.toString(),
+            status_id: statusId,
+            datetime_location,
+          });
           await flushQueue();
         }
       } else {
         dist = 0.00001;
         await AsyncStorage.multiSet([
-          [KEYS.LAT,  latitude.toString()],
+          [KEYS.LAT, latitude.toString()],
           [KEYS.LONG, longitude.toString()],
           [KEYS.DIST, dist.toString()],
         ]);
-        await enqueueLocation({ request_id: requestId, user_id: userId, lat: latitude.toString(), long: longitude.toString(), distance: dist.toString(), status_id: statusId, datetime_location });
+        await enqueueLocation({
+          request_id: requestId,
+          user_id: userId,
+          lat: latitude.toString(),
+          long: longitude.toString(),
+          distance: dist.toString(),
+          status_id: statusId,
+          datetime_location,
+        });
         await flushQueue();
       }
 
-      console.log(`📍 ${latitude.toFixed(5)}, ${longitude.toFixed(5)} | ${dist.toFixed(3)} km`);
-
+      console.log(
+        `📍 ${latitude.toFixed(5)}, ${longitude.toFixed(5)} | ${dist.toFixed(
+          3,
+        )} km`,
+      );
     } catch (e) {
       console.warn('Tracking loop error:', e);
     }
 
-    await sleep(10000); // รอ 10 วิ แล้วจับตำแหน่งใหม่
+    await sleep(5000); // รอ 5 วิ แล้วจับตำแหน่งใหม่
   }
 
   if (netInfoUnsubscribe) netInfoUnsubscribe();
@@ -123,10 +151,10 @@ const backgroundOptions = {
   taskName: 'LocationTracking',
   taskTitle: 'กำลังติดตามตำแหน่ง',
   taskDesc: 'แอปกำลังบันทึกเส้นทางการจัดส่ง',
-  taskIcon: { name: 'ic_launcher', type: 'mipmap' },
+  taskIcon: {name: 'ic_launcher', type: 'mipmap'},
   color: '#0066CC',
-  linkingURI: 'yourapp://tracking',
-  foregroundServiceType: ['location'],
+  linkingURI: 'myapp://tracking',
+  foregroundServiceType: ['location'] as Array<'location'>, // ✅ Fix: ระบุ literal type แทน string[]
   parameters: {},
 };
 
@@ -160,17 +188,17 @@ export const startLocationTracking = async (
   if (savedRequestId !== request_id) {
     await AsyncStorage.multiSet([
       [KEYS.REQUEST_ID, request_id],
-      [KEYS.STATUS_ID,  status_id],
-      [KEYS.USER_ID,    userId],
-      [KEYS.LAT,        ''],
-      [KEYS.LONG,       ''],
-      [KEYS.DIST,       '0'],
-      [KEYS.ACTIVE,     'true'],
+      [KEYS.STATUS_ID, status_id],
+      [KEYS.USER_ID, userId],
+      [KEYS.LAT, ''],
+      [KEYS.LONG, ''],
+      [KEYS.DIST, '0'],
+      [KEYS.ACTIVE, 'true'],
     ]);
   } else {
     await AsyncStorage.multiSet([
       [KEYS.STATUS_ID, status_id],
-      [KEYS.ACTIVE,    'true'],
+      [KEYS.ACTIVE, 'true'],
     ]);
   }
 

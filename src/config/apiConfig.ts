@@ -7,9 +7,13 @@ const API_BASE_URL = {
  // ALL: 'http://www.i-smartlogistics.com/SmartLogisticsTIND/Api/v2/?op=',
  // TND: 'http://www.i-smartlogistics.com/SmartLogisticsTIND/Api/v1/?op=',
  // TGL: 'http://www.i-smartlogistics.com/logistics/Api/v1/?op=',
-  ALL: 'http://172.16.1.230/SmartLogisticsTIND/Api/v2/?op=',
-  TND: 'http://172.16.1.230/SmartLogisticsTIND/Api/v2/?op=',
-  TGL: 'http://172.16.1.230/logistics/Api/v1/?op=',
+  // ALL: 'http://172.16.1.230/SmartLogisticsTIND/Api/v2/?op=',
+  // TND: 'http://172.16.1.230/SmartLogisticsTIND/Api/v2/?op=',
+  // TGL: 'http://172.16.1.230/logistics/Api/v1/?op=',
+
+  ALL: 'https://dev.i-smartlogistics.com/SmartLogisticsTIND/Api/v2/?op=',
+  TND: 'https://dev.i-smartlogistics.com/SmartLogisticsTIND/Api/v2/?op=',
+  TGL: 'https://dev.i-smartlogistics.com/logistics/Api/v1/?op=',
 };
 
 //export const API_URL = API_BASE_URL[ENV as keyof typeof API_BASE_URL];
