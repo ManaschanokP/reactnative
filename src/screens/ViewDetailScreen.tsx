@@ -43,6 +43,8 @@ import {
 } from '../services/locationService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ImageResizer from 'react-native-image-resizer';
+import RNFS from 'react-native-fs'; // npm install react-native-fs
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ViewDetail'>;
 
@@ -73,7 +75,7 @@ const REQUIRES_PHOTO = [
 const REQUIRES_SIGNATURE_RATING = ['ยกเลิก'];
 const OPTIONAL_SIGNATURE_RATING = ['การจัดส่งสำเร็จ'];
 const REQUIRES_BOX = ['ขึ้นของ'];
-const REQUIRES_MILE = ['กำลังจัดส่ง', 'การดำเนินการสำเร็จ', 'คลังสินค้า'];
+const REQUIRES_MILE = ['กำลังจัดส่ง', 'การดำเนินการสำเร็จ'];
 const TRACKING_START_STATUSES = [
   'กำลังจัดส่ง',
   'เช็คอิน',
@@ -163,9 +165,78 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     return () => clearInterval(interval);
   }, []);
 
+  // ใส่ใน fetchStatusList() หรือ useEffect แรก รันครั้งเดียวตอน mount
   useEffect(() => {
+    // clearSpecificItem();
+    // clearOversizedQueue();
     fetchStatusList();
   }, []);
+
+  const clearSpecificItem = async () => {
+    try {
+      const raw = await AsyncStorage.getItem('offline_queue');
+      if (!raw) return;
+      const queue: any[] = JSON.parse(raw);
+      const filtered = queue.filter(
+        item => String(item.id) !== '1781839061580',
+      );
+      await AsyncStorage.setItem('offline_queue', JSON.stringify(filtered));
+      console.log(
+        `[Queue] ลบ 1781839061580 ออกแล้ว เหลือ ${filtered.length} items`,
+      );
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
+  const clearOversizedQueue = async () => {
+    try {
+      const raw = await AsyncStorage.getItem('offline_queue');
+      if (!raw) return;
+
+      const queue: any[] = JSON.parse(raw);
+
+      queue.forEach(item => {
+        const picture = item.payload?.picture ?? '';
+        const sizeKB = Math.round((picture.length * 3) / 4 / 1024);
+        console.log(
+          `[Queue] item ${item.id} payload keys:`,
+          Object.keys(item.payload ?? {}),
+        );
+        console.log(
+          `[Queue] item ${item.id} payload:`,
+          JSON.stringify(item.payload).slice(0, 200),
+        );
+        console.log(
+          `[Queue] item ${item.id} | picture size: ${sizeKB} KB | endpoint: ${item.endpoint}`,
+        );
+      });
+
+      const before = queue.length;
+
+      const filtered = queue.filter(item => {
+        const picture = item.payload?.picture ?? '';
+        if (!picture) return true; // ไม่มีรูป → เก็บไว้
+        const sizeKB = Math.round((picture.length * 3) / 4 / 1024);
+        if (sizeKB > 3500) {
+          console.warn(
+            `[Queue] ลบ item ${item.id} ขนาด ${sizeKB} KB (เกิน 3.5MB)`,
+          );
+          return false;
+        }
+        return true; // รูปเล็กพอ → เก็บไว้ sync
+      });
+
+      await AsyncStorage.setItem('offline_queue', JSON.stringify(filtered));
+      console.log(
+        `[Queue] ลบออก ${before - filtered.length} items / เหลือ ${
+          filtered.length
+        } items`,
+      );
+    } catch (e) {
+      console.warn('[Queue] clearOversizedQueue error:', e);
+    }
+  };
 
   const fetchStatusList = async () => {
     try {
@@ -195,17 +266,16 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         }
         setStatusList(names);
         setSelectedStatus(names[0]);
-      } else if (item.status_id === 'SD05') {
-        const names = [
-          'รับเอกสารกลับ',
-          'เช็คเอ้าท์',
-          'การดำเนินการสำเร็จ',
-          'พบปัญหา',
-        ];
+      } else if (item.status_id === 'SD07') {
+        const names = ['การดำเนินการสำเร็จ', 'พบปัญหา'];
         setStatusList(names);
         setSelectedStatus(names[0]);
       } else if (item.status_id === 'SD04') {
         const names = ['ยกเลิก'];
+        setStatusList(names);
+        setSelectedStatus(names[0]);
+      } else if (item.status_id === 'SD06') {
+        const names = ['เช็คเอ้าท์', 'การดำเนินการสำเร็จ', 'พบปัญหา'];
         setStatusList(names);
         setSelectedStatus(names[0]);
       }
@@ -218,6 +288,11 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           'การดำเนินการสำเร็จ',
           'พบปัญหา',
         ];
+        setStatusList(names);
+        setSelectedStatus(names[0]);
+      } else if (item.status_id === 'SD06') {
+        // ✅ เพิ่ม
+        const names = ['เช็คเอ้าท์', 'การดำเนินการสำเร็จ', 'พบปัญหา'];
         setStatusList(names);
         setSelectedStatus(names[0]);
       }
@@ -238,21 +313,59 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         },
       );
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert('ไม่ได้รับสิทธิ์', 'กรุณาเปิดสิทธิ์กล้องในการตั้งค่าแอป', [
-          {text: 'ตกลง'},
-        ]);
+        Alert.alert('ไม่ได้รับสิทธิ์', 'กรุณาเปิดสิทธิ์กล้องในการตั้งค่าแอป');
         return;
       }
     }
+
     launchCamera(
-      {mediaType: 'photo', includeBase64: true, quality: 0.6},
-      response => {
+      {
+        mediaType: 'photo',
+        includeBase64: false, // ❌ ไม่เอา base64 ตรงนี้ เอาแค่ uri
+        quality: 1, // ถ่ายเต็ม quality ก่อน แล้วค่อย resize
+      },
+      async response => {
         if (response.didCancel || response.errorCode) return;
         const asset = response.assets?.[0];
-        if (asset?.uri && asset?.base64) {
-          const photoData = {uri: asset.uri, base64: asset.base64};
+        if (!asset?.uri) return;
+
+        try {
+          // ── Step 1: Resize + Compress ──
+          const resized = await ImageResizer.createResizedImage(
+            asset.uri,
+            1920, // maxWidth
+            1920, // maxHeight
+            'JPEG',
+            80, // quality
+            0,
+            undefined,
+            false,
+            {mode: 'contain'},
+          );
+
+          // ── Step 2: แปลงเป็น base64 ──
+          const base64 = await RNFS.readFile(resized.uri, 'base64');
+
+          // ── Step 3: เช็คขนาด ──
+          const sizeKB = Math.round((base64.length * 3) / 4 / 1024);
+          console.log(`[Photo] หลัง resize: ${sizeKB} KB`);
+
+          if (sizeKB > 200 * 1024) {
+            Alert.alert(
+              'รูปใหญ่เกินไป',
+              `ขนาด ${sizeKB} KB เกิน 200MB\nกรุณาถ่ายใหม่`,
+            );
+            return;
+          }
+
+          const photoData = {uri: asset.uri, base64};
+          console.log('[Photo] asset.uri:', asset.uri);
+          console.log('[Photo] resized.uri:', resized.uri);
           setPhoto(photoData);
           photoRef.current = photoData;
+        } catch (err) {
+          console.error('[Photo] resize error:', err);
+          Alert.alert('ข้อผิดพลาด', 'ไม่สามารถประมวลผลรูปได้');
         }
       },
     );
@@ -932,7 +1045,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                   )}
                 </Pressable>
 
-                <View style={{height: insets.bottom + 120 }} />
+                <View style={{height: insets.bottom + 120}} />
               </View>
             </ScrollView>
           </View>
@@ -963,7 +1076,7 @@ const InfoRow = ({
 // ── Main Styles ──
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#93D500'},
-  content: {padding: 0, paddingBottom: 16 , flexGrow: 1},
+  content: {padding: 0, paddingBottom: 16, flexGrow: 1},
   safeArea: {
     flex: 1,
     backgroundColor: '#93D500',

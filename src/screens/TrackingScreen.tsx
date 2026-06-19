@@ -31,7 +31,7 @@ interface Track {
   esig_req: string | null;
 }
 
-const PICTURE_BASE_URL = 'http://172.16.1.230/logistics/';
+const PICTURE_BASE_URL = 'https://dev.i-smartlogistics.com/logistics/';
 
 export default function TrackingScreen({route, navigation}: Props) {
   const {requestId} = route.params;
@@ -75,6 +75,9 @@ export default function TrackingScreen({route, navigation}: Props) {
 
   const getImageUri = (value: string | null | undefined): string | null => {
     if (!value || value.trim() === '') return null;
+
+    console.log('[getImageUri] raw value:', value);
+
     if (value.startsWith('http') || value.startsWith('data:')) return value;
     return `${PICTURE_BASE_URL}${value}`;
   };
