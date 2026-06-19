@@ -932,7 +932,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                   )}
                 </Pressable>
 
-                <View style={{height: insets.bottom + 200 }} />
+                <View style={{height: insets.bottom + 120 }} />
               </View>
             </ScrollView>
           </View>
@@ -963,7 +963,7 @@ const InfoRow = ({
 // ── Main Styles ──
 const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#93D500'},
-  content: {padding: 0, paddingBottom: 16},
+  content: {padding: 0, paddingBottom: 16 , flexGrow: 1},
   safeArea: {
     flex: 1,
     backgroundColor: '#93D500',
@@ -994,7 +994,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   cardA: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#FFFFFF',
     width: '100%',
     borderTopLeftRadius: 30,
