@@ -118,7 +118,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
     }
   };
 
-  const isPickupOverdue = (dateStr: string, timeStr: string): boolean => {
+  const isTextOverdue = (dateStr: string, timeStr: string): boolean => {
     try {
       let isoDate = dateStr;
       if (dateStr.includes('/')) {
@@ -131,14 +131,6 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
       return false;
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      //if (hasFetchedRef.current) {
-      fetchJobs(status);
-      // }
-    }, [startDate, endDate, status]),
-  );
 
   const handleStartDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
@@ -155,79 +147,105 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
     }
   };
 
-  const fetchJobs = async (currentStatus = status) => {
-    //รับค่าตรงๆ ไม่ใช้ closure
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await getMyJobs({
-        driver: user.id,
-        start: toApiDate(startDate),
-        end: toApiDate(endDate),
-        status: '01',
-      });
-      if (response.error) {
-        setJobs([]);
-        setError(response.message ?? 'ไม่พบข้อมูล');
-        return;
-      }
-      const sorted = [...response.MyJobs].sort((a, b) => {
-        const parseDate = (date: string, time: string) => {
-          if (date.includes('/')) {
-            const [d, m, y] = date.split('/');
-            return new Date(`${y}-${m}-${d} ${time}`).getTime();
+  const fetchJobs = useCallback(
+    async (currentStatus = status) => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await getMyJobs({
+          driver: user.id,
+          start: toApiDate(startDate),
+          end: toApiDate(endDate),
+          status: '01',
+        });
+
+        if (response.error) {
+          setJobs([]);
+          setError(response.message ?? 'ไม่พบข้อมูล');
+          return;
+        }
+
+        const sorted = [...response.MyJobs].sort((a, b) => {
+          const parseDate = (date: string, time: string) => {
+            if (date.includes('/')) {
+              const [d, m, y] = date.split('/');
+              return new Date(`${y}-${m}-${d} ${time}`).getTime();
+            }
+            return new Date(`${date} ${time}`).getTime();
+          };
+
+          return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
+        });
+
+        const filtered = sorted.filter(job => {
+          if (currentStatus === '01') return true;
+
+          if (currentStatus === '02') {
+            return (
+              job.status_id !== 'SD09' &&
+              job.status_id !== 'SD04' &&
+              job.status_id !== 'SD10' &&
+              job.status_id !== 'SSSS'
+            );
           }
-          return new Date(`${date} ${time}`).getTime();
-        };
-        return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
-      });
 
-      const filtered = sorted.filter(job => {
-        if (currentStatus === '01') return true;
-        if (currentStatus === '02')
-          return (
-            job.status_id !== 'SD09' &&
-            job.status_id !== 'SD04' &&
-            job.status_id !== 'SD10' &&
-            job.status_id !== 'SSSS'
-          );
-        if (currentStatus === '03')
-          return (
-            job.status_id === 'SD09' || job.status_name === 'ดำเนินการสำเร็จ'
-          );
-        if (currentStatus === '04')
-          return (
-            job.status_id === 'SD04' ||
-            job.status_name === 'พบปัญหา' ||
-            job.status_id === 'SSSS' ||
-            job.status_name === 'คำขอถูกปฏิเสธ'
-          );
-        // if (currentStatus === '05')
-        //   return job.status_id === 'SD10' || job.status_name === 'ยกเลิก';
-        return true;
-      });
+          if (currentStatus === '03') {
+            return (
+              job.status_id === 'SD09' || job.status_name === 'ดำเนินการสำเร็จ'
+            );
+          }
 
-      setJobs(filtered);
-      // hasFetchedRef.current = true;
-    } catch (err) {
-      setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+          if (currentStatus === '04') {
+            return (
+              job.status_id === 'SD04' ||
+              job.status_name === 'พบปัญหา' ||
+              job.status_id === 'SSSS' ||
+              job.status_name === 'คำขอถูกปฏิเสธ'
+            );
+          }
+
+          return true;
+        });
+
+        setJobs(filtered);
+      } catch (err) {
+        setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user.id, startDate, endDate, status],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchJobs();
+    }, [fetchJobs]),
+  );
 
   const renderItem = ({item}: {item: JobItem}) => {
     const statusStyle = getStatusStyle(item.status_id, item.status_name);
-    const overdue =
-      ['SD00' , 'S002'].includes(item.status_id) &&
+
+    //แจ้งเตือนวันขึ้นของ
+    const START_OVERDUE_STATUS = ['SD00', 'S002'];
+    const StartOverdue =
+      START_OVERDUE_STATUS.includes(item.status_id) &&
       isOverdue(item.pickup_date, item.pickup_time);
     const pickupOverdue =
-      ['SD00' , 'S002'].includes(item.status_id) &&
-      isPickupOverdue(item.pickup_date, item.pickup_time);
-    const endOverdue =
-      ['SD02','SD03', 'SD01', 'SD00' , 'S002'].includes(item.status_id) && 
-      isPickupOverdue(item.d_date, item.d_time);
+      START_OVERDUE_STATUS.includes(item.status_id) &&
+      isTextOverdue(item.pickup_date, item.pickup_time);
+
+    //แจ้งเตือนวันที่ต้องถึงปลายทาง
+    const END_OVERDUE_STATUS = ['SD02', 'SD03', 'SD01', 'SD00', 'S002'];
+    const EndOverdue =
+      END_OVERDUE_STATUS.includes(item.status_id) &&
+      isOverdue(item.d_date, item.d_time);
+    const d_Overdue =
+      END_OVERDUE_STATUS.includes(item.status_id) &&
+      isTextOverdue(item.d_date, item.d_time);
+
     return (
       <View style={styles.cardWrapper}>
         <TouchableOpacity
@@ -268,10 +286,14 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
 
               <View style={styles.dateRow2}>
                 <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
-                <Text style={[styles.timeSubtitle,endOverdue && {
-                    color: '#e74c3c',
-                    fontFamily: 'Quicksand-Bold',
-                  },]}>
+                <Text
+                  style={[
+                    styles.timeSubtitle,
+                    d_Overdue && {
+                      color: '#e74c3c',
+                      fontFamily: 'Quicksand-Bold',
+                    },
+                  ]}>
                   {item.d_date} {item.d_time}
                 </Text>
               </View>
@@ -350,7 +372,12 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
             </View>
           </View>
         </TouchableOpacity>
-        {overdue && (
+        {StartOverdue && (
+          <View style={styles.overdotBadge}>
+            <Text style={styles.overdotText}>!</Text>
+          </View>
+        )}
+        {EndOverdue && (
           <View style={styles.overdotBadge}>
             <Text style={styles.overdotText}>!</Text>
           </View>
