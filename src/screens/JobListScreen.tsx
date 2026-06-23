@@ -1,4 +1,4 @@
-import React, {useState, useContext, useCallback, useRef} from 'react';
+import React, {useState, useContext, useCallback} from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,7 @@ import {
   Modal,
   Image,
   useWindowDimensions,
-  Dimensions,
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
 import DatePicker, {DateType} from 'react-native-ui-datepicker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {Button} from 'react-native-elements';
@@ -22,8 +20,6 @@ import {AuthContext} from '../context/AuthProvider';
 import {getMyJobs} from '../services/apiService';
 import {JobItem} from '../types/jobTypes';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import IonIcon from 'react-native-vector-icons/Ionicons';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import StatusIdCardIcon from '../../assets/ID-TGL.svg';
 import StatusMask from '../../assets/Status-Mark.svg';
@@ -57,7 +53,7 @@ const STATUS_OPTIONS = [
   // {label: 'ยกเลิก', value: '05'},
 ];
 
-// ✅ สีและข้อความตาม status
+//สีและข้อความตาม status
 const getStatusStyle = (statusId: string, statusName?: string) => {
   if (statusId === 'S002' || statusName === 'มอบหมายงานสำเร็จ')
     return {bg: '#fffde6', text: '#D98600', dot: '#D98600'};
@@ -107,9 +103,34 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
 
   const {width} = useWindowDimensions();
   const numColumns = width >= 600 ? 2 : 1;
-  const {height} = Dimensions.get('window');
 
-  const hasFetchedRef = useRef(false);
+  const isOverdue = (dateStr: string, timeStr: string): boolean => {
+    try {
+      let isoDate = dateStr;
+      if (dateStr.includes('/')) {
+        const [d, m, y] = dateStr.split('/');
+        isoDate = `${y}-${m}-${d}`;
+      }
+      const jobTime = new Date(`${isoDate} ${timeStr}`);
+      return jobTime < new Date();
+    } catch {
+      return false;
+    }
+  };
+
+  const isPickupOverdue = (dateStr: string, timeStr: string): boolean => {
+    try {
+      let isoDate = dateStr;
+      if (dateStr.includes('/')) {
+        const [d, m, y] = dateStr.split('/');
+        isoDate = `${y}-${m}-${d}`;
+      }
+      const pickupTime = new Date(`${isoDate} ${timeStr}`);
+      return pickupTime < new Date();
+    } catch {
+      return false;
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -135,7 +156,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const fetchJobs = async (currentStatus = status) => {
-    // ✅ รับค่าตรงๆ ไม่ใช้ closure
+    //รับค่าตรงๆ ไม่ใช้ closure
     try {
       setLoading(true);
       setError(null);
@@ -198,112 +219,143 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
 
   const renderItem = ({item}: {item: JobItem}) => {
     const statusStyle = getStatusStyle(item.status_id, item.status_name);
+    const overdue =
+      ['SD00' , 'S002'].includes(item.status_id) &&
+      isOverdue(item.pickup_date, item.pickup_time);
+    const pickupOverdue =
+      ['SD00' , 'S002'].includes(item.status_id) &&
+      isPickupOverdue(item.pickup_date, item.pickup_time);
+    const endOverdue =
+      ['SD02','SD03', 'SD01', 'SD00' , 'S002'].includes(item.status_id) && 
+      isPickupOverdue(item.d_date, item.d_time);
     return (
-      <TouchableOpacity
-        style={styles.jobCard}
-        onPress={() => {
-          if (
-            item.status_id !== 'SD09' &&
-            item.status_name !== 'ดำเนินการสำเร็จ' &&
-            item.status_id !== 'SD04' &&
-            item.status_name !== 'พบปัญหา' &&
-            item.status_id !== 'SD10' &&
-            item.status_name !== 'ยกเลิก' &&
-            item.status_id !== 'SSSS' &&
-            item.status_name !== 'คำขอถูกปฏิเสธ'
-          ) {
-            navigation.navigate('ViewDetail', {item});
-          }
-        }}
-        activeOpacity={
-          item.status_id === 'SD09' || item.status_name === 'ดำเนินการสำเร็จ' ||
-          item.status_id === 'SD10' || item.status_name === 'ยกเลิก' ||
-          item.status_id === 'SD04' || item.status_name === 'พบปัญหา' ||
-          item.status_id === 'SSSS' || item.status_name === 'คำขอถูกปฏิเสธ' 
-            ? 1
-            : 0.8
-        }>
-        {/* ── Header row ── */}
-        <View style={styles.cardHeader}>
-          <View>
-            <View style={styles.idRow}>
-              <StatusIdCardIcon width={30} height={30} />
-              <Text style={styles.requestId}>{item.request_id}</Text>
+      <View style={styles.cardWrapper}>
+        <TouchableOpacity
+          style={styles.jobCard}
+          onPress={() => {
+            if (
+              item.status_id !== 'SD09' &&
+              item.status_name !== 'ดำเนินการสำเร็จ' &&
+              item.status_id !== 'SD04' &&
+              item.status_name !== 'พบปัญหา' &&
+              item.status_id !== 'SD10' &&
+              item.status_name !== 'ยกเลิก' &&
+              item.status_id !== 'SSSS' &&
+              item.status_name !== 'คำขอถูกปฏิเสธ'
+            ) {
+              navigation.navigate('ViewDetail', {item});
+            }
+          }}
+          activeOpacity={
+            item.status_id === 'SD09' ||
+            item.status_name === 'ดำเนินการสำเร็จ' ||
+            item.status_id === 'SD10' ||
+            item.status_name === 'ยกเลิก' ||
+            item.status_id === 'SD04' ||
+            item.status_name === 'พบปัญหา' ||
+            item.status_id === 'SSSS' ||
+            item.status_name === 'คำขอถูกปฏิเสธ'
+              ? 1
+              : 0.8
+          }>
+          {/* ── Header row ── */}
+          <View style={styles.cardHeader}>
+            <View>
+              <View style={styles.idRow}>
+                <StatusIdCardIcon width={30} height={30} />
+                <Text style={styles.requestId}>{item.request_id}</Text>
+              </View>
+
+              <View style={styles.dateRow2}>
+                <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
+                <Text style={[styles.timeSubtitle,endOverdue && {
+                    color: '#e74c3c',
+                    fontFamily: 'Quicksand-Bold',
+                  },]}>
+                  {item.d_date} {item.d_time}
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.dateRow2}>
-              <Text style={styles.dateSubtitle}>วันที่ถึงปลายทาง</Text>
-              <Text style={styles.timeSubtitle}>
-                {item.d_date} {item.d_time}
-              </Text>
-            </View>
-          </View>
-
-          <View style={[styles.statusBadge, {backgroundColor: statusStyle.bg}]}>
-            <Text style={[styles.statusText, {color: statusStyle.text}]}>
-              {getFilterStatusLabel(item.status_id, item.status_name)}
-            </Text>
             <View
-              style={[styles.statusDot, {backgroundColor: statusStyle.dot}]}
-            />
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        {/* ── ปลายทาง ── */}
-        <View style={styles.infoRow}>
-          <StatusMask width={20} height={20} color="#373737" />
-          <View>
-            <Text style={styles.infoLabel}>ปลายทาง</Text>
-            <Text style={styles.infoValue}>{item.to_company}</Text>
-          </View>
-        </View>
-        {/* ── ประเภทบริการ ── */}
-        <View style={styles.infoRow}>
-          <StatusPackage width={20} height={20} color="#373737" />
-          <View>
-            <Text style={styles.infoLabel}>ประเภทการบริการ</Text>
-            <Text style={styles.infoValue}>{item.type_name}</Text>
-          </View>
-        </View>
-
-        <View style={styles.infoRow}>
-          <StatusCalendar width={20} height={20} color="#373737" />
-          <View>
-            <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
-            <Text style={styles.footerDate}>
-              {item.pickup_date} {item.pickup_time}
-            </Text>
-          </View>
-        </View>
-
-        {/* ── วันที่ + สถานะล่าง ── */}
-        {/* ── Footer ── */}
-        <View style={styles.infoRow}>
-          <View style={styles.footerItemLeft}>
-            <LicenseCar width={20} height={20} color="#373737" />
-            <View>
-              <Text style={styles.infoLabel}>ทะเบียน</Text>
-              <Text style={styles.footerDate}>{item.license_no}</Text>
+              style={[styles.statusBadge, {backgroundColor: statusStyle.bg}]}>
+              <Text style={[styles.statusText, {color: statusStyle.text}]}>
+                {getFilterStatusLabel(item.status_id, item.status_name)}
+              </Text>
+              <View
+                style={[styles.statusDot, {backgroundColor: statusStyle.dot}]}
+              />
             </View>
           </View>
-          <View style={[styles.footerItemRight]}>
-            <StatusCar width={20} height={20} color="#373737" />
+
+          <View style={styles.divider} />
+
+          {/* ── ปลายทาง ── */}
+          <View style={styles.infoRow}>
+            <StatusMask width={20} height={20} color="#373737" />
             <View>
-              <Text style={styles.infoLabel}>สถานะ</Text>
+              <Text style={styles.infoLabel}>ปลายทาง</Text>
+              <Text style={styles.infoValue}>{item.to_company}</Text>
+            </View>
+          </View>
+          {/* ── ประเภทบริการ ── */}
+          <View style={styles.infoRow}>
+            <StatusPackage width={20} height={20} color="#373737" />
+            <View>
+              <Text style={styles.infoLabel}>ประเภทการบริการ</Text>
+              <Text style={styles.infoValue}>{item.type_name}</Text>
+            </View>
+          </View>
+
+          <View style={styles.infoRow}>
+            <StatusCalendar width={20} height={20} color="#373737" />
+            <View>
+              <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
               <Text
                 style={[
-                  styles.statusText,
-                  item.status_id === 'SD04' && {color: '#e74c3c'},
-                  item.status_id === 'SD10' && {color: '#e74c3c'},
+                  styles.footerDate,
+                  pickupOverdue && {
+                    color: '#e74c3c',
+                    fontFamily: 'Quicksand-Bold',
+                  },
                 ]}>
-                {item.status_name}
+                {item.pickup_date} {item.pickup_time}
               </Text>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
+
+          {/* ── วันที่ + สถานะล่าง ── */}
+          {/* ── Footer ── */}
+          <View style={styles.infoRow}>
+            <View style={styles.footerItemLeft}>
+              <LicenseCar width={20} height={20} color="#373737" />
+              <View>
+                <Text style={styles.infoLabel}>ทะเบียน</Text>
+                <Text style={styles.footerDate}>{item.license_no}</Text>
+              </View>
+            </View>
+            <View style={[styles.footerItemRight]}>
+              <StatusCar width={20} height={20} color="#373737" />
+              <View>
+                <Text style={styles.infoLabel}>สถานะ</Text>
+                <Text
+                  style={[
+                    styles.statusText,
+                    item.status_id === 'SD04' && {color: '#e74c3c'},
+                    item.status_id === 'SD10' && {color: '#e74c3c'},
+                  ]}>
+                  {item.status_name}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+        {overdue && (
+          <View style={styles.overdotBadge}>
+            <Text style={styles.overdotText}>!</Text>
+          </View>
+        )}
+      </View>
     );
   };
 
@@ -481,6 +533,29 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 10,
     flexGrow: 1,
+  },
+  cardWrapper: {
+    flex: 1,
+    position: 'relative', //ให้จุดแดง absolute ได้
+  },
+
+  overdotBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#e74c3c',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    zIndex: 10,
+  },
+  overdotText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Quicksand-Bold',
   },
 
   // Filter bar
