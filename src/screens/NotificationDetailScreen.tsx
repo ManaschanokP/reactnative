@@ -56,12 +56,13 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const canStartWork = item.status_name !== 'การดำเนินการสำเร็จ';
 
   const handleStartWork = () => {
+     console.log('[Debug] item.type_name:', item.type_name,item.request_id,item.t_com,item.remake); 
     navigation.navigate('ViewDetail', {
       item: {
         request_id: item.request_id,
         status_id: 'SD00',
         status_name: 'กำลังไปรับของ',
-        type_name: item.type_name ?? '',
+        type_name: item.remake ?? '',
         to_company: item.t_com ?? '',
         d_date: item.d_date ?? '',
         d_time: item.d_time ?? '',
@@ -181,7 +182,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
               />
 
               <View style={{flex: 1}}>
-                <Text style={styles.label}>รายละเอียด</Text>
+                <Text style={styles.label}>ประเภทการบริการ</Text>
                 <Text style={styles.value}>{item.remake}</Text>
               </View>
             </View>
