@@ -33,7 +33,13 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const canStartWork = item.status_name !== 'การดำเนินการสำเร็จ';
 
   const handleStartWork = () => {
-     console.log('[Debug] item.type_name:', item.type_name,item.request_id,item.t_com,item.remake); 
+    console.log(
+      '[Debug] item.type_name:',
+      item.type_name,
+      item.request_id,
+      item.t_com,
+      item.remake,
+    );
     navigation.navigate('ViewDetail', {
       item: {
         request_id: item.request_id,
