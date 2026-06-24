@@ -1045,7 +1045,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                   )}
                 </Pressable>
 
-                <View style={{height: insets.bottom + 120}} />
+                <View style={{height: insets.bottom + 70}} />
               </View>
             </ScrollView>
           </View>
