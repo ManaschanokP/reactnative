@@ -23,7 +23,6 @@ import StatusPackage from '../../assets/Status-Package.svg';
 import StatusCar from '../../assets/Status-Car.svg';
 import LicenseCar from '../../assets/car.svg';
 import notifee, {AndroidImportance} from '@notifee/react-native';
-//import {JobItem} from '../types/NotificationTypes';
 
 type RootStackParamList = {
   NotificationList: undefined;
@@ -73,14 +72,7 @@ const NotificationListScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const {width} = useWindowDimensions();
-  const numColumns = width >= 600 ? 2 : 1; // tablet = 2 col, phone = 1 col
-  const ICON_SIZE = Math.round(width * 0.08);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchNotifications();
-    }, [user]),
-  );
+  const numColumns = width >= 600 ? 2 : 1; // tablet = 2 col, phone = 1 co
 
   const triggerSystemNotification = async (
     requestId: string,
@@ -110,7 +102,7 @@ const NotificationListScreen: React.FC = () => {
     });
   };
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -122,7 +114,10 @@ const NotificationListScreen: React.FC = () => {
       };
 
       const response = await getNotifications(params);
-      if (response.error) throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
+
+      if (response.error) {
+        throw new Error(response.message ?? 'เกิดข้อผิดพลาด');
+      }
 
       const filtered = response.Notification.filter(
         (item: NotificationItem) => item.status_name === 'มอบหมายงานสำเร็จ',
@@ -134,25 +129,29 @@ const NotificationListScreen: React.FC = () => {
             const [d, m, y] = date.split('/');
             return new Date(`${y}-${m}-${d} ${time}`).getTime();
           }
+
           return new Date(`${date} ${time}`).getTime();
         };
+
         return parseDate(b.d_date, b.d_time) - parseDate(a.d_date, a.d_time);
       });
 
       setData(prevData => {
         if (prevData.length > 0 && sorted.length > 0) {
           const newestJob = sorted[0];
+
           const isBrandNewJob = !prevData.some(
             oldItem => oldItem.request_id === newestJob.request_id,
           );
 
           if (isBrandNewJob) {
-            // 🔥 สั่งเด้งแจ้งเตือนบนแถบ Noti ของมือถือทันที
             triggerSystemNotification(newestJob.request_id, newestJob.t_com);
           }
         }
+
         return sorted;
       });
+
       setHasUnreadNoti(sorted.length > 0);
     } catch (err) {
       setError('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
@@ -160,7 +159,13 @@ const NotificationListScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.status, user.id, setHasUnreadNoti]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+    }, [fetchNotifications]),
+  );
 
   const isOverdue = (dateStr: string, timeStr: string): boolean => {
     try {
@@ -248,7 +253,11 @@ const NotificationListScreen: React.FC = () => {
           </View>
 
           <View style={styles.infoRow}>
-            <StatusCalendar width={20} height={20} color={pickupOverdue ? '#e74c3c' : '#373737'} />
+            <StatusCalendar
+              width={20}
+              height={20}
+              color={pickupOverdue ? '#e74c3c' : '#373737'}
+            />
             <View>
               <Text style={styles.infoLabel}>วันที่ขึ้นของ</Text>
               <Text

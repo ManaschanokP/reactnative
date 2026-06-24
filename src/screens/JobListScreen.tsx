@@ -218,7 +218,6 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
     },
     [user.id, startDate, endDate, status],
   );
-
   useFocusEffect(
     useCallback(() => {
       fetchJobs();
