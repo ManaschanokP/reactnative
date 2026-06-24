@@ -11,7 +11,6 @@ import {
   Pressable,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {NotificationItem} from '../types/notificationTypes';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {getCompanyColor} from '../context/AuthProvider';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -21,28 +20,6 @@ import IconO from 'react-native-vector-icons/Octicons';
 import CalenderTGL from '../../assets/CalendarThaiGL.svg';
 import License from '../../assets/license.svg';
 import {RootStackParamList} from '../types/navigationTypes';
-
-// type RootStackParamList = {
-//   NotificationList: undefined;
-
-//   NotificationDetail: {
-//     item: NotificationItem;
-//   };
-
-//   ViewDetail: {
-//     item: {
-//       request_id: string;
-//       status_id: string;
-//       status_name: string;
-//       type_name: string;
-//       to_company: string;
-//       d_date: string;
-//       d_time: string;
-//     };
-
-//     fromScreen?: string;
-//   };
-// };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NotificationDetail'>;
 
@@ -76,7 +53,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={styles.containerNobackground}>
       <View style={styles.container}>
         <StatusBar backgroundColor={companyColor} barStyle="light-content" />
 
@@ -181,7 +158,7 @@ const NotificationDetailScreen: React.FC<Props> = ({route, navigation}) => {
                 style={styles.icon}
               />
 
-              <View style={{flex: 1}}>
+              <View>
                 <Text style={styles.label}>ประเภทการบริการ</Text>
                 <Text style={styles.value}>{item.remake}</Text>
               </View>
@@ -244,6 +221,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#97d700',
+  },
+
+  containerNobackground: {
+    flex: 1,
   },
 
   header: {
