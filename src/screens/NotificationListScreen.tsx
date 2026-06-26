@@ -199,6 +199,7 @@ const NotificationListScreen: React.FC = () => {
     const statusStyle = getStatusStyle(item.status_name);
     const overdue = isOverdue(item.pickup_date, item.pickup_time);
     const pickupOverdue = isPickupOverdue(item.pickup_date, item.pickup_time);
+    console.log("status : ",item.status_name);
     return (
       <View style={styles.cardWrapper}>
         <TouchableOpacity
@@ -436,7 +437,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     gap: 6,
   },
-  statusText: {fontSize: 12, fontFamily: 'Quicksand-Bold', marginBottom: 3},
+  statusText: {fontSize: 12, fontFamily: 'Quicksand-Medium', marginBottom: 3, color: '#000000'},
   statusDot: {width: 7, height: 7, borderRadius: 4},
   divider: {height: 1, backgroundColor: '#f0f0f0'},
 

@@ -126,6 +126,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
             <View style={styles.searchContainer}>
               <TextInput
                 placeholder="ป้อนหมายเลขติดตาม"
+                placeholderTextColor="#afafaf"
                 value={searchId}
                 onChangeText={text => setSearchId(formatRequestId(text))}
                 style={styles.searchInput}
@@ -253,6 +254,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     fontSize: 16,
     fontFamily: 'Quicksand-Medium',
+    color: '#000',
   },
   searchButton: {
     width: 60,
