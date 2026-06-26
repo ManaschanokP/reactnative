@@ -747,9 +747,8 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    fontFamily: 'Quicksand-Medium',
+    fontFamily: 'Quicksand-Bold',
     marginBottom: 3,
-    color: '#000000',
   },
   statusDot: {width: 7, height: 7, borderRadius: 4},
   divider: {height: 1, backgroundColor: '#f0f0f0'},
