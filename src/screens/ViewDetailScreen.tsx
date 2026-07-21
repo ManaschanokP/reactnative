@@ -45,6 +45,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImageResizer from 'react-native-image-resizer';
 import RNFS from 'react-native-fs'; // npm install react-native-fs
+import CustomModal from '../components/Modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ViewDetail'>;
 
@@ -576,112 +577,61 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     return companyColor ?? '#93D500';
   };
 
-  const darkenColor = (hex: string, amount: number = 0.2): string => {
-    const num = parseInt(hex.replace('#', ''), 16);
-    const r = Math.max(0, (num >> 16) - Math.round(255 * amount));
-    const g = Math.max(0, ((num >> 8) & 0xff) - Math.round(255 * amount));
-    const b = Math.max(0, (num & 0xff) - Math.round(255 * amount));
-    return `#${r.toString(16).padStart(2, '0')}${g
-      .toString(16)
-      .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-  };
-
   return (
     <>
       {/* ── Confirm Modal ── */}
-      <Modal transparent visible={showConfirm} animationType="fade">
-        <View style={modalStyles.overlay}>
-          <View style={modalStyles.box}>
-            <View
-              style={[
-                modalStyles.iconCircle,
-                {backgroundColor: getConfirmColor()},
-              ]}>
-              <Text style={modalStyles.iconText}>!</Text>
-            </View>
-            <Text style={modalStyles.title}>ยืนยัน</Text>
-            <Text style={modalStyles.message}>
-              ต้องการอัปเดตสถานะเป็น {'\n'}"{selectedStatus}" ใช่ไหม ?
-            </Text>
-            <View style={modalStyles.buttons}>
-              <TouchableOpacity
-                style={modalStyles.cancelBtn}
-                onPress={() => setShowConfirm(false)}>
-                <Text style={modalStyles.cancelText}>ยกเลิก</Text>
-              </TouchableOpacity>
-              <Pressable
-                style={({pressed}) => [
-                  modalStyles.confirmBtn,
-                  {
-                    backgroundColor: pressed
-                      ? darkenColor(companyColor ?? '#93D500', 0.2)
-                      : companyColor ?? '#93D500',
-                  },
-                ]}
-                onPress={() => {
-                  setShowConfirm(false);
-                  // ✅ FIX 1: ส่ง pendingStatusName แทน selectedStatus
-                  doUpdate(pendingStatusId, pendingStatusName);
-                }}>
-                <Text style={modalStyles.confirmText}>ยืนยัน</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <CustomModal
+        visible={showConfirm}
+        icon="!"
+        iconBackgroundColor={getConfirmColor()}
+        title="ยืนยัน"
+        message={`ต้องการอัปเดตสถานะเป็น\n"${selectedStatus}" ใช่ไหม ?`}
+        buttons={[
+          {
+            text: 'ยกเลิก',
+            color: '#FFFFFF',
+            textColor: '#000000',
+            borderColor: '#000000',
+            onPress: () => setShowConfirm(false),
+          },
+          {
+            text: 'ยืนยัน',
+            color: companyColor,
+            onPress: () => {
+              setShowConfirm(false);
+
+              // ส่ง pendingStatusName แทน selectedStatus
+              doUpdate(pendingStatusId, pendingStatusName);
+            },
+          },
+        ]}
+      />
 
       {/* ── Success Modal ── */}
-      <Modal transparent visible={showSuccess} animationType="fade">
-        <View style={modalStyles.overlay}>
-          <View style={modalStyles.box}>
-            <View
-              style={[
-                modalStyles.iconCircle,
-                {
-                  backgroundColor: isOfflineSuccess
-                    ? '#e67e22'
-                    : companyColor ?? '#93D500',
-                },
-              ]}>
-              <Text style={modalStyles.iconCheck}>
-                {isOfflineSuccess ? '📴' : '✓'}
-              </Text>
-            </View>
-            <Text style={modalStyles.title}>
-              {isOfflineSuccess ? 'บันทึกแล้ว' : 'สำเร็จ'}
-            </Text>
-            <Text style={modalStyles.message}>
-              {successMessage || 'บันทึกข้อมูลสำเร็จ'}
-            </Text>
-            <Pressable
-              style={({pressed}) => [
-                modalStyles.fullBtn,
-                {
-                  backgroundColor: pressed
-                    ? darkenColor(
-                        isOfflineSuccess
-                          ? '#e67e22'
-                          : companyColor ?? '#93D500',
-                        0.2,
-                      )
-                    : isOfflineSuccess
-                    ? '#e67e22'
-                    : companyColor ?? '#93D500',
-                },
-              ]}
-              onPress={() => {
-                setShowSuccess(false);
-                if (fromScreen === 'NotificationList') {
-                  navigation.navigate('NotificationList');
-                } else {
-                  navigation.goBack();
-                }
-              }}>
-              <Text style={modalStyles.confirmText}>ตกลง</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <CustomModal
+        visible={showSuccess}
+        icon={isOfflineSuccess ? '📴' : '✓'}
+        iconBackgroundColor={
+          isOfflineSuccess ? '#E67E22' : companyColor ?? '#93D500'
+        }
+        title={isOfflineSuccess ? 'บันทึกแล้ว' : 'สำเร็จ'}
+        message={successMessage || 'บันทึกข้อมูลสำเร็จ'}
+        buttons={[
+          {
+            text: 'ตกลง',
+            color: isOfflineSuccess ? '#E67E22' : companyColor ?? '#93D500',
+            onPress: () => {
+              setShowSuccess(false);
+
+              if (fromScreen === 'NotificationList') {
+                navigation.navigate('NotificationList');
+              } else {
+                navigation.goBack();
+              }
+            },
+          },
+        ]}
+      />
 
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
@@ -1341,61 +1291,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     overflow: 'hidden',
   },
-});
-
-// ── Modal Styles ──
-const modalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  box: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    width: '80%',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  iconText: {color: '#fff', fontSize: 30, fontWeight: 'bold'},
-  iconCheck: {color: '#fff', fontSize: 28, fontWeight: 'bold'},
-  title: {
-    fontSize: 20,
-    fontFamily: 'Quicksand-Bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  message: {
-    fontSize: 14,
-    color: '#555',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-    fontFamily: 'Quicksand-Regular',
-  },
-  buttons: {flexDirection: 'row', gap: 12, width: '100%'},
-  cancelBtn: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    alignItems: 'center',
-  },
-  cancelText: {color: '#666', fontSize: 15, fontFamily: 'Quicksand-Bold'},
-  confirmBtn: {flex: 1, padding: 12, borderRadius: 8, alignItems: 'center'},
-  confirmText: {color: '#fff', fontSize: 15, fontFamily: 'Quicksand-Bold'},
-  fullBtn: {width: '100%', padding: 12, borderRadius: 8, alignItems: 'center'},
 });
 
 export default ViewDetailScreen;

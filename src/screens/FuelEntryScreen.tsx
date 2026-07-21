@@ -19,19 +19,17 @@ import {Button} from 'react-native-elements';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import DatePicker, {DateType} from 'react-native-ui-datepicker';
 import {RootStackParamList} from '../types/navigationTypes';
-
 import {AuthContext} from '../context/AuthProvider';
 import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
-
 import Icon from 'react-native-vector-icons/Feather';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import CalenderTGL from '../../assets/CalendarThaiGL.svg';
-
+import CustomModal from '../components/Modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
 
 const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
-  const {user,companyColor} = useContext(AuthContext)!;
+  const {user, companyColor} = useContext(AuthContext)!;
 
   // STATE
   const [license_no, setlicense_no] = useState('');
@@ -158,7 +156,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <StatusBar  backgroundColor={companyColor} barStyle="light-content" />
+        <StatusBar backgroundColor={companyColor} barStyle="light-content" />
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -343,109 +341,66 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
         </View>
 
         {/* CONFIRM MODAL */}
-        <Modal transparent visible={showConfirm} animationType="fade">
-          <View style={modalStyles.overlay}>
-            <View style={modalStyles.box}>
-              <View
-                style={[modalStyles.iconCircle, {backgroundColor: '#93D500'}]}>
-                <Text style={modalStyles.iconText}>!</Text>
-              </View>
+        <CustomModal
+          visible={showConfirm}
+          icon="!"
+          iconBackgroundColor="#93D500"
+          title="บันทึก"
+          message="ต้องการบันทึกข้อมูล ใช่ไหม?"
+          buttons={[
+            {
+              text: 'ยกเลิก',
+              color: '#FFFFFF',
+              textColor: '#000000',
+              borderColor: '#000000',
+              onPress: () => setShowConfirm(false),
+            },
+            {
+              text: 'ตกลง',
+              color: '#93D500',
+              onPress: () => {
+                setShowConfirm(false);
 
-              <Text style={modalStyles.title}>บันทึก</Text>
-
-              <Text style={modalStyles.message}>
-                ต้องการบันทึก "ข้อมูล" ใช่ไหม ?
-              </Text>
-
-              <View style={modalStyles.buttons}>
-                <Pressable
-                  style={({pressed}) => [
-                    modalStyles.cancelBtn,
-                    {
-                      backgroundColor: pressed ? '#E0E0E0' : '#FFFFFF',
-                    },
-                  ]}
-                  onPress={() => setShowConfirm(false)}>
-                  <Text style={modalStyles.cancelText}>ยกเลิก</Text>
-                </Pressable>
-
-                <Pressable
-                  style={({pressed}) => [
-                    modalStyles.confirmBtn,
-                    {
-                      backgroundColor: pressed ? '#7AB100' : '#93D500',
-                    },
-                  ]}
-                  onPress={() => {
-                    setShowConfirm(false);
-
-                    setTimeout(() => {
-                      handleSubmit();
-                    }, 100);
-                  }}>
-                  <Text style={modalStyles.confirmText}>ยืนยัน</Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Modal>
+                setTimeout(() => {
+                  handleSubmit();
+                }, 100);
+              },
+            },
+          ]}
+        />
 
         {/* WARNING MODAL */}
-        <Modal transparent visible={showWarning} animationType="fade">
-          <View style={modalStyles.overlay}>
-            <View style={modalStyles.box}>
-              <View
-                style={[modalStyles.iconCircle, {backgroundColor: '#F5A800'}]}>
-                <Text style={modalStyles.iconText}>!</Text>
-              </View>
-
-              <Text style={modalStyles.title}>แจ้งเตือน</Text>
-
-              <Text style={modalStyles.message}>กรุณากรอกข้อมูลให้ครบถ้วน</Text>
-
-              <Pressable
-                style={({pressed}) => [
-                  modalStyles.singleButton,
-                  {
-                    backgroundColor: pressed ? '#7AB100' : '#93D500',
-                  },
-                ]}
-                onPress={() => setShowWarning(false)}>
-                <Text style={modalStyles.confirmText}>ตกลง</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
+        <CustomModal
+          visible={showWarning}
+          icon="!"
+          title="แจ้งเตือน"
+          message="กรุณากรอกข้อมูลให้ครบถ้วน"
+          buttons={[
+            {
+              text: 'ตกลง',
+              color: '#93D500',
+              onPress: () => setShowWarning(false),
+            },
+          ]}
+        />
 
         {/* SUCCESS MODAL */}
-        <Modal transparent visible={showSuccess} animationType="fade">
-          <View style={modalStyles.overlay}>
-            <View style={modalStyles.box}>
-              <View
-                style={[modalStyles.iconCircle, {backgroundColor: '#93D500'}]}>
-                <Text style={modalStyles.iconCheck}>✓</Text>
-              </View>
-
-              <Text style={modalStyles.title}>สำเร็จ</Text>
-
-              <Text style={modalStyles.message}>{successMessage}</Text>
-
-              <Pressable
-                style={({pressed}) => [
-                  modalStyles.singleButton,
-                  {
-                    backgroundColor: pressed ? '#7AB100' : '#93D500',
-                  },
-                ]}
-                onPress={() => {
-                  setShowSuccess(false);
-                  navigation.goBack();
-                }}>
-                <Text style={modalStyles.confirmText}>ตกลง</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
+        <CustomModal
+          visible={showSuccess}
+          icon="✓"
+          title="สำเร็จ"
+          message={successMessage}
+          buttons={[
+            {
+              text: 'ตกลง',
+              color: '#93D500',
+              onPress: () => {
+                setShowSuccess(false);
+                navigation.goBack();
+              },
+            },
+          ]}
+        />
       </View>
     </SafeAreaView>
   );
@@ -620,106 +575,6 @@ const styles = StyleSheet.create({
 
   iconcalender: {
     marginLeft: 10,
-  },
-});
-
-const modalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 30,
-  },
-
-  box: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 24,
-    alignItems: 'center',
-  },
-
-  iconCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 18,
-  },
-
-  iconText: {
-    fontSize: 38,
-    color: '#fff',
-    fontFamily: 'Quicksand-Bold',
-  },
-
-  iconCheck: {
-    fontSize: 34,
-    color: '#fff',
-    fontFamily: 'Quicksand-Bold',
-  },
-
-  title: {
-    fontSize: 32,
-    color: '#222',
-    fontFamily: 'Quicksand-Bold',
-    marginBottom: 10,
-  },
-
-  message: {
-    fontSize: 14,
-    color: '#373737',
-    textAlign: 'center',
-    fontFamily: 'Quicksand-Medium',
-    marginBottom: 24,
-  },
-
-  buttons: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
-  },
-
-  cancelBtn: {
-    flex: 1,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#000000',
-  },
-
-  confirmBtn: {
-    flex: 1,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 10,
-  },
-
-  singleButton: {
-    width: '70%',
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  cancelText: {
-    color: '#333',
-    fontSize: 14,
-    fontFamily: 'Quicksand-Bold',
-  },
-
-  confirmText: {
-    color: '#fff',
-    fontSize: 14,
-    fontFamily: 'Quicksand-Bold',
   },
 });
 

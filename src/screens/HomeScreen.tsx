@@ -10,7 +10,6 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Keyboard,
-  Modal,
   Pressable,
   StatusBar,
 } from 'react-native';
@@ -22,6 +21,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {RootStackParamList} from '../types/navigationTypes';
 import {AuthContext} from '../context/AuthProvider';
 import {getBaseUrlByCompany, API_ENDPOINTS} from '../config/apiConfig';
+import CustomModal from '../components/Modal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -30,7 +30,7 @@ const {width} = Dimensions.get('window');
 const HomeScreen: React.FC<Props> = ({navigation}) => {
   const {user, companyColor} = useContext(AuthContext)!;
 
-   useEffect(() => {
+  useEffect(() => {
     StatusBar.setBarStyle('dark-content', true);
     StatusBar.setBackgroundColor('#F9F9F9', true);
   }, []);
@@ -48,7 +48,10 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   // ฟังก์ชันจัดรูปแบบตัวอักษรหมายเลขติดตามพัสดุ (XX-XX-XXXXX)
   const formatRequestId = (value: string) => {
     let cleaned = value.replace(/-/g, '');
-    const letters = cleaned.slice(0, 2).replace(/[^A-Za-z]/g, '').toUpperCase();
+    const letters = cleaned
+      .slice(0, 2)
+      .replace(/[^A-Za-z]/g, '')
+      .toUpperCase();
     const digits = cleaned.slice(2).replace(/[^0-9]/g, '');
     const raw = (letters + digits).slice(0, 9);
 
@@ -75,7 +78,6 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
       if (!obj.error && obj.Track && obj.Track.length > 0) {
         navigation.navigate('Tracking', {requestId: searchId});
       } else {
-        setAlertMessage(obj.message || 'ไม่พบข้อมูลหมายเลขนี้');
         setShowAlert(true);
       }
     } catch (e) {
@@ -88,27 +90,11 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <>
-      {/* โมดอลแจ้งเตือนเมื่อพบข้อผิดพลาดหรือข้อความจากระบบ */}
-      <Modal transparent visible={showAlert} animationType="fade">
-        <View style={modalStyles.overlay}>
-          <View style={modalStyles.container}>
-            <View style={modalStyles.iconBadge}>
-              <Text style={modalStyles.iconText}>!</Text>
-            </View>
-            <Text style={modalStyles.title}>แจ้งเตือน</Text>
-            <Text style={modalStyles.message}>{alertMessage}</Text>
-            <TouchableOpacity
-              style={[modalStyles.actionButton, {backgroundColor: companyColor}]}
-              onPress={() => setShowAlert(false)}>
-              <Text style={modalStyles.actionButtonText}>ตกลง</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
       {/* เนื้อหาหลักของหน้าจอหลัก */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={styles.screenWrapper} edges={['bottom', 'left', 'right']}>
+        <SafeAreaView
+          style={styles.screenWrapper}
+          edges={['bottom', 'left', 'right']}>
           <View style={styles.welcomeWrapper}>
             <Text style={styles.welcomeText}>
               สวัสดี , {user?.name?.split(' ')[0]}
@@ -187,23 +173,35 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         </SafeAreaView>
       </TouchableWithoutFeedback>
 
+      {/* โมดอลแจ้งเตือนเมื่อไม่พบหมายเลขติดตาม */}
+      <CustomModal
+        visible={showAlert}
+        icon="!"
+        title="แจ้งเตือน"
+        message="ไม่พบหมายเลขติดตาม"
+        buttons={[
+          {
+            text: 'ตกลง',
+            color: companyColor,
+            onPress: () => setShowAlert(false),
+          },
+        ]}
+      />
+
       {/* โมดอลแจ้งเตือนเมื่อยังไม่ได้กรอกหมายเลขติดตามพัสดุ */}
-      <Modal transparent visible={showWarning} animationType="fade">
-        <View style={modalStyles.overlay}>
-          <View style={modalStyles.container}>
-            <View style={modalStyles.iconBadge}>
-              <Text style={modalStyles.iconText}>!</Text>
-            </View>
-            <Text style={modalStyles.title}>แจ้งเตือน</Text>
-            <Text style={modalStyles.message}>กรุณาป้อนหมายเลขติดตาม</Text>
-            <TouchableOpacity
-              style={[modalStyles.actionButton, {backgroundColor: companyColor}]}
-              onPress={() => setShowWarning(false)}>
-              <Text style={modalStyles.actionButtonText}>ตกลง</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <CustomModal
+        visible={showWarning}
+        icon="!"
+        title="แจ้งเตือน"
+        message="กรุณาป้อนหมายเลขติดตาม"
+        buttons={[
+          {
+            text: 'ตกลง',
+            color: companyColor,
+            onPress: () => setShowWarning(false),
+          },
+        ]}
+      />
     </>
   );
 };
@@ -212,7 +210,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 const styles = StyleSheet.create({
   screenWrapper: {
     flex: 1,
-     backgroundColor: '#F9F9F9',
+    backgroundColor: '#F9F9F9',
   },
   welcomeWrapper: {
     backgroundColor: '#F9F9F9',
@@ -304,65 +302,6 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     marginRight: 12,
-  },
-});
-
-// การจัดกลุ่มสไตล์ของกล่องข้อความแจ้งเตือน (Modals)
-const modalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 30,
-  },
-  container: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 24,
-    alignItems: 'center',
-    elevation: 5,
-  },
-  iconBadge: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 18,
-    backgroundColor: '#F5A800',
-  },
-  iconText: {
-    fontSize: 38,
-    color: '#fff',
-    fontFamily: 'Quicksand-Bold',
-  },
-  title: {
-    fontSize: 24,
-    color: '#222',
-    fontFamily: 'Quicksand-Bold',
-    marginBottom: 10,
-  },
-  message: {
-    fontSize: 14,
-    color: '#373737',
-    textAlign: 'center',
-    fontFamily: 'Quicksand-Medium',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  actionButton: {
-    width: '70%',
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontFamily: 'Quicksand-Bold',
   },
 });
 
