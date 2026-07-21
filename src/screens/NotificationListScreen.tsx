@@ -199,6 +199,7 @@ const NotificationListScreen: React.FC = () => {
     const statusStyle = getStatusStyle(item.status_name);
     const overdue = isOverdue(item.pickup_date, item.pickup_time);
     const pickupOverdue = isPickupOverdue(item.pickup_date, item.pickup_time);
+    console.log("status : ",item.status_name);
     return (
       <View style={styles.cardWrapper}>
         <TouchableOpacity
