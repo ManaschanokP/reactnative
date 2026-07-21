@@ -17,7 +17,7 @@ import {
   StatusBar,
   SafeAreaView,
 } from 'react-native';
-import {launchCamera} from 'react-native-image-picker';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../types/navigationTypes';
 import {AuthContext} from '../context/AuthProvider';
@@ -150,6 +150,21 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     (needsSignatureRating && !signature) ||
     (needsDetail && !detail.trim());
 
+  const [alertModal, setAlertModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    color?: string;
+  }>({visible: false, title: '', message: '', color: '#F5A800'});
+
+  const showAlertModal = (
+    title: string,
+    message: string,
+    color = '#F5A800',
+  ) => {
+    setAlertModal({visible: true, title, message, color});
+  };
+
   useEffect(() => {
     const checkTracking = async () => {
       const active = await isTrackingActive();
@@ -249,21 +264,21 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
       if (!response.error && response.listStatus.length > 0) {
         let names = response.listStatus.map((s: any) => s.status_name);
-        if (item.status_id === 'SD05') {
-          names = Object.keys(STATUS_ID_MAP).filter(
-            name =>
-              ![
-                'รอดำเนินการ',
-                'ใช้บริการ Outsource',
-                'มอบหมายงานสำเร็จ',
-                'กำลังไปรับของ',
-                'ขึ้นของ',
-                'กำลังจัดส่ง',
-                'เช็คอิน',
-                'การจัดส่งสำเร็จ',
-              ].includes(name),
-          );
-        }
+        // if (item.status_id === 'SD05') {
+        //   names = Object.keys(STATUS_ID_MAP).filter(
+        //     name =>
+        //       ![
+        //         'รอดำเนินการ',
+        //         'ใช้บริการ Outsource',
+        //         'มอบหมายงานสำเร็จ',
+        //         'กำลังไปรับของ',
+        //         'ขึ้นของ',
+        //         'กำลังจัดส่ง',
+        //         'เช็คอิน',
+        //         'การจัดส่งสำเร็จ',
+        //       ].includes(name),
+        //   );
+        // }
         setStatusList(names);
         setSelectedStatus(names[0]);
       } else if (item.status_id === 'SD07') {
@@ -301,6 +316,46 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     }
   };
 
+  const handlePickPhoto = async () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        includeBase64: false,
+        quality: 1,
+      },
+      async response => {
+        if (response.didCancel || response.errorCode) return;
+        const asset = response.assets?.[0];
+        if (!asset?.uri) return;
+
+        try {
+          const resized = await ImageResizer.createResizedImage(
+            asset.uri,
+            1920,
+            1920,
+            'JPEG',
+            80,
+            0,
+            undefined,
+            false,
+            {mode: 'contain'},
+          );
+
+          const base64 = await RNFS.readFile(resized.uri, 'base64');
+          const sizeKB = Math.round((base64.length * 3) / 4 / 1024);
+          console.log(`[Photo] หลัง resize: ${sizeKB} KB`);
+
+          const photoData = {uri: asset.uri, base64};
+          setPhoto(photoData);
+          photoRef.current = photoData;
+        } catch (err) {
+          console.error('[Photo] resize error:', err);
+          showAlertModal('ข้อผิดพลาด', 'ไม่สามารถประมวลผลรูปได้', '#e74c3c');
+        }
+      },
+    );
+  };
+
   const handleTakePhoto = async () => {
     if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(
@@ -313,7 +368,11 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
         },
       );
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert('ไม่ได้รับสิทธิ์', 'กรุณาเปิดสิทธิ์กล้องในการตั้งค่าแอป');
+        showAlertModal(
+          'ไม่ได้รับสิทธิ์',
+          'กรุณาเปิดสิทธิ์กล้องในการตั้งค่าแอป',
+          '#e74c3c',
+        );
         return;
       }
     }
@@ -351,7 +410,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           console.log(`[Photo] หลัง resize: ${sizeKB} KB`);
 
           if (sizeKB > 200 * 1024) {
-            Alert.alert(
+            showAlertModal(
               'รูปใหญ่เกินไป',
               `ขนาด ${sizeKB} KB เกิน 200MB\nกรุณาถ่ายใหม่`,
             );
@@ -365,7 +424,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           photoRef.current = photoData;
         } catch (err) {
           console.error('[Photo] resize error:', err);
-          Alert.alert('ข้อผิดพลาด', 'ไม่สามารถประมวลผลรูปได้');
+          showAlertModal('ข้อผิดพลาด', 'ไม่สามารถประมวลผลรูปได้', '#e74c3c');
         }
       },
     );
@@ -381,23 +440,23 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const handleUpdate = () => {
     const status_id = STATUS_ID_MAP[selectedStatus] ?? '';
     if (!status_id) {
-      Alert.alert('ข้อผิดพลาด', 'ไม่พบรหัสสถานะ');
+      showAlertModal('ข้อผิดพลาด', 'ไม่พบรหัสสถานะ');
       return;
     }
     if (needsPhoto && !photo) {
-      Alert.alert('แจ้งเตือน', 'กรุณาถ่ายรูปก่อนอัปเดตสถานะนี้');
+      showAlertModal('แจ้งเตือน', 'กรุณาถ่ายรูปก่อนอัปเดตสถานะนี้');
       return;
     }
     if (needsBox && !box.trim()) {
-      Alert.alert('แจ้งเตือน', 'กรุณากรอกจำนวนกล่อง');
+      showAlertModal('แจ้งเตือน', 'กรุณากรอกจำนวนกล่อง');
       return;
     }
     if (needsMile && !mile.trim()) {
-      Alert.alert('แจ้งเตือน', 'กรุณากรอกเลขไมล์');
+      showAlertModal('แจ้งเตือน', 'กรุณากรอกเลขไมล์');
       return;
     }
     if (needsDetail && !detail.trim()) {
-      Alert.alert('แจ้งเตือน', 'กรุณาระบุรายละเอียดของปัญหา');
+      showAlertModal('แจ้งเตือน', 'กรุณาระบุรายละเอียดของปัญหา');
       return;
     }
 
@@ -563,7 +622,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
       setSuccessMessage(response.message);
       setShowSuccess(true);
     } catch (err: any) {
-      Alert.alert('ข้อผิดพลาด', 'อัปเดตสถานะไม่สำเร็จ');
+      showAlertModal('ข้อผิดพลาด', 'อัปเดตสถานะไม่สำเร็จ', '#e74c3c');
       console.error(err);
     } finally {
       setUpdating(false);
@@ -588,6 +647,37 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
   return (
     <>
+      {/* ── Alert Modal ── */}
+      <Modal transparent visible={alertModal.visible} animationType="fade">
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.box}>
+            <View
+              style={[
+                modalStyles.iconCircle,
+                {backgroundColor: alertModal.color ?? '#F5A800'},
+              ]}>
+              <Text style={modalStyles.iconText}>!</Text>
+            </View>
+            <Text style={modalStyles.title}>{alertModal.title}</Text>
+            <Text style={modalStyles.message}>{alertModal.message}</Text>
+            <Pressable
+              style={({pressed}) => [
+                modalStyles.fullBtn,
+                {
+                  backgroundColor: pressed
+                    ? darkenColor(companyColor ?? '#93D500', 0.2)
+                    : companyColor ?? '#93D500',
+                },
+              ]}
+              onPress={() =>
+                setAlertModal(prev => ({...prev, visible: false}))
+              }>
+              <Text style={modalStyles.confirmText}>ตกลง</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       {/* ── Confirm Modal ── */}
       <Modal transparent visible={showConfirm} animationType="fade">
         <View style={modalStyles.overlay}>
@@ -800,24 +890,39 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                   {/* ── ถ่ายรูป ── */}
                   {needsPhoto && (
                     <View style={styles.photoSection}>
-                      <TouchableOpacity
-                        style={[
-                          styles.photoButton,
-                          {
-                            backgroundColor: isPhotoPressed
-                              ? '#2d5fd4'
-                              : '#4E80FF',
-                          },
-                        ]}
-                        onPressIn={() => setIsPhotoPressed(true)}
-                        onPressOut={() => setIsPhotoPressed(false)}
-                        onPress={handleTakePhoto}
-                        activeOpacity={1}>
-                        <Icon name="camera-alt" size={18} color="#fff" />
-                        <Text style={styles.photoButtonText}>
-                          {photo ? '  ถ่ายรูปใหม่' : '  ถ่ายรูป (จำเป็น)'}
-                        </Text>
-                      </TouchableOpacity>
+                      <View style={styles.photoButtons}>
+                        <TouchableOpacity
+                          style={[
+                            styles.photoButton,
+                            {
+                              backgroundColor: isPhotoPressed
+                                ? '#2d5fd4'
+                                : '#4E80FF',
+                            },
+                          ]}
+                          onPressIn={() => setIsPhotoPressed(true)}
+                          onPressOut={() => setIsPhotoPressed(false)}
+                          onPress={handleTakePhoto}
+                          activeOpacity={1}>
+                          <Icon name="camera-alt" size={18} color="#fff" />
+                          <Text style={styles.photoButtonText}>
+                            {' '}
+                            {photo ? 'ถ่ายใหม่' : 'ถ่ายรูป'}
+                          </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[
+                            styles.photoButton,
+                            {backgroundColor: '#4E80FF'},
+                          ]}
+                          onPress={handlePickPhoto}
+                          activeOpacity={0.8}>
+                          <Icon name="photo-library" size={18} color="#fff" />
+                          <Text style={styles.photoButtonText}> อัลบั้ม</Text>
+                        </TouchableOpacity>
+                      </View>
+
                       {photo && (
                         <Image
                           source={{uri: photo.uri}}
@@ -826,7 +931,7 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
                       )}
                       {!photo && (
                         <Text style={styles.photoHint}>
-                          * สถานะนี้ต้องถ่ายรูปก่อนยืนยัน
+                          * สถานะนี้ต้องแนบรูปก่อนยืนยัน
                         </Text>
                       )}
                     </View>
@@ -1226,11 +1331,18 @@ const styles = StyleSheet.create({
   },
 
   photoSection: {marginVertical: 12, alignItems: 'center'},
+
+  photoButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+
   photoButton: {
     flexDirection: 'row',
     padding: 12,
     borderRadius: 12,
     width: '50%',
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

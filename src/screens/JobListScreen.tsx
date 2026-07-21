@@ -1,4 +1,4 @@
-import React, {useState, useContext, useCallback} from 'react';
+import React, {useState, useContext, useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ import StatusPackage from '../../assets/Status-Package.svg';
 import StatusCar from '../../assets/Status-Car.svg';
 import CalenderTGL from '../../assets/CalendarThaiGL.svg';
 import LicenseCar from '../../assets/car.svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobList'>;
 
@@ -100,9 +101,21 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
   const [error, setError] = useState<string | null>(null);
 
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [datesLoaded, setDatesLoaded] = useState(false);
 
   const {width} = useWindowDimensions();
   const numColumns = width >= 600 ? 2 : 1;
+
+  useEffect(() => {
+    const loadDates = async () => {
+      const savedStart = await AsyncStorage.getItem('filter_start_date');
+       const savedStatus = await AsyncStorage.getItem('filter_status');
+      if (savedStart) setStartDate(new Date(savedStart));
+      if (savedStatus) setStatus(savedStatus);
+      setDatesLoaded(true); 
+    };
+    loadDates();
+  }, []);
 
   const isOverdue = (dateStr: string, timeStr: string): boolean => {
     try {
@@ -133,12 +146,16 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const handleStartDateChange = (params: {date: DateType}) => {
-    if (params.date instanceof Date) {
-      setStartDate(params.date);
-      if (params.date > endDate) setEndDate(params.date);
-      setShowStartPicker(false);
+  if (params.date instanceof Date) {
+    setStartDate(params.date);
+    AsyncStorage.setItem('filter_start_date', params.date.toISOString()); // ✅ save
+    if (params.date > endDate) {
+      setEndDate(params.date);
+      AsyncStorage.setItem('filter_end_date', params.date.toISOString()); // ✅ save
     }
-  };
+    setShowStartPicker(false);
+  }
+};
 
   const handleEndDateChange = (params: {date: DateType}) => {
     if (params.date instanceof Date) {
@@ -179,7 +196,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
         });
 
         const filtered = sorted.filter(job => {
-          if (currentStatus === '01') return true;
+          if (currentStatus === '01') return job.status_id !== 'S002';
 
           if (currentStatus === '02') {
             return (
@@ -219,10 +236,11 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
     [user.id, startDate, endDate, status],
   );
   useFocusEffect(
-    useCallback(() => {
-      fetchJobs();
-    }, [fetchJobs]),
-  );
+  useCallback(() => {
+    if (!datesLoaded) return; // ✅ รอโหลดก่อน
+    fetchJobs(status);
+  }, [fetchJobs, datesLoaded, status]),
+);
 
   const renderItem = ({item}: {item: JobItem}) => {
     const statusStyle = getStatusStyle(item.status_id, item.status_name);
@@ -482,6 +500,7 @@ const JobListScreen: React.FC<Props> = ({navigation}) => {
                     style={styles.dropdownItem}
                     onPress={() => {
                       setStatus(opt.value);
+                       AsyncStorage.setItem('filter_status', opt.value);
                       setShowStatusDropdown(false);
                     }}>
                     <Text

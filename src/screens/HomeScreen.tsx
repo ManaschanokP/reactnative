@@ -30,7 +30,7 @@ const {width} = Dimensions.get('window');
 const HomeScreen: React.FC<Props> = ({navigation}) => {
   const {user, companyColor} = useContext(AuthContext)!;
 
-   useEffect(() => {
+  useEffect(() => {
     StatusBar.setBarStyle('dark-content', true);
     StatusBar.setBackgroundColor('#F9F9F9', true);
   }, []);
@@ -48,7 +48,10 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   // ฟังก์ชันจัดรูปแบบตัวอักษรหมายเลขติดตามพัสดุ (XX-XX-XXXXX)
   const formatRequestId = (value: string) => {
     let cleaned = value.replace(/-/g, '');
-    const letters = cleaned.slice(0, 2).replace(/[^A-Za-z]/g, '').toUpperCase();
+    const letters = cleaned
+      .slice(0, 2)
+      .replace(/[^A-Za-z]/g, '')
+      .toUpperCase();
     const digits = cleaned.slice(2).replace(/[^0-9]/g, '');
     const raw = (letters + digits).slice(0, 9);
 
@@ -66,17 +69,46 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
     try {
       setSearching(true);
       const baseUrl = await getBaseUrlByCompany();
-      const url = `${baseUrl}${API_ENDPOINTS.TRACK}`;
-      const formData = new FormData();
-      formData.append('request_id', searchId);
-      const res = await fetch(url, {method: 'POST', body: formData});
-      const obj = await res.json();
 
-      if (!obj.error && obj.Track && obj.Track.length > 0) {
-        navigation.navigate('Tracking', {requestId: searchId});
+      if (user?.status === 'U04') {
+        // ✅ U04 — ดึง job detail แล้วไป ViewDetail
+        const url = `${baseUrl}${API_ENDPOINTS.GET_STATUS_NOW}`;
+        const formData = new FormData();
+        formData.append('request_id', searchId);
+        const res = await fetch(url, {method: 'POST', body: formData});
+        const obj = await res.json();
+
+        if (!obj.error && obj.StatusNow && obj.StatusNow.length > 0) {
+          const job = obj.StatusNow[0];
+          navigation.navigate('ViewDetail', {
+            item: {
+              request_id: job.request_id,
+              status_id: job.status_id,
+              status_name: job.status_name,
+              type_name: job.type_name,
+              to_company: job.to_company,
+              d_date: job.d_date,
+              d_time: job.d_time ?? '',
+            },
+          });
+        } else {
+          setAlertMessage(obj.message || 'ไม่พบข้อมูลหมายเลขนี้');
+          setShowAlert(true);
+        }
       } else {
-        setAlertMessage(obj.message || 'ไม่พบข้อมูลหมายเลขนี้');
-        setShowAlert(true);
+        // ✅ user อื่นๆ — ไป Tracking เหมือนเดิม
+        const url = `${baseUrl}${API_ENDPOINTS.TRACK}`;
+        const formData = new FormData();
+        formData.append('request_id', searchId);
+        const res = await fetch(url, {method: 'POST', body: formData});
+        const obj = await res.json();
+
+        if (!obj.error && obj.Track && obj.Track.length > 0) {
+          navigation.navigate('Tracking', {requestId: searchId});
+        } else {
+          setAlertMessage(obj.message || 'ไม่พบข้อมูลหมายเลขนี้');
+          setShowAlert(true);
+        }
       }
     } catch (e) {
       setAlertMessage('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
@@ -98,7 +130,10 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
             <Text style={modalStyles.title}>แจ้งเตือน</Text>
             <Text style={modalStyles.message}>{alertMessage}</Text>
             <TouchableOpacity
-              style={[modalStyles.actionButton, {backgroundColor: companyColor}]}
+              style={[
+                modalStyles.actionButton,
+                {backgroundColor: companyColor},
+              ]}
               onPress={() => setShowAlert(false)}>
               <Text style={modalStyles.actionButtonText}>ตกลง</Text>
             </TouchableOpacity>
@@ -108,7 +143,9 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 
       {/* เนื้อหาหลักของหน้าจอหลัก */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={styles.screenWrapper} edges={['bottom', 'left', 'right']}>
+        <SafeAreaView
+          style={styles.screenWrapper}
+          edges={['bottom', 'left', 'right']}>
           <View style={styles.welcomeWrapper}>
             <Text style={styles.welcomeText}>
               สวัสดี , {user?.name?.split(' ')[0]}
@@ -156,7 +193,10 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
                 styles.menuButton,
                 pressed && styles.menuButtonPressed,
               ]}
-              onPress={() => navigation.navigate('Scan')}>
+              onPress={() => {
+                console.log('🔍 navigating to Scan');
+                navigation.navigate('Scan');
+              }}>
               <Icon
                 name="qr-code-scanner"
                 size={28}
@@ -196,7 +236,10 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
             <Text style={modalStyles.title}>แจ้งเตือน</Text>
             <Text style={modalStyles.message}>กรุณาป้อนหมายเลขติดตาม</Text>
             <TouchableOpacity
-              style={[modalStyles.actionButton, {backgroundColor: companyColor}]}
+              style={[
+                modalStyles.actionButton,
+                {backgroundColor: companyColor},
+              ]}
               onPress={() => setShowWarning(false)}>
               <Text style={modalStyles.actionButtonText}>ตกลง</Text>
             </TouchableOpacity>
@@ -211,7 +254,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
 const styles = StyleSheet.create({
   screenWrapper: {
     flex: 1,
-     backgroundColor: '#F9F9F9',
+    backgroundColor: '#F9F9F9',
   },
   welcomeWrapper: {
     backgroundColor: '#F9F9F9',

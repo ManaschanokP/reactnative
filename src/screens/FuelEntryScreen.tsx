@@ -27,11 +27,10 @@ import Icon from 'react-native-vector-icons/Feather';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import CalenderTGL from '../../assets/CalendarThaiGL.svg';
 
-
 type Props = NativeStackScreenProps<RootStackParamList, 'FuelEntry'>;
 
 const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
-  const {user,companyColor} = useContext(AuthContext)!;
+  const {user, companyColor} = useContext(AuthContext)!;
 
   // STATE
   const [license_no, setlicense_no] = useState('');
@@ -53,6 +52,9 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   //FETCH LICENSE
   const fetchLicenseList = async () => {
@@ -141,15 +143,15 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
         setSuccessMessage('บันทึกข้อมูลการเติมน้ำมันเรียบร้อยแล้ว');
         setShowSuccess(true);
       } else {
-        Alert.alert(
-          'เกิดข้อผิดพลาด',
-          obj.message || 'ไม่สามารถบันทึกข้อมูลได้',
-        );
+        setErrorMessage(obj.message || 'ไม่สามารถบันทึกข้อมูลได้');
+        setShowError(true);
+        
       }
     } catch (error) {
       console.error('Submit Fuel Error:', error);
 
-      Alert.alert('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+      setErrorMessage('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+      setShowError(true);
     } finally {
       setLoading(false);
     }
@@ -158,7 +160,7 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <StatusBar  backgroundColor={companyColor} barStyle="light-content" />
+        <StatusBar backgroundColor={companyColor} barStyle="light-content" />
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -441,6 +443,32 @@ const FuelEntryScreen: React.FC<Props> = ({navigation}) => {
                   setShowSuccess(false);
                   navigation.goBack();
                 }}>
+                <Text style={modalStyles.confirmText}>ตกลง</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+
+        {/* ERROR MODAL */}
+        <Modal transparent visible={showError} animationType="fade">
+          <View style={modalStyles.overlay}>
+            <View style={modalStyles.box}>
+              <View
+                style={[modalStyles.iconCircle, {backgroundColor: '#e74c3c'}]}>
+                <Text style={modalStyles.iconText}>!</Text>
+              </View>
+              <Text style={modalStyles.title}>ข้อผิดพลาด</Text>
+              <Text style={modalStyles.message}>{errorMessage}</Text>
+              <Pressable
+                style={({pressed}) => [
+                  modalStyles.singleButton,
+                  {
+                    backgroundColor: pressed
+                      ? '#7AB100'
+                      : companyColor ?? '#93D500',
+                  },
+                ]}
+                onPress={() => setShowError(false)}>
                 <Text style={modalStyles.confirmText}>ตกลง</Text>
               </Pressable>
             </View>
