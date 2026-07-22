@@ -151,19 +151,19 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
     (needsSignatureRating && !signature) ||
     (needsDetail && !detail.trim());
 
-  const [alertModal, setAlertModal] = useState<{
+  const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     title: string;
     message: string;
-    color?: string;
-  }>({visible: false, title: '', message: '', color: '#F5A800'});
+    iconColor: string;
+  }>({visible: false, title: '', message: '', iconColor: '#F5A800'});
 
   const showAlertModal = (
     title: string,
     message: string,
-    color = '#F5A800',
+    iconColor = '#F5A800',
   ) => {
-    setAlertModal({visible: true, title, message, color});
+    setAlertConfig({visible: true, title, message, iconColor});
   };
 
   useEffect(() => {
@@ -265,21 +265,6 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
       if (!response.error && response.listStatus.length > 0) {
         let names = response.listStatus.map((s: any) => s.status_name);
-        // if (item.status_id === 'SD05') {
-        //   names = Object.keys(STATUS_ID_MAP).filter(
-        //     name =>
-        //       ![
-        //         'รอดำเนินการ',
-        //         'ใช้บริการ Outsource',
-        //         'มอบหมายงานสำเร็จ',
-        //         'กำลังไปรับของ',
-        //         'ขึ้นของ',
-        //         'กำลังจัดส่ง',
-        //         'เช็คอิน',
-        //         'การจัดส่งสำเร็จ',
-        //       ].includes(name),
-        //   );
-        // }
         setStatusList(names);
         setSelectedStatus(names[0]);
       } else if (item.status_id === 'SD07') {
@@ -639,35 +624,20 @@ const ViewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   return (
     <>
       {/* ── Alert Modal ── */}
-      <Modal transparent visible={alertModal.visible} animationType="fade">
-        <View style={modalStyles.overlay}>
-          <View style={modalStyles.box}>
-            <View
-              style={[
-                modalStyles.iconCircle,
-                {backgroundColor: alertModal.color ?? '#F5A800'},
-              ]}>
-              <Text style={modalStyles.iconText}>!</Text>
-            </View>
-            <Text style={modalStyles.title}>{alertModal.title}</Text>
-            <Text style={modalStyles.message}>{alertModal.message}</Text>
-            <Pressable
-              style={({pressed}) => [
-                modalStyles.fullBtn,
-                {
-                  backgroundColor: pressed
-                    ? darkenColor(companyColor ?? '#93D500', 0.2)
-                    : companyColor ?? '#93D500',
-                },
-              ]}
-              onPress={() =>
-                setAlertModal(prev => ({...prev, visible: false}))
-              }>
-              <Text style={modalStyles.confirmText}>ตกลง</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <CustomModal
+        visible={alertConfig.visible}
+        icon="!"
+        iconBackgroundColor={alertConfig.iconColor}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={[
+          {
+            text: 'ตกลง',
+            color: companyColor ?? '#93D500',
+            onPress: () => setAlertConfig(prev => ({...prev, visible: false})),
+          },
+        ]}
+      />
 
       {/* ── Confirm Modal ── */}
       <CustomModal
